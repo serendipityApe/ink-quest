@@ -1,0 +1,5085 @@
+{
+  "story_id": "last-train",
+  "target_lang": "zh",
+  "gloss_lang": "en",
+  "title_cn": "末班地铁",
+  "title_en": "The Last Train",
+  "level": "HSK 4",
+  "level_system": "HSK",
+  "nodes": {
+    "start": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "末班",
+          "reading": "mò bān",
+          "meaning": "last (scheduled run)",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "地铁",
+          "reading": "dì tiě",
+          "meaning": "subway",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "缓缓",
+          "reading": "huǎn huǎn",
+          "meaning": "slowly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "进站",
+          "reading": "jìn zhàn",
+          "meaning": "pull into the station",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "拖着",
+          "reading": "tuō zhe",
+          "meaning": "dragging",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "疲惫",
+          "reading": "pí bèi",
+          "meaning": "exhausted",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "身体",
+          "reading": "shēn tǐ",
+          "meaning": "body",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "走进",
+          "reading": "zǒu jìn",
+          "meaning": "walk into",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "车厢",
+          "reading": "chē xiāng",
+          "meaning": "train carriage",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "报站声",
+          "reading": "bào zhàn shēng",
+          "meaning": "station announcement",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "忽然",
+          "reading": "hū rán",
+          "meaning": "suddenly",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "响起",
+          "reading": "xiǎng qǐ",
+          "meaning": "ring out; sound",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "那个",
+          "reading": "nà gè",
+          "meaning": "that",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "站名",
+          "reading": "zhàn míng",
+          "meaning": "station name",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "从来",
+          "reading": "cóng lái",
+          "meaning": "ever; always",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "没有",
+          "reading": "méi yǒu",
+          "meaning": "have not",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "听过",
+          "reading": "tīng guò",
+          "meaning": "heard before",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "车厢",
+          "reading": "chē xiāng",
+          "meaning": "train carriage",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "里",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "坐满了",
+          "reading": "zuò mǎn le",
+          "meaning": "fully seated",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "乘客",
+          "reading": "chéng kè",
+          "meaning": "passenger",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "却",
+          "reading": "què",
+          "meaning": "yet; but",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "安静",
+          "reading": "ān jìng",
+          "meaning": "quiet",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "得",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "诡异",
+          "reading": "guǐ yì",
+          "meaning": "eerie; weird",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 560
+        },
+        {
+          "start": 560,
+          "end": 1120
+        },
+        {
+          "start": 1120,
+          "end": 1680
+        },
+        {
+          "start": 1680,
+          "end": 2240
+        },
+        {
+          "start": 2240,
+          "end": 2390
+        },
+        {
+          "start": 2390,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 3150
+        },
+        {
+          "start": 3150,
+          "end": 3710
+        },
+        {
+          "start": 3710,
+          "end": 3910
+        },
+        {
+          "start": 3910,
+          "end": 4470
+        },
+        {
+          "start": 4470,
+          "end": 5030
+        },
+        {
+          "start": 5030,
+          "end": 5590
+        },
+        {
+          "start": 5590,
+          "end": 5740
+        },
+        {
+          "start": 5740,
+          "end": 6480
+        },
+        {
+          "start": 6480,
+          "end": 7040
+        },
+        {
+          "start": 7040,
+          "end": 7600
+        },
+        {
+          "start": 7600,
+          "end": 7750
+        },
+        {
+          "start": 7750,
+          "end": 8310
+        },
+        {
+          "start": 8310,
+          "end": 8870
+        },
+        {
+          "start": 8870,
+          "end": 9070
+        },
+        {
+          "start": 9070,
+          "end": 9630
+        },
+        {
+          "start": 9630,
+          "end": 10190
+        },
+        {
+          "start": 10190,
+          "end": 10750
+        },
+        {
+          "start": 10750,
+          "end": 10900
+        },
+        {
+          "start": 10900,
+          "end": 11460
+        },
+        {
+          "start": 11460,
+          "end": 11660
+        },
+        {
+          "start": 11660,
+          "end": 12400
+        },
+        {
+          "start": 12400,
+          "end": 12960
+        },
+        {
+          "start": 12960,
+          "end": 13110
+        },
+        {
+          "start": 13110,
+          "end": 13490
+        },
+        {
+          "start": 13490,
+          "end": 14050
+        },
+        {
+          "start": 14050,
+          "end": 14250
+        },
+        {
+          "start": 14250,
+          "end": 14810
+        },
+        {
+          "start": 14810,
+          "end": 14960
+        }
+      ],
+      "choices": [
+        {
+          "text": "A. 观察周围的乘客",
+          "next_node_id": "observe"
+        },
+        {
+          "text": "B. 走到角落与老人搭话",
+          "next_node_id": "talk_old"
+        },
+        {
+          "text": "C. 起身穿过车厢探路",
+          "next_node_id": "explore_car"
+        }
+      ]
+    },
+    "observe": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "悄悄",
+          "reading": "qiāo qiāo",
+          "meaning": "quietly",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "打量",
+          "reading": "dǎ liang",
+          "meaning": "size up; look over",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "四周",
+          "reading": "sì zhōu",
+          "meaning": "all around",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "乘客",
+          "reading": "chéng kè",
+          "meaning": "passenger",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "他们",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "个个",
+          "reading": "gè gè",
+          "meaning": "each and every one",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "低着头",
+          "reading": "dī zhe tóu",
+          "meaning": "head lowered",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "一动不动",
+          "reading": "yī dòng bù dòng",
+          "meaning": "motionless",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "无意中",
+          "reading": "wú yì zhōng",
+          "meaning": "inadvertently",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "瞥见",
+          "reading": "piē jiàn",
+          "meaning": "catch a glimpse of",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "车窗",
+          "reading": "chē chuāng",
+          "meaning": "train window",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "倒影",
+          "reading": "dào yǐng",
+          "meaning": "reflection",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "——",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "玻璃",
+          "reading": "bō li",
+          "meaning": "glass",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "里",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "座位",
+          "reading": "zuò wèi",
+          "meaning": "seat",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "竟然",
+          "reading": "jìng rán",
+          "meaning": "unexpectedly",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "全是",
+          "reading": "quán shì",
+          "meaning": "all are",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "空",
+          "reading": "kōng",
+          "meaning": "empty",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1880
+        },
+        {
+          "start": 1880,
+          "end": 2080
+        },
+        {
+          "start": 2080,
+          "end": 2640
+        },
+        {
+          "start": 2640,
+          "end": 2790
+        },
+        {
+          "start": 2790,
+          "end": 3300
+        },
+        {
+          "start": 3300,
+          "end": 3860
+        },
+        {
+          "start": 3860,
+          "end": 4600
+        },
+        {
+          "start": 4600,
+          "end": 4750
+        },
+        {
+          "start": 4750,
+          "end": 5670
+        },
+        {
+          "start": 5670,
+          "end": 5820
+        },
+        {
+          "start": 5820,
+          "end": 6020
+        },
+        {
+          "start": 6020,
+          "end": 6760
+        },
+        {
+          "start": 6760,
+          "end": 7320
+        },
+        {
+          "start": 7320,
+          "end": 7880
+        },
+        {
+          "start": 7880,
+          "end": 8080
+        },
+        {
+          "start": 8080,
+          "end": 8640
+        },
+        {
+          "start": 8640,
+          "end": 8790
+        },
+        {
+          "start": 8790,
+          "end": 9350
+        },
+        {
+          "start": 9350,
+          "end": 9550
+        },
+        {
+          "start": 9550,
+          "end": 9750
+        },
+        {
+          "start": 9750,
+          "end": 10310
+        },
+        {
+          "start": 10310,
+          "end": 10870
+        },
+        {
+          "start": 10870,
+          "end": 11430
+        },
+        {
+          "start": 11430,
+          "end": 11810
+        },
+        {
+          "start": 11810,
+          "end": 12010
+        },
+        {
+          "start": 12010,
+          "end": 12160
+        }
+      ],
+      "choices": [
+        {
+          "text": "A1. 凑近去看乘客的脸",
+          "next_node_id": "see_faces"
+        },
+        {
+          "text": "A2. 走向那个注视你的老人",
+          "next_node_id": "talk_old"
+        }
+      ]
+    },
+    "see_faces": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "鼓起",
+          "reading": "gǔ qǐ",
+          "meaning": "muster up",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "勇气",
+          "reading": "yǒng qì",
+          "meaning": "courage",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "转头",
+          "reading": "zhuǎn tóu",
+          "meaning": "turn one's head",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "看向",
+          "reading": "kàn xiàng",
+          "meaning": "look toward",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "身边",
+          "reading": "shēn biān",
+          "meaning": "beside one",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "乘客",
+          "reading": "chéng kè",
+          "meaning": "passenger",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "那一刻",
+          "reading": "nà yī kè",
+          "meaning": "at that moment",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "浑身",
+          "reading": "hún shēn",
+          "meaning": "all over the body",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "冰凉",
+          "reading": "bīng liáng",
+          "meaning": "ice-cold",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "——",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "他们",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "全都",
+          "reading": "quán dōu",
+          "meaning": "all",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "没有",
+          "reading": "méi yǒu",
+          "meaning": "have not",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "脸",
+          "reading": "liǎn",
+          "meaning": "face",
+          "level": "HSK 3",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "只有",
+          "reading": "zhǐ yǒu",
+          "meaning": "only",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "一片",
+          "reading": "yī piàn",
+          "meaning": "a stretch of",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "模糊",
+          "reading": "mó hu",
+          "meaning": "blurry; indistinct",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "灰白",
+          "reading": "huī bái",
+          "meaning": "ashen grey",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "一个",
+          "reading": "yī gè",
+          "meaning": "one; a",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "苍老",
+          "reading": "cāng lǎo",
+          "meaning": "aged; old",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "声音",
+          "reading": "shēng yīn",
+          "meaning": "voice",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "在",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "身后",
+          "reading": "shēn hòu",
+          "meaning": "from behind",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "唤",
+          "reading": "huàn",
+          "meaning": "call (out to)",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1470
+        },
+        {
+          "start": 1470,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 3150
+        },
+        {
+          "start": 3150,
+          "end": 3350
+        },
+        {
+          "start": 3350,
+          "end": 3910
+        },
+        {
+          "start": 3910,
+          "end": 4060
+        },
+        {
+          "start": 4060,
+          "end": 4800
+        },
+        {
+          "start": 4800,
+          "end": 4950
+        },
+        {
+          "start": 4950,
+          "end": 5150
+        },
+        {
+          "start": 5150,
+          "end": 5710
+        },
+        {
+          "start": 5710,
+          "end": 6270
+        },
+        {
+          "start": 6270,
+          "end": 6420
+        },
+        {
+          "start": 6420,
+          "end": 6930
+        },
+        {
+          "start": 6930,
+          "end": 7490
+        },
+        {
+          "start": 7490,
+          "end": 8050
+        },
+        {
+          "start": 8050,
+          "end": 8430
+        },
+        {
+          "start": 8430,
+          "end": 8580
+        },
+        {
+          "start": 8580,
+          "end": 9140
+        },
+        {
+          "start": 9140,
+          "end": 9700
+        },
+        {
+          "start": 9700,
+          "end": 10260
+        },
+        {
+          "start": 10260,
+          "end": 10460
+        },
+        {
+          "start": 10460,
+          "end": 11020
+        },
+        {
+          "start": 11020,
+          "end": 11170
+        },
+        {
+          "start": 11170,
+          "end": 11730
+        },
+        {
+          "start": 11730,
+          "end": 12290
+        },
+        {
+          "start": 12290,
+          "end": 12490
+        },
+        {
+          "start": 12490,
+          "end": 13050
+        },
+        {
+          "start": 13050,
+          "end": 13250
+        },
+        {
+          "start": 13250,
+          "end": 13810
+        },
+        {
+          "start": 13810,
+          "end": 14190
+        },
+        {
+          "start": 14190,
+          "end": 14390
+        },
+        {
+          "start": 14390,
+          "end": 14540
+        }
+      ],
+      "choices": [
+        {
+          "text": "B. 走到老人身边",
+          "next_node_id": "talk_old"
+        },
+        {
+          "text": "C. 转身逃向车厢深处",
+          "next_node_id": "explore_car"
+        }
+      ]
+    },
+    "explore_car": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "起身",
+          "reading": "qǐ shēn",
+          "meaning": "rise to one's feet",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "穿过",
+          "reading": "chuān guò",
+          "meaning": "pass through",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "一节节",
+          "reading": "yī jié jié",
+          "meaning": "car after car",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "车厢",
+          "reading": "chē xiāng",
+          "meaning": "train carriage",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "它们",
+          "reading": "tā men",
+          "meaning": "they (things)",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "越来越",
+          "reading": "yuè lái yuè",
+          "meaning": "more and more",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "破旧",
+          "reading": "pò jiù",
+          "meaning": "shabby; worn-out",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "尽头",
+          "reading": "jìn tóu",
+          "meaning": "the far end",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "是",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "一扇",
+          "reading": "yī shàn",
+          "meaning": "one (for doors)",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "驾驶室",
+          "reading": "jià shǐ shì",
+          "meaning": "driver's cab",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "铁门",
+          "reading": "tiě mén",
+          "meaning": "iron door",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "旁边",
+          "reading": "páng biān",
+          "meaning": "beside",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "有",
+          "reading": "yǒu",
+          "meaning": "there is; have",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "一个",
+          "reading": "yī gè",
+          "meaning": "one; a",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "红色",
+          "reading": "hóng sè",
+          "meaning": "red",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "制动闸",
+          "reading": "zhì dòng zhá",
+          "meaning": "emergency brake",
+          "level": "HSK 7",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 2060
+        },
+        {
+          "start": 2060,
+          "end": 2620
+        },
+        {
+          "start": 2620,
+          "end": 2770
+        },
+        {
+          "start": 2770,
+          "end": 3330
+        },
+        {
+          "start": 3330,
+          "end": 4070
+        },
+        {
+          "start": 4070,
+          "end": 4630
+        },
+        {
+          "start": 4630,
+          "end": 4780
+        },
+        {
+          "start": 4780,
+          "end": 5340
+        },
+        {
+          "start": 5340,
+          "end": 5540
+        },
+        {
+          "start": 5540,
+          "end": 6100
+        },
+        {
+          "start": 6100,
+          "end": 6840
+        },
+        {
+          "start": 6840,
+          "end": 7040
+        },
+        {
+          "start": 7040,
+          "end": 7600
+        },
+        {
+          "start": 7600,
+          "end": 7750
+        },
+        {
+          "start": 7750,
+          "end": 8310
+        },
+        {
+          "start": 8310,
+          "end": 8690
+        },
+        {
+          "start": 8690,
+          "end": 9250
+        },
+        {
+          "start": 9250,
+          "end": 9810
+        },
+        {
+          "start": 9810,
+          "end": 10010
+        },
+        {
+          "start": 10010,
+          "end": 10750
+        },
+        {
+          "start": 10750,
+          "end": 10900
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 拉下紧急制动闸",
+          "next_node_id": "pull_brake"
+        },
+        {
+          "text": "2. 推开驾驶室的铁门",
+          "next_node_id": "driver_door"
+        },
+        {
+          "text": "3. 先回座位观察情况",
+          "next_node_id": "observe"
+        }
+      ]
+    },
+    "talk_old": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "走到",
+          "reading": "zǒu dào",
+          "meaning": "walk over to",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "车厢",
+          "reading": "chē xiāng",
+          "meaning": "train carriage",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "角落",
+          "reading": "jiǎo luò",
+          "meaning": "corner",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "那里",
+          "reading": "nà lǐ",
+          "meaning": "there",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "坐着",
+          "reading": "zuò zhe",
+          "meaning": "is sitting",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "一位",
+          "reading": "yī wèi",
+          "meaning": "one (polite)",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "白发",
+          "reading": "bái fà",
+          "meaning": "white-haired",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "老人",
+          "reading": "lǎo rén",
+          "meaning": "old person",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "轻声",
+          "reading": "qīng shēng",
+          "meaning": "in a low voice",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "问",
+          "reading": "wèn",
+          "meaning": "ask",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "：",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "“这趟车开往哪里？”",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "老人",
+          "reading": "lǎo rén",
+          "meaning": "old person",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "缓缓",
+          "reading": "huǎn huǎn",
+          "meaning": "slowly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "抬起头",
+          "reading": "tái qǐ tóu",
+          "meaning": "lift one's head",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "浑浊",
+          "reading": "hún zhuó",
+          "meaning": "murky; cloudy",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "眼睛",
+          "reading": "yǎn jīng",
+          "meaning": "eyes",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "盯着",
+          "reading": "dīng zhe",
+          "meaning": "stare at",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "低声",
+          "reading": "dī shēng",
+          "meaning": "in a low voice",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "说",
+          "reading": "shuō",
+          "meaning": "say",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "：",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "“你不该上这趟车的。”",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1880
+        },
+        {
+          "start": 1880,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 3150
+        },
+        {
+          "start": 3150,
+          "end": 3710
+        },
+        {
+          "start": 3710,
+          "end": 4270
+        },
+        {
+          "start": 4270,
+          "end": 4830
+        },
+        {
+          "start": 4830,
+          "end": 4980
+        },
+        {
+          "start": 4980,
+          "end": 5180
+        },
+        {
+          "start": 5180,
+          "end": 5740
+        },
+        {
+          "start": 5740,
+          "end": 6120
+        },
+        {
+          "start": 6120,
+          "end": 6270
+        },
+        {
+          "start": 6270,
+          "end": 8530
+        },
+        {
+          "start": 8530,
+          "end": 9090
+        },
+        {
+          "start": 9090,
+          "end": 9650
+        },
+        {
+          "start": 9650,
+          "end": 10390
+        },
+        {
+          "start": 10390,
+          "end": 10540
+        },
+        {
+          "start": 10540,
+          "end": 11100
+        },
+        {
+          "start": 11100,
+          "end": 11300
+        },
+        {
+          "start": 11300,
+          "end": 11860
+        },
+        {
+          "start": 11860,
+          "end": 12420
+        },
+        {
+          "start": 12420,
+          "end": 12620
+        },
+        {
+          "start": 12620,
+          "end": 12770
+        },
+        {
+          "start": 12770,
+          "end": 13330
+        },
+        {
+          "start": 13330,
+          "end": 13710
+        },
+        {
+          "start": 13710,
+          "end": 13860
+        },
+        {
+          "start": 13860,
+          "end": 16400
+        }
+      ],
+      "choices": [
+        {
+          "text": "B1. 追问这话是什么意思",
+          "next_node_id": "ask_meaning"
+        },
+        {
+          "text": "B2. 问他怎样才能下车",
+          "next_node_id": "ask_escape"
+        }
+      ]
+    },
+    "ask_meaning": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "心头",
+          "reading": "xīn tóu",
+          "meaning": "in one's heart",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "一紧",
+          "reading": "yī jǐn",
+          "meaning": "tighten",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "追问",
+          "reading": "zhuī wèn",
+          "meaning": "press for an answer",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "道",
+          "reading": "dào",
+          "meaning": "said",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "：",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "“您这话是什么意思？”",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "老人",
+          "reading": "lǎo rén",
+          "meaning": "old person",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "叹了口气",
+          "reading": "tàn le kǒu qì",
+          "meaning": "let out a sigh",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "指向",
+          "reading": "zhǐ xiàng",
+          "meaning": "point toward",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "窗外",
+          "reading": "chuāng wài",
+          "meaning": "outside the window",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "：",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "“这趟末班车，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "永远",
+          "reading": "yǒng yuǎn",
+          "meaning": "forever",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "到不了",
+          "reading": "dào bù liǎo",
+          "meaning": "can never reach",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "终点",
+          "reading": "zhōng diǎn",
+          "meaning": "terminus; end point",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。”",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "窗外",
+          "reading": "chuāng wài",
+          "meaning": "outside the window",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "黑暗",
+          "reading": "hēi àn",
+          "meaning": "darkness",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "中",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "同一个",
+          "reading": "tóng yī gè",
+          "meaning": "the same",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "站台",
+          "reading": "zhàn tái",
+          "meaning": "platform",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "正在",
+          "reading": "zhèng zài",
+          "meaning": "in the midst of",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "一遍遍",
+          "reading": "yī biàn biàn",
+          "meaning": "over and over",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "地",
+          "reading": "de",
+          "meaning": "(adverbial particle)",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "重复",
+          "reading": "chóng fù",
+          "meaning": "repeat",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "闪过",
+          "reading": "shǎn guò",
+          "meaning": "flash past",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1470
+        },
+        {
+          "start": 1470,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2410
+        },
+        {
+          "start": 2410,
+          "end": 2560
+        },
+        {
+          "start": 2560,
+          "end": 5100
+        },
+        {
+          "start": 5100,
+          "end": 5660
+        },
+        {
+          "start": 5660,
+          "end": 6580
+        },
+        {
+          "start": 6580,
+          "end": 6730
+        },
+        {
+          "start": 6730,
+          "end": 7290
+        },
+        {
+          "start": 7290,
+          "end": 7850
+        },
+        {
+          "start": 7850,
+          "end": 8000
+        },
+        {
+          "start": 8000,
+          "end": 9700
+        },
+        {
+          "start": 9700,
+          "end": 10260
+        },
+        {
+          "start": 10260,
+          "end": 11000
+        },
+        {
+          "start": 11000,
+          "end": 11560
+        },
+        {
+          "start": 11560,
+          "end": 11710
+        },
+        {
+          "start": 11710,
+          "end": 12270
+        },
+        {
+          "start": 12270,
+          "end": 12470
+        },
+        {
+          "start": 12470,
+          "end": 13030
+        },
+        {
+          "start": 13030,
+          "end": 13230
+        },
+        {
+          "start": 13230,
+          "end": 13380
+        },
+        {
+          "start": 13380,
+          "end": 14120
+        },
+        {
+          "start": 14120,
+          "end": 14680
+        },
+        {
+          "start": 14680,
+          "end": 15240
+        },
+        {
+          "start": 15240,
+          "end": 15980
+        },
+        {
+          "start": 15980,
+          "end": 16360
+        },
+        {
+          "start": 16360,
+          "end": 16920
+        },
+        {
+          "start": 16920,
+          "end": 17480
+        },
+        {
+          "start": 17480,
+          "end": 17630
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 那要怎样才能离开？",
+          "next_node_id": "ask_escape"
+        },
+        {
+          "text": "2. 我自己去找出路",
+          "next_node_id": "explore_car"
+        }
+      ]
+    },
+    "ask_escape": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "老人",
+          "reading": "lǎo rén",
+          "meaning": "old person",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "递给",
+          "reading": "dì gěi",
+          "meaning": "hand over to",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "一张",
+          "reading": "yī zhāng",
+          "meaning": "one (flat object)",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "泛黄",
+          "reading": "fàn huáng",
+          "meaning": "yellowed (with age)",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "旧",
+          "reading": "jiù",
+          "meaning": "old; worn",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "车票",
+          "reading": "chē piào",
+          "meaning": "train ticket",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "压低",
+          "reading": "yā dī",
+          "meaning": "lower (voice)",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "声音",
+          "reading": "shēng yīn",
+          "meaning": "voice",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "嘱咐",
+          "reading": "zhǔ fù",
+          "meaning": "exhort; instruct",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "：",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "“守到黎明，在那唯一一座有名字的真站下车。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "千万",
+          "reading": "qiān wàn",
+          "meaning": "by all means; whatever you do",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "别",
+          "reading": "bié",
+          "meaning": "don't",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "去碰",
+          "reading": "qù pèng",
+          "meaning": "go touch",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "车头",
+          "reading": "chē tóu",
+          "meaning": "front of the train",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "司机",
+          "reading": "sī jī",
+          "meaning": "driver",
+          "level": "HSK 3",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。”",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 560
+        },
+        {
+          "start": 560,
+          "end": 1120
+        },
+        {
+          "start": 1120,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1880
+        },
+        {
+          "start": 1880,
+          "end": 2440
+        },
+        {
+          "start": 2440,
+          "end": 2640
+        },
+        {
+          "start": 2640,
+          "end": 3020
+        },
+        {
+          "start": 3020,
+          "end": 3580
+        },
+        {
+          "start": 3580,
+          "end": 3730
+        },
+        {
+          "start": 3730,
+          "end": 4290
+        },
+        {
+          "start": 4290,
+          "end": 4850
+        },
+        {
+          "start": 4850,
+          "end": 5410
+        },
+        {
+          "start": 5410,
+          "end": 5560
+        },
+        {
+          "start": 5560,
+          "end": 10060
+        },
+        {
+          "start": 10060,
+          "end": 10620
+        },
+        {
+          "start": 10620,
+          "end": 11000
+        },
+        {
+          "start": 11000,
+          "end": 11560
+        },
+        {
+          "start": 11560,
+          "end": 12120
+        },
+        {
+          "start": 12120,
+          "end": 12320
+        },
+        {
+          "start": 12320,
+          "end": 12880
+        },
+        {
+          "start": 12880,
+          "end": 13030
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 偏要去车头找司机",
+          "next_node_id": "driver_door"
+        },
+        {
+          "text": "2. 守到黎明的真站",
+          "next_node_id": "wait_dawn"
+        }
+      ]
+    },
+    "pull_brake": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "猛地",
+          "reading": "měng de",
+          "meaning": "abruptly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "拉下",
+          "reading": "lā xià",
+          "meaning": "pull down",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "制动闸",
+          "reading": "zhì dòng zhá",
+          "meaning": "emergency brake",
+          "level": "HSK 7",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "列车",
+          "reading": "liè chē",
+          "meaning": "train",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "急刹",
+          "reading": "jí shā",
+          "meaning": "slam the brakes",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "灯光",
+          "reading": "dēng guāng",
+          "meaning": "the lights",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "剧烈",
+          "reading": "jù liè",
+          "meaning": "intense; violent",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "闪烁",
+          "reading": "shǎn shuò",
+          "meaning": "flicker",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "车门",
+          "reading": "chē mén",
+          "meaning": "train door",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "缓缓",
+          "reading": "huǎn huǎn",
+          "meaning": "slowly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "打开",
+          "reading": "dǎ kāi",
+          "meaning": "open",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "可",
+          "reading": "kě",
+          "meaning": "but; yet",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "站牌",
+          "reading": "zhàn pái",
+          "meaning": "station sign",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "上",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "站名",
+          "reading": "zhàn míng",
+          "meaning": "station name",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "依旧",
+          "reading": "yī jiù",
+          "meaning": "still; as before",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "陌生",
+          "reading": "mò shēng",
+          "meaning": "unfamiliar",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 2060
+        },
+        {
+          "start": 2060,
+          "end": 2210
+        },
+        {
+          "start": 2210,
+          "end": 2770
+        },
+        {
+          "start": 2770,
+          "end": 3330
+        },
+        {
+          "start": 3330,
+          "end": 3480
+        },
+        {
+          "start": 3480,
+          "end": 4040
+        },
+        {
+          "start": 4040,
+          "end": 4600
+        },
+        {
+          "start": 4600,
+          "end": 5160
+        },
+        {
+          "start": 5160,
+          "end": 5310
+        },
+        {
+          "start": 5310,
+          "end": 5870
+        },
+        {
+          "start": 5870,
+          "end": 6430
+        },
+        {
+          "start": 6430,
+          "end": 6990
+        },
+        {
+          "start": 6990,
+          "end": 7140
+        },
+        {
+          "start": 7140,
+          "end": 7520
+        },
+        {
+          "start": 7520,
+          "end": 8080
+        },
+        {
+          "start": 8080,
+          "end": 8280
+        },
+        {
+          "start": 8280,
+          "end": 8480
+        },
+        {
+          "start": 8480,
+          "end": 9040
+        },
+        {
+          "start": 9040,
+          "end": 9600
+        },
+        {
+          "start": 9600,
+          "end": 10160
+        },
+        {
+          "start": 10160,
+          "end": 10310
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 踏上站台看个究竟",
+          "next_node_id": "platform"
+        },
+        {
+          "text": "2. 留在车上等真站",
+          "next_node_id": "wait_dawn"
+        }
+      ]
+    },
+    "driver_door": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "推开",
+          "reading": "tuī kāi",
+          "meaning": "push open",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "驾驶室",
+          "reading": "jià shǐ shì",
+          "meaning": "driver's cab",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "铁门",
+          "reading": "tiě mén",
+          "meaning": "iron door",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "司机",
+          "reading": "sī jī",
+          "meaning": "driver",
+          "level": "HSK 3",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "缓缓",
+          "reading": "huǎn huǎn",
+          "meaning": "slowly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "回头",
+          "reading": "huí tóu",
+          "meaning": "turn back; look back",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "——",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "那张",
+          "reading": "nà zhāng",
+          "meaning": "that (flat object)",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "脸",
+          "reading": "liǎn",
+          "meaning": "face",
+          "level": "HSK 3",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "竟是",
+          "reading": "jìng shì",
+          "meaning": "turns out to be",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "另一个",
+          "reading": "lìng yī gè",
+          "meaning": "another",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "自己",
+          "reading": "zì jǐ",
+          "meaning": "oneself",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1500
+        },
+        {
+          "start": 1500,
+          "end": 1700
+        },
+        {
+          "start": 1700,
+          "end": 2260
+        },
+        {
+          "start": 2260,
+          "end": 2410
+        },
+        {
+          "start": 2410,
+          "end": 2970
+        },
+        {
+          "start": 2970,
+          "end": 3530
+        },
+        {
+          "start": 3530,
+          "end": 4090
+        },
+        {
+          "start": 4090,
+          "end": 4240
+        },
+        {
+          "start": 4240,
+          "end": 4800
+        },
+        {
+          "start": 4800,
+          "end": 5180
+        },
+        {
+          "start": 5180,
+          "end": 5330
+        },
+        {
+          "start": 5330,
+          "end": 5890
+        },
+        {
+          "start": 5890,
+          "end": 6630
+        },
+        {
+          "start": 6630,
+          "end": 6830
+        },
+        {
+          "start": 6830,
+          "end": 7390
+        },
+        {
+          "start": 7390,
+          "end": 7540
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 质问“为什么是我”",
+          "next_node_id": "confront_driver"
+        },
+        {
+          "text": "2. 抢过操纵杆自己来开",
+          "next_node_id": "take_controls"
+        }
+      ]
+    },
+    "platform": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "踏上",
+          "reading": "tà shàng",
+          "meaning": "step onto",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "站台",
+          "reading": "zhàn tái",
+          "meaning": "platform",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "站台",
+          "reading": "zhàn tái",
+          "meaning": "platform",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "尽头",
+          "reading": "jìn tóu",
+          "meaning": "the far end",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "又是",
+          "reading": "yòu shì",
+          "meaning": "is yet again",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "一模一样",
+          "reading": "yī mú yī yàng",
+          "meaning": "exactly identical",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "一趟",
+          "reading": "yī tàng",
+          "meaning": "one (trip)",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "末班",
+          "reading": "mò bān",
+          "meaning": "last (scheduled run)",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "地铁",
+          "reading": "dì tiě",
+          "meaning": "subway",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "正",
+          "reading": "zhèng",
+          "meaning": "right then",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "等着",
+          "reading": "děng zhe",
+          "meaning": "waiting",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "手中",
+          "reading": "shǒu zhōng",
+          "meaning": "in one's hand",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "车票",
+          "reading": "chē piào",
+          "meaning": "train ticket",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "上",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "竟",
+          "reading": "jìng",
+          "meaning": "unexpectedly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "缓缓",
+          "reading": "huǎn huǎn",
+          "meaning": "slowly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "浮现",
+          "reading": "fú xiàn",
+          "meaning": "surface; emerge",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "出",
+          "reading": "chū",
+          "meaning": "emerge; out",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "一个",
+          "reading": "yī gè",
+          "meaning": "one; a",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "站名",
+          "reading": "zhàn míng",
+          "meaning": "station name",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1470
+        },
+        {
+          "start": 1470,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 2740
+        },
+        {
+          "start": 2740,
+          "end": 3300
+        },
+        {
+          "start": 3300,
+          "end": 4220
+        },
+        {
+          "start": 4220,
+          "end": 4420
+        },
+        {
+          "start": 4420,
+          "end": 4980
+        },
+        {
+          "start": 4980,
+          "end": 5540
+        },
+        {
+          "start": 5540,
+          "end": 6100
+        },
+        {
+          "start": 6100,
+          "end": 6250
+        },
+        {
+          "start": 6250,
+          "end": 6630
+        },
+        {
+          "start": 6630,
+          "end": 7190
+        },
+        {
+          "start": 7190,
+          "end": 7390
+        },
+        {
+          "start": 7390,
+          "end": 7540
+        },
+        {
+          "start": 7540,
+          "end": 8100
+        },
+        {
+          "start": 8100,
+          "end": 8300
+        },
+        {
+          "start": 8300,
+          "end": 8860
+        },
+        {
+          "start": 8860,
+          "end": 9060
+        },
+        {
+          "start": 9060,
+          "end": 9210
+        },
+        {
+          "start": 9210,
+          "end": 9590
+        },
+        {
+          "start": 9590,
+          "end": 10150
+        },
+        {
+          "start": 10150,
+          "end": 10710
+        },
+        {
+          "start": 10710,
+          "end": 11090
+        },
+        {
+          "start": 11090,
+          "end": 11650
+        },
+        {
+          "start": 11650,
+          "end": 12210
+        },
+        {
+          "start": 12210,
+          "end": 12360
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 念出车票上的站名",
+          "next_node_id": "read_ticket"
+        },
+        {
+          "text": "2. 茫然走向那趟新车",
+          "next_node_id": "ending_loop"
+        }
+      ]
+    },
+    "wait_dawn": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "握紧",
+          "reading": "wò jǐn",
+          "meaning": "grip tightly",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "车票",
+          "reading": "chē piào",
+          "meaning": "train ticket",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "守到",
+          "reading": "shǒu dào",
+          "meaning": "keep watch until",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "天亮",
+          "reading": "tiān liàng",
+          "meaning": "daybreak",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "广播",
+          "reading": "guǎng bō",
+          "meaning": "broadcast; announcement",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "第一次",
+          "reading": "dì yī cì",
+          "meaning": "for the first time",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "报出",
+          "reading": "bào chū",
+          "meaning": "announce; call out",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "一个",
+          "reading": "yī gè",
+          "meaning": "one; a",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "莫名",
+          "reading": "mò míng",
+          "meaning": "inexplicably",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "熟悉",
+          "reading": "shú xī",
+          "meaning": "familiar",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "真正",
+          "reading": "zhēn zhèng",
+          "meaning": "true; genuine",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "站名",
+          "reading": "zhàn míng",
+          "meaning": "station name",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1470
+        },
+        {
+          "start": 1470,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 2740
+        },
+        {
+          "start": 2740,
+          "end": 3300
+        },
+        {
+          "start": 3300,
+          "end": 4040
+        },
+        {
+          "start": 4040,
+          "end": 4600
+        },
+        {
+          "start": 4600,
+          "end": 5160
+        },
+        {
+          "start": 5160,
+          "end": 5360
+        },
+        {
+          "start": 5360,
+          "end": 5920
+        },
+        {
+          "start": 5920,
+          "end": 6480
+        },
+        {
+          "start": 6480,
+          "end": 6680
+        },
+        {
+          "start": 6680,
+          "end": 7240
+        },
+        {
+          "start": 7240,
+          "end": 7440
+        },
+        {
+          "start": 7440,
+          "end": 8000
+        },
+        {
+          "start": 8000,
+          "end": 8150
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 就在这一站下车",
+          "next_node_id": "read_ticket"
+        },
+        {
+          "text": "2. 怀疑是陷阱，继续坐着",
+          "next_node_id": "ending_loop"
+        }
+      ]
+    },
+    "confront_driver": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "“这趟车需要引路人，”",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "另一个",
+          "reading": "lìng yī gè",
+          "meaning": "another",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "平静",
+          "reading": "píng jìng",
+          "meaning": "calm",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "地",
+          "reading": "de",
+          "meaning": "(adverbial particle)",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "说",
+          "reading": "shuō",
+          "meaning": "say",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "“你坐得太久，忘了自己是谁。愿意接班吗？”",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 2540
+        },
+        {
+          "start": 2540,
+          "end": 3280
+        },
+        {
+          "start": 3280,
+          "end": 3480
+        },
+        {
+          "start": 3480,
+          "end": 4040
+        },
+        {
+          "start": 4040,
+          "end": 4420
+        },
+        {
+          "start": 4420,
+          "end": 4800
+        },
+        {
+          "start": 4800,
+          "end": 4950
+        },
+        {
+          "start": 4950,
+          "end": 9450
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 拒绝，转身去等黎明",
+          "next_node_id": "wait_dawn"
+        },
+        {
+          "text": "2. 接过他的帽子",
+          "next_node_id": "ending_conductor"
+        }
+      ]
+    },
+    "take_controls": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "抢过",
+          "reading": "qiǎng guò",
+          "meaning": "snatch away",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "操纵杆",
+          "reading": "cāo zòng gǎn",
+          "meaning": "control lever; joystick",
+          "level": "HSK 7",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "猛推",
+          "reading": "měng tuī",
+          "meaning": "shove hard",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "到底",
+          "reading": "dào dǐ",
+          "meaning": "all the way; to the end",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "列车",
+          "reading": "liè chē",
+          "meaning": "train",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "疯狂",
+          "reading": "fēng kuáng",
+          "meaning": "wild; crazed",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "加速",
+          "reading": "jiā sù",
+          "meaning": "accelerate",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "冲进",
+          "reading": "chōng jìn",
+          "meaning": "charge into",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "无尽",
+          "reading": "wú jìn",
+          "meaning": "endless",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "隧道",
+          "reading": "suì dào",
+          "meaning": "tunnel",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "黑暗",
+          "reading": "hēi àn",
+          "meaning": "darkness",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "扑面而来",
+          "reading": "pū miàn ér lái",
+          "meaning": "rush at one's face",
+          "level": "HSK 7",
+          "tier": "key"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1500
+        },
+        {
+          "start": 1500,
+          "end": 1650
+        },
+        {
+          "start": 1650,
+          "end": 2210
+        },
+        {
+          "start": 2210,
+          "end": 2770
+        },
+        {
+          "start": 2770,
+          "end": 2920
+        },
+        {
+          "start": 2920,
+          "end": 3480
+        },
+        {
+          "start": 3480,
+          "end": 4040
+        },
+        {
+          "start": 4040,
+          "end": 4600
+        },
+        {
+          "start": 4600,
+          "end": 4750
+        },
+        {
+          "start": 4750,
+          "end": 5310
+        },
+        {
+          "start": 5310,
+          "end": 5870
+        },
+        {
+          "start": 5870,
+          "end": 6070
+        },
+        {
+          "start": 6070,
+          "end": 6630
+        },
+        {
+          "start": 6630,
+          "end": 6780
+        },
+        {
+          "start": 6780,
+          "end": 7340
+        },
+        {
+          "start": 7340,
+          "end": 8260
+        },
+        {
+          "start": 8260,
+          "end": 8410
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. 惊觉松手，重新急刹",
+          "next_node_id": "pull_brake"
+        },
+        {
+          "text": "2. 闭眼冲过去",
+          "next_node_id": "ending_void"
+        }
+      ]
+    },
+    "read_ticket": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "念出",
+          "reading": "niàn chū",
+          "meaning": "read aloud",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "那个",
+          "reading": "nà gè",
+          "meaning": "that",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "站名",
+          "reading": "zhàn míng",
+          "meaning": "station name",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "忽然",
+          "reading": "hū rán",
+          "meaning": "suddenly",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "想起",
+          "reading": "xiǎng qǐ",
+          "meaning": "recall; remember",
+          "level": "HSK 3",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "家",
+          "reading": "jiā",
+          "meaning": "home",
+          "level": "HSK 1",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "想起",
+          "reading": "xiǎng qǐ",
+          "meaning": "recall; remember",
+          "level": "HSK 3",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "那个",
+          "reading": "nà gè",
+          "meaning": "that",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "还",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "在",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "等你",
+          "reading": "děng nǐ",
+          "meaning": "waiting for you",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "人",
+          "reading": "rén",
+          "meaning": "person",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "心底",
+          "reading": "xīn dǐ",
+          "meaning": "bottom of one's heart",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "牵挂",
+          "reading": "qiān guà",
+          "meaning": "be concerned about; miss",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "让",
+          "reading": "ràng",
+          "meaning": "make; let",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "车门",
+          "reading": "chē mén",
+          "meaning": "train door",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "向",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "真正",
+          "reading": "zhēn zhèng",
+          "meaning": "true; genuine",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "站台",
+          "reading": "zhàn tái",
+          "meaning": "platform",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "打开",
+          "reading": "dǎ kāi",
+          "meaning": "open",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "晨光",
+          "reading": "chén guāng",
+          "meaning": "morning light",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "照进",
+          "reading": "zhào jìn",
+          "meaning": "shine in",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "来",
+          "reading": "lái",
+          "meaning": "(directional) come",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "踏出",
+          "reading": "tà chū",
+          "meaning": "step out",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "车厢",
+          "reading": "chē xiāng",
+          "meaning": "train carriage",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "终于",
+          "reading": "zhōng yú",
+          "meaning": "finally",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "回到",
+          "reading": "huí dào",
+          "meaning": "return to",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "了",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "人间",
+          "reading": "rén jiān",
+          "meaning": "the human world",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1880
+        },
+        {
+          "start": 1880,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 3150
+        },
+        {
+          "start": 3150,
+          "end": 3530
+        },
+        {
+          "start": 3530,
+          "end": 3680
+        },
+        {
+          "start": 3680,
+          "end": 4240
+        },
+        {
+          "start": 4240,
+          "end": 4800
+        },
+        {
+          "start": 4800,
+          "end": 5000
+        },
+        {
+          "start": 5000,
+          "end": 5200
+        },
+        {
+          "start": 5200,
+          "end": 5760
+        },
+        {
+          "start": 5760,
+          "end": 5960
+        },
+        {
+          "start": 5960,
+          "end": 6340
+        },
+        {
+          "start": 6340,
+          "end": 6490
+        },
+        {
+          "start": 6490,
+          "end": 7050
+        },
+        {
+          "start": 7050,
+          "end": 7250
+        },
+        {
+          "start": 7250,
+          "end": 7810
+        },
+        {
+          "start": 7810,
+          "end": 8190
+        },
+        {
+          "start": 8190,
+          "end": 8750
+        },
+        {
+          "start": 8750,
+          "end": 8950
+        },
+        {
+          "start": 8950,
+          "end": 9510
+        },
+        {
+          "start": 9510,
+          "end": 9710
+        },
+        {
+          "start": 9710,
+          "end": 10270
+        },
+        {
+          "start": 10270,
+          "end": 10830
+        },
+        {
+          "start": 10830,
+          "end": 10980
+        },
+        {
+          "start": 10980,
+          "end": 11540
+        },
+        {
+          "start": 11540,
+          "end": 12100
+        },
+        {
+          "start": 12100,
+          "end": 12480
+        },
+        {
+          "start": 12480,
+          "end": 12630
+        },
+        {
+          "start": 12630,
+          "end": 12830
+        },
+        {
+          "start": 12830,
+          "end": 13390
+        },
+        {
+          "start": 13390,
+          "end": 13950
+        },
+        {
+          "start": 13950,
+          "end": 14100
+        },
+        {
+          "start": 14100,
+          "end": 14660
+        },
+        {
+          "start": 14660,
+          "end": 15220
+        },
+        {
+          "start": 15220,
+          "end": 15420
+        },
+        {
+          "start": 15420,
+          "end": 15980
+        },
+        {
+          "start": 15980,
+          "end": 16130
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ 返回故事列表 ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    },
+    "ending_loop": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "低下头",
+          "reading": "dī xià tóu",
+          "meaning": "lower one's head",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "像",
+          "reading": "xiàng",
+          "meaning": "like; as",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "其他",
+          "reading": "qí tā",
+          "meaning": "other",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "乘客",
+          "reading": "chéng kè",
+          "meaning": "passenger",
+          "level": "HSK 4",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "一样",
+          "reading": "yī yàng",
+          "meaning": "the same",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "陷入",
+          "reading": "xiàn rù",
+          "meaning": "sink into",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "沉默",
+          "reading": "chén mò",
+          "meaning": "silence",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "末班",
+          "reading": "mò bān",
+          "meaning": "last (scheduled run)",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "地铁",
+          "reading": "dì tiě",
+          "meaning": "subway",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "再次",
+          "reading": "zài cì",
+          "meaning": "once again",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "启动",
+          "reading": "qǐ dòng",
+          "meaning": "start up",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "载着",
+          "reading": "zài zhe",
+          "meaning": "carrying",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "驶入",
+          "reading": "shǐ rù",
+          "meaning": "drive into",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "永无",
+          "reading": "yǒng wú",
+          "meaning": "never",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "终点",
+          "reading": "zhōng diǎn",
+          "meaning": "terminus; end point",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "循环",
+          "reading": "xún huán",
+          "meaning": "loop; cycle",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 940
+        },
+        {
+          "start": 940,
+          "end": 1090
+        },
+        {
+          "start": 1090,
+          "end": 1470
+        },
+        {
+          "start": 1470,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 3150
+        },
+        {
+          "start": 3150,
+          "end": 3710
+        },
+        {
+          "start": 3710,
+          "end": 4270
+        },
+        {
+          "start": 4270,
+          "end": 4420
+        },
+        {
+          "start": 4420,
+          "end": 4980
+        },
+        {
+          "start": 4980,
+          "end": 5540
+        },
+        {
+          "start": 5540,
+          "end": 6100
+        },
+        {
+          "start": 6100,
+          "end": 6660
+        },
+        {
+          "start": 6660,
+          "end": 6810
+        },
+        {
+          "start": 6810,
+          "end": 7370
+        },
+        {
+          "start": 7370,
+          "end": 7570
+        },
+        {
+          "start": 7570,
+          "end": 8130
+        },
+        {
+          "start": 8130,
+          "end": 8690
+        },
+        {
+          "start": 8690,
+          "end": 9250
+        },
+        {
+          "start": 9250,
+          "end": 9450
+        },
+        {
+          "start": 9450,
+          "end": 10010
+        },
+        {
+          "start": 10010,
+          "end": 10160
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ 返回故事列表 ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    },
+    "ending_conductor": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "戴上",
+          "reading": "dài shàng",
+          "meaning": "put on",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "那顶",
+          "reading": "nà dǐng",
+          "meaning": "that (for hats)",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "帽子",
+          "reading": "mào zi",
+          "meaning": "hat; cap",
+          "level": "HSK 3",
+          "tier": "normal",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "另一个",
+          "reading": "lìng yī gè",
+          "meaning": "another",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "如释重负",
+          "reading": "rú shì zhòng fù",
+          "meaning": "as if relieved of a burden",
+          "level": "HSK 7",
+          "tier": "key"
+        },
+        {
+          "word": "地",
+          "reading": "de",
+          "meaning": "(adverbial particle)",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "消失",
+          "reading": "xiāo shī",
+          "meaning": "vanish",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "了",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "从此",
+          "reading": "cóng cǐ",
+          "meaning": "from then on",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "成了",
+          "reading": "chéng le",
+          "meaning": "became",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "这趟",
+          "reading": "zhè tàng",
+          "meaning": "this (trip)",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "末班",
+          "reading": "mò bān",
+          "meaning": "last (scheduled run)",
+          "level": "HSK 5",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "地铁",
+          "reading": "dì tiě",
+          "meaning": "subway",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "新的",
+          "reading": "xīn de",
+          "meaning": "new",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "引路人",
+          "reading": "yǐn lù rén",
+          "meaning": "guide; the one who leads the way",
+          "level": "HSK 7",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 200
+        },
+        {
+          "start": 200,
+          "end": 760
+        },
+        {
+          "start": 760,
+          "end": 1320
+        },
+        {
+          "start": 1320,
+          "end": 1880
+        },
+        {
+          "start": 1880,
+          "end": 2030
+        },
+        {
+          "start": 2030,
+          "end": 2770
+        },
+        {
+          "start": 2770,
+          "end": 2970
+        },
+        {
+          "start": 2970,
+          "end": 3890
+        },
+        {
+          "start": 3890,
+          "end": 4270
+        },
+        {
+          "start": 4270,
+          "end": 4830
+        },
+        {
+          "start": 4830,
+          "end": 5030
+        },
+        {
+          "start": 5030,
+          "end": 5180
+        },
+        {
+          "start": 5180,
+          "end": 5740
+        },
+        {
+          "start": 5740,
+          "end": 5890
+        },
+        {
+          "start": 5890,
+          "end": 6090
+        },
+        {
+          "start": 6090,
+          "end": 6650
+        },
+        {
+          "start": 6650,
+          "end": 7210
+        },
+        {
+          "start": 7210,
+          "end": 7770
+        },
+        {
+          "start": 7770,
+          "end": 8330
+        },
+        {
+          "start": 8330,
+          "end": 8890
+        },
+        {
+          "start": 8890,
+          "end": 9630
+        },
+        {
+          "start": 9630,
+          "end": 9780
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ 返回故事列表 ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    },
+    "ending_void": {
+      "bg_image": null,
+      "audio_url": null,
+      "text_segments": [
+        {
+          "word": "列车",
+          "reading": "liè chē",
+          "meaning": "train",
+          "level": "HSK 5",
+          "tier": "key"
+        },
+        {
+          "word": "冲入",
+          "reading": "chōng rù",
+          "meaning": "charge into",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "无底",
+          "reading": "wú dǐ",
+          "meaning": "bottomless",
+          "level": "HSK 6",
+          "tier": "key"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "黑暗",
+          "reading": "hēi àn",
+          "meaning": "darkness",
+          "level": "HSK 4",
+          "tier": "normal"
+        },
+        {
+          "word": "，",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "再也",
+          "reading": "zài yě",
+          "meaning": "(not) ever again",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "没有",
+          "reading": "méi yǒu",
+          "meaning": "have not",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "停下",
+          "reading": "tíng xià",
+          "meaning": "stop",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "你",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "坠入",
+          "reading": "zhuì rù",
+          "meaning": "plunge into",
+          "level": "HSK 6",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "了",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "一片",
+          "reading": "yī piàn",
+          "meaning": "a stretch of",
+          "level": "HSK 3",
+          "tier": "normal"
+        },
+        {
+          "word": "没有",
+          "reading": "méi yǒu",
+          "meaning": "have not",
+          "level": "HSK 1",
+          "tier": "normal"
+        },
+        {
+          "word": "声音",
+          "reading": "shēng yīn",
+          "meaning": "voice",
+          "level": "HSK 2",
+          "tier": "normal"
+        },
+        {
+          "word": "的",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "虚无",
+          "reading": "xū wú",
+          "meaning": "nothingness; void",
+          "level": "HSK 7",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "。",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 0,
+          "end": 560
+        },
+        {
+          "start": 560,
+          "end": 1120
+        },
+        {
+          "start": 1120,
+          "end": 1680
+        },
+        {
+          "start": 1680,
+          "end": 1880
+        },
+        {
+          "start": 1880,
+          "end": 2440
+        },
+        {
+          "start": 2440,
+          "end": 2590
+        },
+        {
+          "start": 2590,
+          "end": 3150
+        },
+        {
+          "start": 3150,
+          "end": 3710
+        },
+        {
+          "start": 3710,
+          "end": 4270
+        },
+        {
+          "start": 4270,
+          "end": 4420
+        },
+        {
+          "start": 4420,
+          "end": 4620
+        },
+        {
+          "start": 4620,
+          "end": 5180
+        },
+        {
+          "start": 5180,
+          "end": 5380
+        },
+        {
+          "start": 5380,
+          "end": 5940
+        },
+        {
+          "start": 5940,
+          "end": 6500
+        },
+        {
+          "start": 6500,
+          "end": 7060
+        },
+        {
+          "start": 7060,
+          "end": 7260
+        },
+        {
+          "start": 7260,
+          "end": 7820
+        },
+        {
+          "start": 7820,
+          "end": 7970
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ 返回故事列表 ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    }
+  }
+}

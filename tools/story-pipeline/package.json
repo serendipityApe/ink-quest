@@ -1,0 +1,22 @@
+{
+  "name": "@inkquest/story-pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Story generation pipeline: enrich (segment/reading/gloss/level), LLM authoring, TTS alignment, validation. Produces story JSON for the InkQuest web app.",
+  "bin": {
+    "generate-story": "./src/generate-story.ts"
+  },
+  "scripts": {
+    "enrich:demo": "tsx src/cli/enrich-demo.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@node-rs/jieba": "2.0.1",
+    "pinyin-pro": "3.28.1"
+  },
+  "devDependencies": {
+    "tsx": "4.22.4",
+    "typescript": "^5"
+  }
+}

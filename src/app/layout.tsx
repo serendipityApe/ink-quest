@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
+import { I18nProvider } from "@/i18n/I18nProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,7 +33,7 @@ export default function RootLayout({
       className={`${inter.variable} ${notoSerifSC.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-on-background selection:bg-primary-container selection:text-white">
-        {children}
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );

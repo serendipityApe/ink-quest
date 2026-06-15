@@ -56,7 +56,7 @@
 
   --spacing-base: 8px;
   --spacing-section-gap: 64px;
-  --spacing-container-max: 1024px;
+  --spacing-container-max: 1280px;
   --spacing-reading-inset: max(40px, 10%);
   --spacing-gutter: 24px;
 
@@ -122,24 +122,41 @@ body {
   -webkit-backdrop-filter: blur(24px);
 }
 
-.word-highlight {
-  color: #6E9A98;
+/* tier: key — permanent dashed underline, instant tooltip */
+.word-key {
+  color: #3a6664;
   cursor: pointer;
   position: relative;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: #3a6664;
+  text-underline-offset: 3px;
 }
-.word-highlight::after {
+
+/* tier: normal — underline fills left-to-right on hover, tooltip after fill */
+.word-normal {
+  cursor: default;
+  position: relative;
+}
+.word-normal::after {
   content: '';
   position: absolute;
   left: 0;
   bottom: -2px;
-  width: 100%;
+  width: 0;
   height: 1px;
   background-color: #6E9A98;
-  opacity: 0.3;
-  transition: opacity 0.2s ease;
+  transition: none;
 }
-.word-highlight:hover::after {
-  opacity: 1;
+.word-normal.is-hovering::after {
+  width: 100%;
+  transition: width 700ms linear;
+}
+
+/* audio playback active highlight */
+.word-audio-active {
+  background-color: rgba(58, 102, 100, 0.15);
+  border-radius: 2px;
 }
 
 /* Custom scrollbar matching Digital Zen minimalist styling */
@@ -156,4 +173,13 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-outline-variant);
+}
+
+/* hide scrollbar (used by horizontally-scrolling filter row on mobile) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

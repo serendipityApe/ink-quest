@@ -1,0 +1,6 @@
+data/*.u8
+data/*.csv
+data/*.json
+node_modules/
+drafts/
+build/

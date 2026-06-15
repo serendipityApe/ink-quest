@@ -1,0 +1,3540 @@
+{
+  "story_id": "signal-from-the-deep",
+  "target_lang": "en",
+  "gloss_lang": "zh",
+  "title_cn": "深海信号",
+  "title_en": "Signal from the Deep",
+  "level": "B1",
+  "level_system": "CEFR",
+  "nodes": {
+    "start": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-start.mp3",
+      "text_segments": [
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "are",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "alone",
+          "reading": "/ә'lәun/",
+          "meaning": "独自",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "on",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "night",
+          "reading": "/nait/",
+          "meaning": "夜",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "shift",
+          "reading": "/ʃift/",
+          "meaning": "轮班；班次",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "at",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "an",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "ocean",
+          "reading": "/'әuʃәn/",
+          "meaning": "海洋",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "research",
+          "reading": "/ri'sә:tʃ/",
+          "meaning": "研究",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "station",
+          "reading": "/'steiʃәn/",
+          "meaning": "研究站",
+          "level": "A1",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "The",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "sea",
+          "reading": "/si:/",
+          "meaning": "海",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "is",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "calm",
+          "reading": "/kɑ:m/",
+          "meaning": "平静的",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "dark",
+          "reading": "/dɑ:k/",
+          "meaning": "黑暗",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "Suddenly",
+          "reading": "/'sʌdәnli/",
+          "meaning": "突然",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "a",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "strange",
+          "reading": "/streindʒ/",
+          "meaning": "奇怪的",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "signal",
+          "reading": "/'signl/",
+          "meaning": "信号",
+          "level": "B1",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "appears",
+          "reading": null,
+          "meaning": "出现",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "on",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "your",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "screen",
+          "reading": "/skri:n/",
+          "meaning": "屏幕",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "It",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "comes",
+          "reading": "/'kɔmis/",
+          "meaning": "来（自）",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "from",
+          "reading": "/frɒm/",
+          "meaning": "从",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "somewhere",
+          "reading": "/'sʌmhwєә/",
+          "meaning": "某处",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "deep",
+          "reading": "/di:p/",
+          "meaning": "深的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "below",
+          "reading": "/bi'lәu/",
+          "meaning": "在下面",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "water",
+          "reading": "/'wɒ:tә/",
+          "meaning": "水",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 46,
+          "end": 267
+        },
+        {
+          "start": 267,
+          "end": 417
+        },
+        {
+          "start": 417,
+          "end": 893
+        },
+        {
+          "start": 893,
+          "end": 1044
+        },
+        {
+          "start": 1044,
+          "end": 1160
+        },
+        {
+          "start": 1160,
+          "end": 1439
+        },
+        {
+          "start": 1439,
+          "end": 2031
+        },
+        {
+          "start": 2031,
+          "end": 2263
+        },
+        {
+          "start": 2263,
+          "end": 2449
+        },
+        {
+          "start": 2449,
+          "end": 2809
+        },
+        {
+          "start": 2809,
+          "end": 3204
+        },
+        {
+          "start": 3204,
+          "end": 3726
+        },
+        {
+          "start": 3726,
+          "end": 3854
+        },
+        {
+          "start": 4287,
+          "end": 4473
+        },
+        {
+          "start": 4473,
+          "end": 4740
+        },
+        {
+          "start": 4740,
+          "end": 4903
+        },
+        {
+          "start": 4903,
+          "end": 5309
+        },
+        {
+          "start": 5309,
+          "end": 5506
+        },
+        {
+          "start": 5506,
+          "end": 5878
+        },
+        {
+          "start": 5878,
+          "end": 5959
+        },
+        {
+          "start": 6485,
+          "end": 7112
+        },
+        {
+          "start": 7112,
+          "end": 7356
+        },
+        {
+          "start": 7356,
+          "end": 7658
+        },
+        {
+          "start": 7658,
+          "end": 8122
+        },
+        {
+          "start": 8122,
+          "end": 8482
+        },
+        {
+          "start": 8482,
+          "end": 8970
+        },
+        {
+          "start": 8970,
+          "end": 9098
+        },
+        {
+          "start": 9098,
+          "end": 9237
+        },
+        {
+          "start": 9237,
+          "end": 9666
+        },
+        {
+          "start": 9666,
+          "end": 9759
+        },
+        {
+          "start": 10210,
+          "end": 10396
+        },
+        {
+          "start": 10396,
+          "end": 10721
+        },
+        {
+          "start": 10721,
+          "end": 10941
+        },
+        {
+          "start": 10941,
+          "end": 11417
+        },
+        {
+          "start": 11417,
+          "end": 11708
+        },
+        {
+          "start": 11708,
+          "end": 11986
+        },
+        {
+          "start": 11986,
+          "end": 12126
+        },
+        {
+          "start": 12126,
+          "end": 12544
+        },
+        {
+          "start": 12544,
+          "end": 12671
+        }
+      ],
+      "choices": [
+        {
+          "text": "A. Trace where the signal comes from",
+          "next_node_id": "trace"
+        },
+        {
+          "text": "B. Wake the captain",
+          "next_node_id": "wake"
+        },
+        {
+          "text": "C. Record it and wait",
+          "next_node_id": "wait"
+        }
+      ]
+    },
+    "trace": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-trace.mp3",
+      "text_segments": [
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "follow",
+          "reading": "/'fɒlәu/",
+          "meaning": "跟随",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "signal",
+          "reading": "/'signl/",
+          "meaning": "信号",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "carefully",
+          "reading": "/'kєәfuli/",
+          "meaning": "小心地",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "The",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "sonar",
+          "reading": "/'sәunɑ:/",
+          "meaning": "声纳",
+          "level": "C1",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "shows",
+          "reading": null,
+          "meaning": "显示",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "something",
+          "reading": "/'sʌmθiŋ/",
+          "meaning": "某事",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "huge",
+          "reading": "/hju:dʒ/",
+          "meaning": "极大的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "moving",
+          "reading": "/'mu:viŋ/",
+          "meaning": "移动的",
+          "level": "B2",
+          "tier": "key"
+        },
+        {
+          "word": "in",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "deep",
+          "reading": "/di:p/",
+          "meaning": "深的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "It",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "is",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "slow",
+          "reading": "/slәu/",
+          "meaning": "慢的",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "but",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "it",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "is",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "rising",
+          "reading": "/'raiziŋ/",
+          "meaning": "上升的",
+          "level": "B2",
+          "tier": "key"
+        },
+        {
+          "word": "toward",
+          "reading": "/tә'wɒ:d/",
+          "meaning": "向",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "your",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "station",
+          "reading": "/'steiʃәn/",
+          "meaning": "研究站",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "Your",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "heart",
+          "reading": "/hɑ:t/",
+          "meaning": "心",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "beats",
+          "reading": "/bi:ts/",
+          "meaning": "跳动",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "faster",
+          "reading": null,
+          "meaning": "更快地",
+          "level": "B2",
+          "tier": "key"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 46,
+          "end": 267
+        },
+        {
+          "start": 267,
+          "end": 557
+        },
+        {
+          "start": 557,
+          "end": 661
+        },
+        {
+          "start": 661,
+          "end": 1033
+        },
+        {
+          "start": 1033,
+          "end": 1555
+        },
+        {
+          "start": 1555,
+          "end": 1996
+        },
+        {
+          "start": 1996,
+          "end": 2240
+        },
+        {
+          "start": 2240,
+          "end": 2658
+        },
+        {
+          "start": 2658,
+          "end": 2960
+        },
+        {
+          "start": 2960,
+          "end": 3355
+        },
+        {
+          "start": 3355,
+          "end": 3796
+        },
+        {
+          "start": 3796,
+          "end": 4156
+        },
+        {
+          "start": 4156,
+          "end": 4260
+        },
+        {
+          "start": 4260,
+          "end": 4365
+        },
+        {
+          "start": 4365,
+          "end": 4713
+        },
+        {
+          "start": 4713,
+          "end": 4818
+        },
+        {
+          "start": 5421,
+          "end": 5619
+        },
+        {
+          "start": 5619,
+          "end": 5758
+        },
+        {
+          "start": 5758,
+          "end": 6130
+        },
+        {
+          "start": 6130,
+          "end": 6339
+        },
+        {
+          "start": 6339,
+          "end": 6710
+        },
+        {
+          "start": 6710,
+          "end": 6826
+        },
+        {
+          "start": 6826,
+          "end": 7012
+        },
+        {
+          "start": 7012,
+          "end": 7441
+        },
+        {
+          "start": 7441,
+          "end": 7767
+        },
+        {
+          "start": 7767,
+          "end": 7917
+        },
+        {
+          "start": 7917,
+          "end": 8475
+        },
+        {
+          "start": 8475,
+          "end": 8684
+        },
+        {
+          "start": 8684,
+          "end": 9067
+        },
+        {
+          "start": 9067,
+          "end": 9346
+        },
+        {
+          "start": 9346,
+          "end": 9624
+        },
+        {
+          "start": 9624,
+          "end": 10100
+        },
+        {
+          "start": 10100,
+          "end": 10286
+        }
+      ],
+      "choices": [
+        {
+          "text": "A1. Dive down in the submersible",
+          "next_node_id": "dive"
+        },
+        {
+          "text": "A2. Send a message back to it",
+          "next_node_id": "reply"
+        }
+      ]
+    },
+    "wake": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-wake.mp3",
+      "text_segments": [
+        {
+          "word": "The",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "captain",
+          "reading": "/'kæptin/",
+          "meaning": "船长",
+          "level": "A2",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "comes",
+          "reading": "/'kɔmis/",
+          "meaning": "来（自）",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "to",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "control",
+          "reading": "/kәn'trәul/",
+          "meaning": "控制",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "room",
+          "reading": "/ru:m/",
+          "meaning": "房间",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "Her",
+          "reading": "/hә:/",
+          "meaning": "她的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "face",
+          "reading": "/feis/",
+          "meaning": "脸",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "turns",
+          "reading": null,
+          "meaning": "变得",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "pale",
+          "reading": "/peil/",
+          "meaning": "苍白的",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "when",
+          "reading": "/hwen/",
+          "meaning": "当...的时候",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "she",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "sees",
+          "reading": null,
+          "meaning": "看见",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "signal",
+          "reading": "/'signl/",
+          "meaning": "信号",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "She",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "says",
+          "reading": "/sez/",
+          "meaning": "说（第三人称单数）",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "quietly",
+          "reading": "/'kwaiәtli/",
+          "meaning": "安静地",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "that",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "this",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "happened",
+          "reading": null,
+          "meaning": "发生（过去式）",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "once",
+          "reading": "/wʌns/",
+          "meaning": "一次",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "before",
+          "reading": "/bi'fɒ:/",
+          "meaning": "在...之前",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "last",
+          "reading": "/lɑ:st/",
+          "meaning": "最后的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "crew",
+          "reading": "/kru:/",
+          "meaning": "全体人员",
+          "level": "A2",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "never",
+          "reading": "/'nevә/",
+          "meaning": "从不",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "came",
+          "reading": "/keim/",
+          "meaning": "come的过去式",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "back",
+          "reading": "/bæk/",
+          "meaning": "回来",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 69,
+          "end": 208
+        },
+        {
+          "start": 208,
+          "end": 684
+        },
+        {
+          "start": 684,
+          "end": 1021
+        },
+        {
+          "start": 1021,
+          "end": 1184
+        },
+        {
+          "start": 1184,
+          "end": 1300
+        },
+        {
+          "start": 1300,
+          "end": 1764
+        },
+        {
+          "start": 1764,
+          "end": 2020
+        },
+        {
+          "start": 2020,
+          "end": 2136
+        },
+        {
+          "start": 2718,
+          "end": 2927
+        },
+        {
+          "start": 2927,
+          "end": 3240
+        },
+        {
+          "start": 3240,
+          "end": 3577
+        },
+        {
+          "start": 3577,
+          "end": 3960
+        },
+        {
+          "start": 3960,
+          "end": 4180
+        },
+        {
+          "start": 4180,
+          "end": 4366
+        },
+        {
+          "start": 4366,
+          "end": 4656
+        },
+        {
+          "start": 4656,
+          "end": 4784
+        },
+        {
+          "start": 4784,
+          "end": 5225
+        },
+        {
+          "start": 5225,
+          "end": 5399
+        },
+        {
+          "start": 5970,
+          "end": 6202
+        },
+        {
+          "start": 6202,
+          "end": 6446
+        },
+        {
+          "start": 6446,
+          "end": 7003
+        },
+        {
+          "start": 7003,
+          "end": 7189
+        },
+        {
+          "start": 7189,
+          "end": 7374
+        },
+        {
+          "start": 7374,
+          "end": 7781
+        },
+        {
+          "start": 7781,
+          "end": 8048
+        },
+        {
+          "start": 8048,
+          "end": 8489
+        },
+        {
+          "start": 8489,
+          "end": 8710
+        },
+        {
+          "start": 8710,
+          "end": 9209
+        },
+        {
+          "start": 9209,
+          "end": 9313
+        },
+        {
+          "start": 9313,
+          "end": 9627
+        },
+        {
+          "start": 9627,
+          "end": 9882
+        },
+        {
+          "start": 9882,
+          "end": 10149
+        },
+        {
+          "start": 10149,
+          "end": 10393
+        },
+        {
+          "start": 10393,
+          "end": 10706
+        },
+        {
+          "start": 10706,
+          "end": 10799
+        }
+      ],
+      "choices": [
+        {
+          "text": "B1. Insist on diving to find the truth",
+          "next_node_id": "dive"
+        },
+        {
+          "text": "B2. Follow the safety protocol and leave",
+          "next_node_id": "evacuate"
+        }
+      ]
+    },
+    "wait": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-wait.mp3",
+      "text_segments": [
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "record",
+          "reading": "/ri'kɒ:d/",
+          "meaning": "记录",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "signal",
+          "reading": "/'signl/",
+          "meaning": "信号",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "wait",
+          "reading": "/weit/",
+          "meaning": "等待",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "It",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "grows",
+          "reading": "/ɡrəuz/",
+          "meaning": "变得（越来越）",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "louder",
+          "reading": null,
+          "meaning": "更响亮",
+          "level": "C2",
+          "tier": "key"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "louder",
+          "reading": null,
+          "meaning": "更响亮",
+          "level": "C2",
+          "tier": "key"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "The",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "lights",
+          "reading": "/laits/",
+          "meaning": "灯",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "begin",
+          "reading": "/bi'gin/",
+          "meaning": "开始",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "to",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "flicker",
+          "reading": "/'flikә/",
+          "meaning": "闪烁",
+          "level": "C1",
+          "tier": "key"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "Then",
+          "reading": "/ðen/",
+          "meaning": "然后",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "through",
+          "reading": "/θru:/",
+          "meaning": "穿越",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "speaker",
+          "reading": "/'spi:kә/",
+          "meaning": "扬声器",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "a",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "low",
+          "reading": "/lәu/",
+          "meaning": "低沉的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "voice",
+          "reading": "/vɒis/",
+          "meaning": "声音",
+          "level": "A1",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "slowly",
+          "reading": "/'slәuli/",
+          "meaning": "慢慢地",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "says",
+          "reading": "/sez/",
+          "meaning": "说（第三人称单数）",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "your",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "name",
+          "reading": "/neim/",
+          "meaning": "名字",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 58,
+          "end": 243
+        },
+        {
+          "start": 243,
+          "end": 592
+        },
+        {
+          "start": 592,
+          "end": 684
+        },
+        {
+          "start": 684,
+          "end": 1091
+        },
+        {
+          "start": 1091,
+          "end": 1323
+        },
+        {
+          "start": 1323,
+          "end": 1648
+        },
+        {
+          "start": 1648,
+          "end": 2054
+        },
+        {
+          "start": 2054,
+          "end": 2252
+        },
+        {
+          "start": 2252,
+          "end": 2600
+        },
+        {
+          "start": 2600,
+          "end": 3018
+        },
+        {
+          "start": 3018,
+          "end": 3215
+        },
+        {
+          "start": 3215,
+          "end": 3587
+        },
+        {
+          "start": 3587,
+          "end": 3924
+        },
+        {
+          "start": 3924,
+          "end": 4202
+        },
+        {
+          "start": 4202,
+          "end": 4516
+        },
+        {
+          "start": 4516,
+          "end": 4829
+        },
+        {
+          "start": 4829,
+          "end": 4957
+        },
+        {
+          "start": 4957,
+          "end": 5410
+        },
+        {
+          "start": 5410,
+          "end": 5596
+        },
+        {
+          "start": 6013,
+          "end": 6361
+        },
+        {
+          "start": 6361,
+          "end": 6558
+        },
+        {
+          "start": 6558,
+          "end": 6802
+        },
+        {
+          "start": 6802,
+          "end": 6907
+        },
+        {
+          "start": 6907,
+          "end": 7418
+        },
+        {
+          "start": 7418,
+          "end": 7615
+        },
+        {
+          "start": 7615,
+          "end": 7824
+        },
+        {
+          "start": 7824,
+          "end": 8010
+        },
+        {
+          "start": 8010,
+          "end": 8393
+        },
+        {
+          "start": 8393,
+          "end": 8776
+        },
+        {
+          "start": 8776,
+          "end": 9043
+        },
+        {
+          "start": 9043,
+          "end": 9217
+        },
+        {
+          "start": 9217,
+          "end": 9519
+        },
+        {
+          "start": 9519,
+          "end": 9577
+        }
+      ],
+      "choices": [
+        {
+          "text": "1. Answer the voice",
+          "next_node_id": "reply"
+        },
+        {
+          "text": "2. Turn off all the power",
+          "next_node_id": "ending_silence"
+        }
+      ]
+    },
+    "dive": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-dive.mp3",
+      "text_segments": [
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "climb",
+          "reading": "/klaim/",
+          "meaning": "攀登",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "into",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "submersible",
+          "reading": "/sәb'mә:sәbl/",
+          "meaning": "能沉入水中的",
+          "level": "C2",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "descend",
+          "reading": "/di'send/",
+          "meaning": "下降；潜入",
+          "level": "B2",
+          "tier": "key"
+        },
+        {
+          "word": "into",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "cold",
+          "reading": "/kәuld/",
+          "meaning": "寒冷的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "darkness",
+          "reading": "/'dɑ:knis/",
+          "meaning": "黑暗",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "At",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "bottom",
+          "reading": "/'bɒtәm/",
+          "meaning": "底部",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "your",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "light",
+          "reading": "/lait/",
+          "meaning": "光",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "falls",
+          "reading": "/fɔ:ls/",
+          "meaning": "落在；照在",
+          "level": "C2",
+          "tier": "key"
+        },
+        {
+          "word": "on",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "a",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "huge",
+          "reading": "/hju:dʒ/",
+          "meaning": "极大的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "structure",
+          "reading": "/'strʌktʃә/",
+          "meaning": "建筑结构",
+          "level": "A1",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "It",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "is",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "ancient",
+          "reading": "/'einʃәnt/",
+          "meaning": "古代的",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "it",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "was",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "not",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "built",
+          "reading": "/bilt/",
+          "meaning": "建造（过去分词）",
+          "level": "C1",
+          "tier": "key"
+        },
+        {
+          "word": "by",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "human",
+          "reading": "/'hju:mәn/",
+          "meaning": "人类的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "hands",
+          "reading": null,
+          "meaning": "手",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "A",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "door",
+          "reading": "/dɒ:/",
+          "meaning": "门",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "slowly",
+          "reading": "/'slәuli/",
+          "meaning": "慢慢地",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "opens",
+          "reading": null,
+          "meaning": "打开",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "for",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "you",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 58,
+          "end": 243
+        },
+        {
+          "start": 243,
+          "end": 580
+        },
+        {
+          "start": 580,
+          "end": 859
+        },
+        {
+          "start": 859,
+          "end": 963
+        },
+        {
+          "start": 963,
+          "end": 1764
+        },
+        {
+          "start": 1764,
+          "end": 2310
+        },
+        {
+          "start": 2310,
+          "end": 2786
+        },
+        {
+          "start": 2786,
+          "end": 3099
+        },
+        {
+          "start": 3099,
+          "end": 3227
+        },
+        {
+          "start": 3227,
+          "end": 3529
+        },
+        {
+          "start": 3529,
+          "end": 4098
+        },
+        {
+          "start": 4098,
+          "end": 4167
+        },
+        {
+          "start": 4618,
+          "end": 4839
+        },
+        {
+          "start": 4839,
+          "end": 4943
+        },
+        {
+          "start": 4943,
+          "end": 5350
+        },
+        {
+          "start": 5350,
+          "end": 5547
+        },
+        {
+          "start": 5547,
+          "end": 5977
+        },
+        {
+          "start": 5977,
+          "end": 6197
+        },
+        {
+          "start": 6197,
+          "end": 6534
+        },
+        {
+          "start": 6534,
+          "end": 6662
+        },
+        {
+          "start": 6662,
+          "end": 6731
+        },
+        {
+          "start": 6731,
+          "end": 7068
+        },
+        {
+          "start": 7068,
+          "end": 7672
+        },
+        {
+          "start": 7672,
+          "end": 7823
+        },
+        {
+          "start": 8219,
+          "end": 8417
+        },
+        {
+          "start": 8417,
+          "end": 8602
+        },
+        {
+          "start": 8602,
+          "end": 9137
+        },
+        {
+          "start": 9137,
+          "end": 9357
+        },
+        {
+          "start": 9357,
+          "end": 9659
+        },
+        {
+          "start": 9659,
+          "end": 9740
+        },
+        {
+          "start": 9740,
+          "end": 9938
+        },
+        {
+          "start": 9938,
+          "end": 10193
+        },
+        {
+          "start": 10193,
+          "end": 10483
+        },
+        {
+          "start": 10483,
+          "end": 10646
+        },
+        {
+          "start": 10646,
+          "end": 11029
+        },
+        {
+          "start": 11029,
+          "end": 11505
+        },
+        {
+          "start": 11505,
+          "end": 11586
+        },
+        {
+          "start": 12000,
+          "end": 12151
+        },
+        {
+          "start": 12151,
+          "end": 12453
+        },
+        {
+          "start": 12453,
+          "end": 12917
+        },
+        {
+          "start": 12917,
+          "end": 13335
+        },
+        {
+          "start": 13335,
+          "end": 13532
+        },
+        {
+          "start": 13532,
+          "end": 13707
+        },
+        {
+          "start": 13707,
+          "end": 13823
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ Back to library ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    },
+    "reply": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-reply.mp3",
+      "text_segments": [
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "send",
+          "reading": "/send/",
+          "meaning": "发送",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "a",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "friendly",
+          "reading": "/'frendli/",
+          "meaning": "友好的",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "reply",
+          "reading": "/ri'plai/",
+          "meaning": "答复",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "into",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "deep",
+          "reading": "/di:p/",
+          "meaning": "深的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "For",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "a",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "long",
+          "reading": "/lɒŋ/",
+          "meaning": "长久的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "moment",
+          "reading": "/'mәumәnt/",
+          "meaning": "片刻",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "nothing",
+          "reading": "/'nʌθiŋ/",
+          "meaning": "什么也没有",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "happens",
+          "reading": "/ˈhæpənz/",
+          "meaning": "发生",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "Then",
+          "reading": "/ðen/",
+          "meaning": "然后",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "signal",
+          "reading": "/'signl/",
+          "meaning": "信号",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "slowly",
+          "reading": "/'slәuli/",
+          "meaning": "慢慢地",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "fades",
+          "reading": "/feidz/",
+          "meaning": "渐渐消失",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "away",
+          "reading": "/ә'wei/",
+          "meaning": "离去",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "The",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "sonar",
+          "reading": "/'sәunɑ:/",
+          "meaning": "声纳",
+          "level": "C1",
+          "tier": "key"
+        },
+        {
+          "word": "screen",
+          "reading": "/skri:n/",
+          "meaning": "屏幕",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "turns",
+          "reading": null,
+          "meaning": "变得",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "calm",
+          "reading": "/kɑ:m/",
+          "meaning": "平静的",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "empty",
+          "reading": "/'empti/",
+          "meaning": "空的",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "When",
+          "reading": "/hwen/",
+          "meaning": "当...的时候",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "dawn",
+          "reading": "/dɒ:n/",
+          "meaning": "破晓",
+          "level": "B2",
+          "tier": "key",
+          "isPlotKeyword": true
+        },
+        {
+          "word": "breaks",
+          "reading": null,
+          "meaning": "破晓；降临",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": "over",
+          "reading": "/'әuvә/",
+          "meaning": "在……之上",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "sea",
+          "reading": "/si:/",
+          "meaning": "海",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "you",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "are",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "still",
+          "reading": "/stil/",
+          "meaning": "仍然",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "safe",
+          "reading": "/seif/",
+          "meaning": "安全的",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 58,
+          "end": 290
+        },
+        {
+          "start": 290,
+          "end": 557
+        },
+        {
+          "start": 557,
+          "end": 626
+        },
+        {
+          "start": 626,
+          "end": 1033
+        },
+        {
+          "start": 1033,
+          "end": 1474
+        },
+        {
+          "start": 1474,
+          "end": 1799
+        },
+        {
+          "start": 1799,
+          "end": 1915
+        },
+        {
+          "start": 1915,
+          "end": 2263
+        },
+        {
+          "start": 2263,
+          "end": 2368
+        },
+        {
+          "start": 2904,
+          "end": 3160
+        },
+        {
+          "start": 3160,
+          "end": 3229
+        },
+        {
+          "start": 3229,
+          "end": 3485
+        },
+        {
+          "start": 3485,
+          "end": 3961
+        },
+        {
+          "start": 3961,
+          "end": 4170
+        },
+        {
+          "start": 4170,
+          "end": 4611
+        },
+        {
+          "start": 4611,
+          "end": 5157
+        },
+        {
+          "start": 5157,
+          "end": 5226
+        },
+        {
+          "start": 5660,
+          "end": 5951
+        },
+        {
+          "start": 5951,
+          "end": 6055
+        },
+        {
+          "start": 6055,
+          "end": 6461
+        },
+        {
+          "start": 6461,
+          "end": 6926
+        },
+        {
+          "start": 6926,
+          "end": 7239
+        },
+        {
+          "start": 7239,
+          "end": 7530
+        },
+        {
+          "start": 7530,
+          "end": 7634
+        },
+        {
+          "start": 8092,
+          "end": 8255
+        },
+        {
+          "start": 8255,
+          "end": 8661
+        },
+        {
+          "start": 8661,
+          "end": 9068
+        },
+        {
+          "start": 9068,
+          "end": 9404
+        },
+        {
+          "start": 9404,
+          "end": 9776
+        },
+        {
+          "start": 9776,
+          "end": 10020
+        },
+        {
+          "start": 10020,
+          "end": 10426
+        },
+        {
+          "start": 10426,
+          "end": 10530
+        },
+        {
+          "start": 10941,
+          "end": 11196
+        },
+        {
+          "start": 11196,
+          "end": 11463
+        },
+        {
+          "start": 11463,
+          "end": 11835
+        },
+        {
+          "start": 11835,
+          "end": 12032
+        },
+        {
+          "start": 12032,
+          "end": 12160
+        },
+        {
+          "start": 12160,
+          "end": 12462
+        },
+        {
+          "start": 12462,
+          "end": 12647
+        },
+        {
+          "start": 12647,
+          "end": 12938
+        },
+        {
+          "start": 12938,
+          "end": 13054
+        },
+        {
+          "start": 13054,
+          "end": 13379
+        },
+        {
+          "start": 13379,
+          "end": 13785
+        },
+        {
+          "start": 13785,
+          "end": 13855
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ Back to library ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    },
+    "evacuate": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-evacuate.mp3",
+      "text_segments": [
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "captain",
+          "reading": "/'kæptin/",
+          "meaning": "船长",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "follow",
+          "reading": "/'fɒlәu/",
+          "meaning": "跟随",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "safety",
+          "reading": "/'seifti/",
+          "meaning": "安全",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "protocol",
+          "reading": "/'prәutәkɒl/",
+          "meaning": "规程；协议",
+          "level": "B2",
+          "tier": "key"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "leave",
+          "reading": "/li:v/",
+          "meaning": "离开",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "station",
+          "reading": "/'steiʃәn/",
+          "meaning": "研究站",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "in",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "escape",
+          "reading": "/i'skeip/",
+          "meaning": "逃生（的）",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "boat",
+          "reading": "/bәut/",
+          "meaning": "船",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "watch",
+          "reading": "/wɒtʃ/",
+          "meaning": "注视",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "it",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "disappear",
+          "reading": "/.disә'piә/",
+          "meaning": "消失",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "behind",
+          "reading": "/bi'haind/",
+          "meaning": "在后地",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "you",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "in",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "fog",
+          "reading": "/fɒg/",
+          "meaning": "雾",
+          "level": "B2",
+          "tier": "key"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "never",
+          "reading": "/'nevә/",
+          "meaning": "从不",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "learn",
+          "reading": "/lә:n/",
+          "meaning": "得知；了解",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "what",
+          "reading": "/hwɒt/",
+          "meaning": "什么",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "signal",
+          "reading": "/'signl/",
+          "meaning": "信号",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "really",
+          "reading": "/'riәli/",
+          "meaning": "实际上",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "was",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "but",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "you",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "are",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "alive",
+          "reading": "/ә'laiv/",
+          "meaning": "活着的",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 34,
+          "end": 313
+        },
+        {
+          "start": 313,
+          "end": 499
+        },
+        {
+          "start": 499,
+          "end": 603
+        },
+        {
+          "start": 603,
+          "end": 1137
+        },
+        {
+          "start": 1137,
+          "end": 1497
+        },
+        {
+          "start": 1497,
+          "end": 1613
+        },
+        {
+          "start": 1613,
+          "end": 2101
+        },
+        {
+          "start": 2101,
+          "end": 2647
+        },
+        {
+          "start": 2647,
+          "end": 2821
+        },
+        {
+          "start": 3292,
+          "end": 3525
+        },
+        {
+          "start": 3525,
+          "end": 3734
+        },
+        {
+          "start": 3734,
+          "end": 3838
+        },
+        {
+          "start": 3838,
+          "end": 4337
+        },
+        {
+          "start": 4337,
+          "end": 4453
+        },
+        {
+          "start": 4453,
+          "end": 4535
+        },
+        {
+          "start": 4535,
+          "end": 4929
+        },
+        {
+          "start": 4929,
+          "end": 5231
+        },
+        {
+          "start": 5231,
+          "end": 5672
+        },
+        {
+          "start": 5672,
+          "end": 5916
+        },
+        {
+          "start": 5916,
+          "end": 6009
+        },
+        {
+          "start": 6009,
+          "end": 6566
+        },
+        {
+          "start": 6566,
+          "end": 7019
+        },
+        {
+          "start": 7019,
+          "end": 7182
+        },
+        {
+          "start": 7182,
+          "end": 7344
+        },
+        {
+          "start": 7344,
+          "end": 7472
+        },
+        {
+          "start": 7472,
+          "end": 7994
+        },
+        {
+          "start": 7994,
+          "end": 8145
+        },
+        {
+          "start": 8665,
+          "end": 8839
+        },
+        {
+          "start": 8839,
+          "end": 9129
+        },
+        {
+          "start": 9129,
+          "end": 9408
+        },
+        {
+          "start": 9408,
+          "end": 9582
+        },
+        {
+          "start": 9582,
+          "end": 9686
+        },
+        {
+          "start": 9686,
+          "end": 10069
+        },
+        {
+          "start": 10069,
+          "end": 10348
+        },
+        {
+          "start": 10348,
+          "end": 10673
+        },
+        {
+          "start": 10673,
+          "end": 10870
+        },
+        {
+          "start": 10870,
+          "end": 11242
+        },
+        {
+          "start": 11242,
+          "end": 11393
+        },
+        {
+          "start": 11393,
+          "end": 11544
+        },
+        {
+          "start": 11544,
+          "end": 12066
+        },
+        {
+          "start": 12066,
+          "end": 12078
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ Back to library ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    },
+    "ending_silence": {
+      "bg_image": null,
+      "audio_url": "/audio/signal-from-the-deep-ending_silence.mp3",
+      "text_segments": [
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "shut",
+          "reading": "/ʃʌʃ/",
+          "meaning": "关闭",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": "down",
+          "reading": "/daun/",
+          "meaning": "向下",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "all",
+          "reading": "/ɒ:l/",
+          "meaning": "所有的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "power",
+          "reading": "/'pauә/",
+          "meaning": "电源；电力",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "The",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "station",
+          "reading": "/'steiʃәn/",
+          "meaning": "研究站",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "falls",
+          "reading": "/fɔ:ls/",
+          "meaning": "落在；照在",
+          "level": "C2",
+          "tier": "key"
+        },
+        {
+          "word": "into",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "total",
+          "reading": "/'tәutl/",
+          "meaning": "全体的",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "darkness",
+          "reading": "/'dɑ:knis/",
+          "meaning": "黑暗",
+          "level": "B1",
+          "tier": "normal"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "silence",
+          "reading": "/'sailәns/",
+          "meaning": "沉默",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "The",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "voice",
+          "reading": "/vɒis/",
+          "meaning": "声音",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "is",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "gone",
+          "reading": "/gɒn/",
+          "meaning": "消失的",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "You",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "sit",
+          "reading": "/sit/",
+          "meaning": "坐",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "alone",
+          "reading": "/ә'lәun/",
+          "meaning": "独自",
+          "level": "A2",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "waiting",
+          "reading": "/'weitiŋ/",
+          "meaning": "等候",
+          "level": "B2",
+          "tier": "key"
+        },
+        {
+          "word": "for",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "the",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "morning",
+          "reading": "/'mɒ:niŋ/",
+          "meaning": "早晨",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": ",",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "and",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "you",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "never",
+          "reading": "/'nevә/",
+          "meaning": "从不",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "tell",
+          "reading": "/tel/",
+          "meaning": "告诉",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "anyone",
+          "reading": "/'eniwʌn/",
+          "meaning": "任何人",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "what",
+          "reading": "/hwɒt/",
+          "meaning": "什么",
+          "level": "A1",
+          "tier": "normal"
+        },
+        {
+          "word": "you",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        },
+        {
+          "word": "heard",
+          "reading": "/hә:d/",
+          "meaning": "hear的过去式和过去分词",
+          "level": null,
+          "tier": "normal"
+        },
+        {
+          "word": ".",
+          "reading": null,
+          "meaning": null,
+          "level": null,
+          "tier": "base"
+        }
+      ],
+      "timestamps": [
+        {
+          "start": 69,
+          "end": 267
+        },
+        {
+          "start": 267,
+          "end": 510
+        },
+        {
+          "start": 510,
+          "end": 835
+        },
+        {
+          "start": 835,
+          "end": 1033
+        },
+        {
+          "start": 1033,
+          "end": 1149
+        },
+        {
+          "start": 1149,
+          "end": 1578
+        },
+        {
+          "start": 1578,
+          "end": 1637
+        },
+        {
+          "start": 2260,
+          "end": 2411
+        },
+        {
+          "start": 2411,
+          "end": 2841
+        },
+        {
+          "start": 2841,
+          "end": 3178
+        },
+        {
+          "start": 3178,
+          "end": 3398
+        },
+        {
+          "start": 3398,
+          "end": 3746
+        },
+        {
+          "start": 3746,
+          "end": 4246
+        },
+        {
+          "start": 4246,
+          "end": 4466
+        },
+        {
+          "start": 4466,
+          "end": 4977
+        },
+        {
+          "start": 4977,
+          "end": 5279
+        },
+        {
+          "start": 5279,
+          "end": 5523
+        },
+        {
+          "start": 5523,
+          "end": 5801
+        },
+        {
+          "start": 5801,
+          "end": 5929
+        },
+        {
+          "start": 5929,
+          "end": 6266
+        },
+        {
+          "start": 6266,
+          "end": 6486
+        },
+        {
+          "start": 6486,
+          "end": 6695
+        },
+        {
+          "start": 6695,
+          "end": 6928
+        },
+        {
+          "start": 6928,
+          "end": 7322
+        },
+        {
+          "start": 7322,
+          "end": 7543
+        },
+        {
+          "start": 7543,
+          "end": 7996
+        },
+        {
+          "start": 7996,
+          "end": 8135
+        },
+        {
+          "start": 8135,
+          "end": 8239
+        },
+        {
+          "start": 8239,
+          "end": 8611
+        },
+        {
+          "start": 8611,
+          "end": 8832
+        },
+        {
+          "start": 8832,
+          "end": 9087
+        },
+        {
+          "start": 9087,
+          "end": 9203
+        },
+        {
+          "start": 9203,
+          "end": 9482
+        },
+        {
+          "start": 9482,
+          "end": 9737
+        },
+        {
+          "start": 9737,
+          "end": 10236
+        },
+        {
+          "start": 10236,
+          "end": 10492
+        },
+        {
+          "start": 10492,
+          "end": 10643
+        },
+        {
+          "start": 10643,
+          "end": 10933
+        },
+        {
+          "start": 10933,
+          "end": 11084
+        }
+      ],
+      "choices": [
+        {
+          "text": "[ Back to library ]",
+          "next_node_id": "end_back_to_list"
+        }
+      ]
+    }
+  }
+}
