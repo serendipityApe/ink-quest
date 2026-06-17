@@ -81,37 +81,10 @@ const CATALOG: StoryCard[] = [
     locked: false,
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAY23k1btIgdPesyxntFo5G0KN7A7e0i_9IafFx_v-faXzCF0oZ6yJyVxFjZUEh_oRShEWZShJFNoMHdFjJMZlx6tzFr5e0PTd7vlOXLb_9j1FqiaMREgIR7s2R1U_JteAs2f3iY7Drcl7s9lI2pEfcVP0I1b9WDwBFSSWBl-5N3P-1Qi6RkHC9bnruOAtUf3UU-mKI4NqhK8jZq12O3Ju41iokvF9YY1VuOp3I5FMdOO85n6WCEor-x_Qxb_i9K65UiGtqdsw16yR8",
   },
-  // —— legacy 格式（lost-letter，正文+translations，阅读页走 legacy 分支）——
-  {
-    id: "lost-letter",
-    target_lang: "zh",
-    title_cn: "遗失的信",
-    title_en: "The Lost Letter",
-    level: "HSK 3",
-    level_system: "HSK",
-    genre: "Literature",
-    locked: false,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAK9k_fl1ecLnHSrkzgIHZJRoM4FKQnbX7teZF1zGWruGOevP9yTZVowE1H03ohr9fARDSBqQAFCXBlK_pJlezQiDfwo18IgN8X5-oVd-_MkZFJLKhuCQ8XFbHC1Ag7fKmqqTHli8UGdOfXqQDiV-jxzX9hGVNUV2TH9iGR9WfwAzGCenZ2s-jNDm_Vb-ieCfjYqQE85z5xpfkzSM_IWG45K6bwsslWL41zX8FraJS5Ii4CeRJSCbO5uDzX8eUs33oXrCj-Wz3l5SOg",
-  },
-  {
-    id: "shadow-wall",
-    target_lang: "zh",
-    title_cn: "长城之影",
-    title_en: "Shadows of the Wall",
-    level: "HSK 5",
-    level_system: "HSK",
-    genre: "History/Sci-Fi",
-    locked: true,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAY23k1btIgdPesyxntFo5G0KN7A7e0i_9IafFx_v-faXzCF0oZ6yJyVxFjZUEh_oRShEWZShJFNoMHdFjJMZlx6tzFr5e0PTd7vlOXLb_9j1FqiaMREgIR7s2R1U_JteAs2f3iY7Drcl7s9lI2pEfcVP0I1b9WDwBFSSWBl-5N3P-1Qi6RkHC9bnruOAtUf3UU-mKI4NqhK8jZq12O3Ju41iokvF9YY1VuOp3I5FMdOO85n6WCEor-x_Qxb_i9K65UiGtqdsw16yR8",
-  },
 ];
 
 const START = "start";
 const END_ID = "end_back_to_list";
-
-export function isStructuredStory(id: string): boolean {
-  return id in LOADERS;
-}
 
 export async function loadStory(id: string): Promise<StoryJSON | null> {
   const loader = LOADERS[id];

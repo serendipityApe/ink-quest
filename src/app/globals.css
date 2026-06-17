@@ -122,6 +122,12 @@ body {
   -webkit-backdrop-filter: blur(24px);
 }
 
+.word-interactive {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* tier: key — permanent dashed underline, instant tooltip */
 .word-key {
   color: #3a6664;

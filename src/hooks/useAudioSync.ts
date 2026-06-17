@@ -3,10 +3,22 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { Timestamp } from "@/types/story";
 
+interface PlayOpts {
+  audioUrl?: string | null;
+  text: string;
+  timestamps: Timestamp[];
+  voices: SpeechSynthesisVoice[];
+  lang?: "zh" | "en";
+  /** 播放范围（毫秒）。仅在 audioUrl 走真实音频路径时生效；
+   *  TTS fallback 不支持时间切片，调用方需自行预切 text。 */
+  startMs?: number;
+  endMs?: number;
+}
+
 interface UseAudioSyncReturn {
   isPlaying: boolean;
   activeSegmentIndex: number;
-  play: (opts: { audioUrl?: string | null; text: string; timestamps: Timestamp[]; voices: SpeechSynthesisVoice[]; lang?: "zh" | "en" }) => void;
+  play: (opts: PlayOpts) => void;
   stop: () => void;
 }
 
@@ -33,36 +45,36 @@ export function useAudioSync(): UseAudioSyncReturn {
   }, []);
 
   const stop = useCallback(() => {
-    // Stop real audio
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.ontimeupdate = null;
       audioRef.current.onended = null;
       audioRef.current = null;
     }
-    // Stop TTS fallback
     if (typeof window !== "undefined") window.speechSynthesis?.cancel();
     clearRaf();
     setIsPlaying(false);
     setActiveSegmentIndex(-1);
   }, [clearRaf]);
 
-  const play = useCallback(({ audioUrl, text, timestamps, voices, lang = "zh" }: {
-    audioUrl?: string | null;
-    text: string;
-    timestamps: Timestamp[];
-    voices: SpeechSynthesisVoice[];
-    lang?: "zh" | "en";
-  }) => {
+  const play = useCallback((opts: PlayOpts) => {
+    const { audioUrl, text, timestamps, voices, lang = "zh", startMs, endMs } = opts;
     stop();
 
     if (audioUrl) {
-      // ── Real audio path ──────────────────────────────────────────────────
+      // ── Real audio path（支持时间切片：startMs/endMs）─────────────────────
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
+      const hasRange = typeof endMs === "number";
+
       audio.ontimeupdate = () => {
         const ms = audio.currentTime * 1000;
+        // 时间切片：到达 endMs 立即停 —— 比 onended 早
+        if (hasRange && ms >= (endMs as number)) {
+          stop();
+          return;
+        }
         let idx = -1;
         for (let i = 0; i < timestamps.length; i++) {
           if (ms >= timestamps[i].start && ms < timestamps[i].end) { idx = i; break; }
@@ -84,12 +96,24 @@ export function useAudioSync(): UseAudioSyncReturn {
         audioRef.current = null;
       };
 
-      audio.play().catch(() => {
-        setIsPlaying(false);
-        audioRef.current = null;
-      });
+      // 先 seek 再 play —— Safari 上 seek 可能异步，
+      // 用 loadedmetadata 兜底确保起点准确（已加载过则同步触发）。
+      const startSec = (startMs ?? 0) / 1000;
+      const startPlayback = () => {
+        try { audio.currentTime = startSec; } catch { /* noop */ }
+        audio.play().catch(() => {
+          setIsPlaying(false);
+          audioRef.current = null;
+        });
+      };
+      if (startSec > 0) {
+        if (audio.readyState >= 1) startPlayback();
+        else audio.addEventListener("loadedmetadata", startPlayback, { once: true });
+      } else {
+        startPlayback();
+      }
     } else {
-      // ── TTS fallback (no audio file) ─────────────────────────────────────
+      // ── TTS fallback（无音频文件；时间切片不生效，调用方自行切 text）──────
       if (typeof window === "undefined" || !window.speechSynthesis) return;
       const utterance = new SpeechSynthesisUtterance(text);
       const matchLang = (v: SpeechSynthesisVoice) =>

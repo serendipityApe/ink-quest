@@ -22,6 +22,10 @@ const ROW_H = 92;    // 同层节点行高
 const PAD_X = 90;
 const PAD_Y = 56;
 const NODE_R = 26;   // 节点圆半径
+const MOBILE_COL_W = 112;
+const MOBILE_ROW_H = 128;
+const MOBILE_PAD_X = 44;
+const MOBILE_PAD_Y = 44;
 
 export default function StoryMap({
   storyId, manifest, currentNodeId, visited, onJump, onClose,
@@ -42,6 +46,8 @@ export default function StoryMap({
 
   const height = PAD_Y * 2 + (graph.maxLayerWidth - 1) * ROW_H + NODE_R * 2;
   const width = PAD_X * 2 + (graph.layerCount - 1) * COL_W + NODE_R * 2;
+  const mobileWidth = MOBILE_PAD_X * 2 + (graph.maxLayerWidth - 1) * MOBILE_COL_W + NODE_R * 2;
+  const mobileHeight = MOBILE_PAD_Y * 2 + (graph.layerCount - 1) * MOBILE_ROW_H + NODE_R * 2 + 28;
 
   const pos = (n: GraphNode) => {
     const count = perLayer[n.layer] ?? 1;
@@ -50,6 +56,16 @@ export default function StoryMap({
     return {
       x: PAD_X + NODE_R + n.layer * COL_W,
       y: top + n.col * ROW_H,
+    };
+  };
+
+  const mobilePos = (n: GraphNode) => {
+    const count = perLayer[n.layer] ?? 1;
+    const layerW = (count - 1) * MOBILE_COL_W;
+    const left = (mobileWidth - layerW) / 2;
+    return {
+      x: left + n.col * MOBILE_COL_W,
+      y: MOBILE_PAD_Y + NODE_R + n.layer * MOBILE_ROW_H,
     };
   };
 
@@ -82,7 +98,7 @@ export default function StoryMap({
         </div>
 
         {/* Scrollable graph */}
-        <div className="flex-grow overflow-auto p-4">
+        <div className="hidden md:block flex-grow overflow-auto p-4">
           <svg
             width={width}
             height={height}
@@ -156,6 +172,84 @@ export default function StoryMap({
                   {/* Label */}
                   <text
                     y={NODE_R + 16}
+                    textAnchor="middle"
+                    className="select-none"
+                    fontSize="12"
+                    fill={isVisited ? "var(--color-on-surface)" : "var(--color-outline)"}
+                    fontWeight={isCurrent ? 600 : 400}
+                  >
+                    {isVisited ? n.label : "？"}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        <div className="flex-grow overflow-y-auto overflow-x-hidden p-4 md:hidden">
+          <svg
+            width={mobileWidth}
+            height={mobileHeight}
+            viewBox={`0 0 ${mobileWidth} ${mobileHeight}`}
+            className="mx-auto max-w-full"
+          >
+            {graph.edges.map((e, i) => {
+              const a = mobilePos(graph.byId[e.from]);
+              const b = mobilePos(graph.byId[e.to]);
+              const bothVisited = visitedSet.has(e.from) && visitedSet.has(e.to);
+              const midY = (a.y + b.y) / 2;
+              return (
+                <path
+                  key={i}
+                  d={`M ${a.x} ${a.y + NODE_R} C ${a.x} ${midY}, ${b.x} ${midY}, ${b.x} ${b.y - NODE_R}`}
+                  fill="none"
+                  stroke={bothVisited ? "var(--color-primary)" : "var(--color-outline-variant)"}
+                  strokeWidth={bothVisited ? 2.5 : 1.5}
+                  strokeDasharray={bothVisited ? "0" : "4 4"}
+                  opacity={bothVisited ? 0.9 : 0.5}
+                />
+              );
+            })}
+
+            {graph.nodes.map((n) => {
+              const { x, y } = mobilePos(n);
+              const isVisited = visitedSet.has(n.id);
+              const isCurrent = n.id === currentNodeId;
+              const clickable = isVisited && !isCurrent;
+
+              const fill = isCurrent
+                ? "var(--color-primary)"
+                : isVisited
+                  ? "var(--color-primary-fixed)"
+                  : "var(--color-surface-container)";
+              const stroke = isCurrent
+                ? "var(--color-primary)"
+                : isVisited
+                  ? "var(--color-primary-container)"
+                  : "var(--color-outline-variant)";
+
+              return (
+                <g
+                  key={n.id}
+                  transform={`translate(${x}, ${y})`}
+                  className={clickable ? "cursor-pointer" : isCurrent ? "" : "cursor-not-allowed"}
+                  onClick={() => clickable && onJump(n.id)}
+                >
+                  {isCurrent && (
+                    <circle r={NODE_R + 6} fill="none" stroke="var(--color-primary)" strokeWidth={1.5} opacity={0.4} />
+                  )}
+                  <circle r={NODE_R} fill={fill} stroke={stroke} strokeWidth={2} />
+                  {isVisited ? (
+                    n.isEnding ? (
+                      <Flag x={-9} y={-9} width={18} height={18} className={isCurrent ? "text-on-primary" : "text-on-primary-fixed"} />
+                    ) : (
+                      <MapPin x={-9} y={-9} width={18} height={18} className={isCurrent ? "text-on-primary" : "text-on-primary-fixed"} />
+                    )
+                  ) : (
+                    <HelpCircle x={-9} y={-9} width={18} height={18} className="text-outline" />
+                  )}
+                  <text
+                    y={NODE_R + 18}
                     textAnchor="middle"
                     className="select-none"
                     fontSize="12"
