@@ -16,10 +16,10 @@ const notoSerifSC = Noto_Serif_SC({
 });
 
 export const metadata: Metadata = {
-  title: "CyberMandarin (InkQuest) - Learn Chinese through Interactive Web Novels",
+  title: "InkQuest - Learn Chinese through Interactive Web Novels",
   description: "Ditch boring textbooks. Learn real, idiomatic Chinese through immersive Xianxia, Sci-Fi, and Cyberpunk interactive web novels.",
   keywords: ["Mandarin", "Learn Chinese", "Interactive Fiction", "Web Novels", "Xianxia", "Cyberpunk", "HSK"],
-  authors: [{ name: "CyberMandarin Team" }],
+  authors: [{ name: "InkQuest Team" }],
 };
 
 export default function RootLayout({

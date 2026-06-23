@@ -34,11 +34,11 @@ export default function Navbar({ onSubscribeClick }: NavbarProps) {
 
   return (
     <nav className="bg-surface/80 backdrop-blur-xl w-full top-0 sticky z-50 border-b border-surface-container-high/20 transition-all duration-300">
-      <div className="flex justify-between items-center w-full px-reading-inset py-base max-w-container-max mx-auto h-16">
+      <div className="flex justify-between items-center w-full px-5 md:px-reading-inset py-base max-w-container-max mx-auto h-16">
         <Link href="/" className="font-story-title-lg text-[24px] text-primary tracking-tighter decoration-none hover:opacity-80 transition-opacity">
           <div className="flex items-center gap-2">
-            <span className="font-bold">C/M</span>
-            <span className="text-[20px] md:text-[24px]">CyberMandarin</span>
+            <span className="font-bold">IQ</span>
+            <span className="text-[20px] md:text-[24px]">InkQuest</span>
           </div>
         </Link>
 
@@ -89,7 +89,7 @@ export default function Navbar({ onSubscribeClick }: NavbarProps) {
       </div>
 
       {isOpen && (
-        <div className="md:hidden w-full bg-surface/95 backdrop-blur-xl border-b border-surface-container-high/40 px-reading-inset py-6 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="md:hidden w-full bg-surface/95 backdrop-blur-xl border-b border-surface-container-high/40 px-5 py-6 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-200">
           <ul className="flex flex-col gap-4">
             <li><Link href="/stories" onClick={() => setIsOpen(false)} className="block text-on-surface-variant font-ui-label-lg text-ui-label-lg hover:text-primary py-2 border-b border-surface-container/50">{t("nav.stories")}</Link></li>
             <li>

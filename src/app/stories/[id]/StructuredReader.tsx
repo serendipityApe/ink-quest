@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Volume2, Square, Lock, Map, Loader2, Play, CirclePlay } from "lucide-react";
+import { Volume2, Square, Lock, Map, Loader2, Play } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SubscribeModal from "@/components/SubscribeModal";
@@ -111,6 +111,14 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
 
   const lastGoodNodeRef = useRef<string>(manifest.start_node_id);
   const { isPlaying, activeSegmentIndex, play, stop } = useAudioSync();
+
+  // 移动端逐句播放：记录「当前正在播放/加载的句子 key」。mp3 加载有延迟，
+  // 点击后立即把该句按钮切到停止图标，避免用户重复点击（与整段朗读按钮一致）。
+  const [playingSentence, setPlayingSentence] = useState<string | null>(null);
+  const prevPlayingRef = useRef(false);
+  // 切换句子时 play() 会先 stop()（isPlaying 瞬间转 false），用此 ref 抑制这次
+  // 「假结束」误清高亮；只有真正的播放结束才清除。
+  const restartingRef = useRef(false);
 
   const mobileSentenceModeEnabled = READER_INTERACTION_CONFIG.mobileSentenceMode;
   const mobileSentenceBreaksEnabled = mobileSentenceModeEnabled && READER_INTERACTION_CONFIG.mobileSentenceBreaks;
@@ -224,6 +232,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
     setCurrentNodeId(nextNodeId);
     setReadingPosition(storyId, nextNodeId);
     stop();
+    setPlayingSentence(null);
     clearSelection();
   };
 
@@ -248,6 +257,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   const handleAudio = () => {
     if (!node) return;
     if (isPlaying) { stop(); return; }
+    setPlayingSentence(null);
     play({
       audioUrl: node.audio_url,
       text: plainText,
@@ -291,6 +301,37 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
     playSegmentRange(a, b);
     clearSelection();
   };
+
+  const sentenceKey = (start: number, end: number) => `${start}-${end}`;
+
+  // 移动端逐句按钮：点击切换播放/停止。播放时按钮立刻变停止图标（mp3 加载有延迟，
+  // 防重复点击），与整段朗读按钮行为一致。
+  const handleSentenceToggle = (start: number, end: number) => {
+    const key = sentenceKey(start, end);
+    if (playingSentence === key) {
+      stop();
+      setPlayingSentence(null);
+      return;
+    }
+    // 仅当此刻确有音频在播时，play() 内部的 stop() 才会产生一次 isPlaying:true→false 的
+    // 「假结束」需要抑制；空闲态点击不会有这次跳变，置 false 以免误吞之后真正的结束事件。
+    restartingRef.current = isPlaying;
+    setPlayingSentence(key);
+    playSegmentRange(start, end);
+  };
+
+  // 同步真实播放结束 → 清除句子高亮。切句产生的「假结束」由 restartingRef 跳过一次。
+  useEffect(() => {
+    if (isPlaying) {
+      prevPlayingRef.current = true;
+      return;
+    }
+    if (prevPlayingRef.current) {
+      if (restartingRef.current) restartingRef.current = false;
+      else setPlayingSentence(null);
+    }
+    prevPlayingRef.current = false;
+  }, [isPlaying]);
 
   const renderSegment = (seg: TextSegment, index: number, isFirst: boolean) => {
     const space = shouldPrefixSpace(seg.word, manifest.target_lang, isFirst) ? " " : "";
@@ -347,8 +388,11 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
               </div>
               {mobileSentenceModeEnabled && (
                 <div className={mobileSentenceBreaksEnabled ? "flex flex-col gap-5 md:hidden" : "inline md:hidden"}>
-                  {sentenceGroups.map((sentence) => (
-                    <p key={`${sentence.start}-${sentence.end}`} className={mobileSentenceBreaksEnabled ? "block" : "inline"}>
+                  {sentenceGroups.map((sentence) => {
+                    const key = sentenceKey(sentence.start, sentence.end);
+                    const active = playingSentence === key;
+                    return (
+                    <p key={key} className={mobileSentenceBreaksEnabled ? "block" : "inline"}>
                       <span>
                         {sentence.segments.map((seg, offset) =>
                           renderSegment(seg, sentence.start + offset, offset === 0)
@@ -356,15 +400,16 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
                       </span>
                       <button
                         type="button"
-                        onClick={() => playSegmentRange(sentence.start, sentence.end)}
-                        aria-label="Play current sentence"
-                        className="ml-2 inline-flex h-7 w-7 translate-y-1 items-center justify-center rounded-full bg-primary/8 text-primary transition-colors active:scale-95 hover:bg-primary/15"
+                        onClick={() => handleSentenceToggle(sentence.start, sentence.end)}
+                        aria-label={active ? "Stop playback" : "Play current sentence"}
+                        className={`ml-2 inline-flex h-7 w-7 translate-y-1 items-center justify-center rounded-full transition-colors active:scale-95 ${active ? "bg-primary/15 text-primary animate-pulse" : "bg-primary/8 text-primary hover:bg-primary/15"}`}
                       >
-                        <CirclePlay className="h-4 w-4" />
+                        {active ? <Square className="h-4 w-4 fill-primary" /> : <Volume2 className="h-4 w-4" />}
                       </button>
                       {!mobileSentenceBreaksEnabled && " "}
                     </p>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

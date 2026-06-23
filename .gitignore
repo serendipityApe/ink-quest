@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 故事音频：现有已入库的这批保留追踪（gitignore 不影响已跟踪文件）；
+# 后续批量生成的音频默认忽略 —— 先本地试听，确认后统一上传 Supabase Storage，由代码引用，不入 git。
+/public/audio/*
+!/public/audio/.gitkeep
+
+# 故事封面：由 scripts/upload-assets.mjs 抓取生成，本地直读用；生产走 Supabase Storage。不入 git。
+/public/covers/

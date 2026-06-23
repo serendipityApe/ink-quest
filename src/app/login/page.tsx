@@ -39,7 +39,7 @@ export default function LoginPage() {
       <Navbar />
       <main className="flex-grow flex items-center justify-center pt-24 pb-section-gap px-reading-inset min-h-[70vh]">
         <div className="w-full max-w-sm flex flex-col gap-6 p-8 bg-surface/40 rounded-3xl border border-white/20 glass-panel shadow-xl">
-          <h1 className="font-story-title-lg text-2xl text-on-surface text-center">Sign in to CyberMandarin</h1>
+          <h1 className="font-story-title-lg text-2xl text-on-surface text-center">Sign in to InkQuest</h1>
 
           {sent ? (
             <p className="font-ui-body text-sm text-secondary text-center leading-relaxed">

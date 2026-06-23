@@ -50,7 +50,7 @@ export default function Home() {
             {/* Right Content (Image) */}
             <div className="md:col-span-6 mt-12 md:mt-0 relative aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low flex items-center justify-center border border-surface-container-high/40">
               <Image 
-                alt="CyberMandarin Hero Illustration" 
+                alt="InkQuest Hero Illustration"
                 className="absolute inset-0 w-full h-full object-cover opacity-90 mix-blend-multiply transition-transform duration-700 hover:scale-102"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB0pKNG1NWCIpVAxJM_SuYaoN6lSa9p8UPiMECw8bugIM1B0HKfZoTL18DBhM542vQI0tEQt-IWSP0eZasHJlxmZg_q4lNhj8DLdbrVqnpODZ64cXdmJDMnWqrdwFhCIo83zLfqadrFBTiWQCgyxyz66teBcFciAeVVmNGVxHmyEJ4eKWEkg7Iocuo7GEYdYC1StmVeapnIzhdRkQIBlrGGEv_VchhMeC5s6-SnzMFcA_P7rqEFMLky9sUgkEKtLWvf6mmotM7uSR6"
                 fill

@@ -52,7 +52,7 @@ function SubscribeContent() {
               </div>
               <h1 className="font-story-title-lg text-3xl text-on-surface mb-4">Welcome to the Sect!</h1>
               <p className="font-ui-body text-ui-body text-secondary mb-8 leading-relaxed">
-                Your subscription is active. You now have full access to CyberMandarin.
+                Your subscription is active. You now have full access to InkQuest.
               </p>
               <button
                 onClick={() => router.push("/stories")}

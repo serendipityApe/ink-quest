@@ -18,6 +18,25 @@ import type {
  * 新增故事：① 在 CATALOG 登记卡片元数据；② 在 LOADERS 登记数据加载器。
  */
 
+/**
+ * 资源基址：生产环境指向 Supabase Storage 的 public bucket，
+ * 本地开发不配此变量时回退到 public/ 下的相对路径（音频、封面均可本地直读）。
+ *
+ *   NEXT_PUBLIC_ASSET_BASE_URL=https://<project>.supabase.co/storage/v1/object/public/assets
+ *
+ * 数据文件（故事 JSON）里仍存相对路径（/audio/xxx），由 assetUrl 在出口处统一拼接，
+ * 这样切换存储后端只需改一个环境变量，无需重写任何 JSON。
+ */
+const ASSET_BASE = (process.env.NEXT_PUBLIC_ASSET_BASE_URL ?? "").replace(/\/$/, "");
+
+/** 把相对资源路径（/audio/x、/covers/x）映射到当前存储后端的完整 URL。 */
+function assetUrl(path: string | null): string | null {
+  if (!path) return path;
+  if (/^https?:\/\//.test(path)) return path; // 已是绝对 URL，原样返回
+  if (!ASSET_BASE) return path; // 本地开发：交给 Next 直接服务 public/
+  return `${ASSET_BASE}/${path.replace(/^\//, "")}`;
+}
+
 /** 故事正文加载器（按 story_id 索引；id 全局唯一）。 */
 const LOADERS: Record<string, () => Promise<StoryJSON>> = {
   "master-secret": () =>
@@ -26,10 +45,10 @@ const LOADERS: Record<string, () => Promise<StoryJSON>> = {
     import("@/data/stories/zh/last-train.json").then((m) => m.default as StoryJSON),
   "haunted-house": () =>
     import("@/data/stories/en/haunted-house.json").then((m) => m.default as StoryJSON),
-  "pipeline-smoke": () =>
-    import("@/data/stories/zh/pipeline-smoke.json").then((m) => m.default as StoryJSON),
   "signal-from-the-deep": () =>
     import("@/data/stories/en/signal-from-the-deep.json").then((m) => m.default as StoryJSON),
+  "the-rosewood-vanishing": () =>
+    import("@/data/stories/en/the-rosewood-vanishing.json").then((m) => m.default as StoryJSON),
 };
 
 /**
@@ -46,7 +65,7 @@ const CATALOG: StoryCard[] = [
     level_system: "HSK",
     genre: "Xianxia",
     locked: false,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCVCmwDjWWepAYvAZcCqk_xatLu8OYqNUqHUG0Q60x2PRJ2AoTDRrrJnBGq0XoYF8SNjbM2zp6ydg-smBdAjFAWSF9YJuXW1LerMIUdwxPB2__jDs8iIu70UCFjQW7IOptszOBppgCmPOt0k2a7a5iMM2c9GSv0xzuX9Z3sCqIHvH0Y04ZsN8_6MU6JX1MaiCG05aWxbEREymYHdiHd9GVCiIrft4V9ZDo2QE9m1l5oXJ9DzNSc5XyZMYMCHTu0mO52wvh86e_8cFem",
+    image: "/covers/master-secret.png",
   },
   {
     id: "last-train",
@@ -57,7 +76,7 @@ const CATALOG: StoryCard[] = [
     level_system: "HSK",
     genre: "Urban Horror",
     locked: false,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDFUoNSnoejdFuBy8VNwharovOHGD6g44r4kKn7_HVILQUTKdbPU48FpekULUMbqrfICHZzk8drJXQlfE7Zmpo2MtjCbaX5wf0AQSDK-XnGV6cfYHSHhlC-3-tSFt-DIcN8vRiPW9SWieyCFiFbFGKKOQl7CjTuUyaYpyKtK0f4zj9gjjXmT6xaztpmGo4yS8sw3HgMexbrkiYBJ2MIVz2X4ykjjgZDEUQSaPMAS49Mble2l-P2mxVaDZr90UrV_jiSw7k_emBDjkZ6",
+    image: "/covers/last-train.png",
   },
   {
     id: "haunted-house",
@@ -68,7 +87,7 @@ const CATALOG: StoryCard[] = [
     level_system: "CEFR",
     genre: "Horror",
     locked: false,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuByAGR3eAj-islCdaxw-6Hx-2vtqhn3nBZaza3MPUZbedeFnRCjiBZQwwW1Do80PwO5P_o9YyRRQZj6dCsJo6h-CsEcWBw9ZaNKjbEEpya6Aex_415Kqo5VEc60vfrnewFcp97JiesxmS_0a3ou8G3tky6bFtJTTLTv7N5R1lhm6FIpiyJG-rh-kxa7B4Dxv5Ws6OnwY2NyIvCljmxprVpclM6CJH2SW_AiEw2tzcx_pYB45qVstjmN_XtnKebSsTuVVtvY9DIhfZhu",
+    image: "/covers/haunted-house.png",
   },
   {
     id: "signal-from-the-deep",
@@ -79,7 +98,18 @@ const CATALOG: StoryCard[] = [
     level_system: "CEFR",
     genre: "Sci-Fi/Thriller",
     locked: false,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAY23k1btIgdPesyxntFo5G0KN7A7e0i_9IafFx_v-faXzCF0oZ6yJyVxFjZUEh_oRShEWZShJFNoMHdFjJMZlx6tzFr5e0PTd7vlOXLb_9j1FqiaMREgIR7s2R1U_JteAs2f3iY7Drcl7s9lI2pEfcVP0I1b9WDwBFSSWBl-5N3P-1Qi6RkHC9bnruOAtUf3UU-mKI4NqhK8jZq12O3Ju41iokvF9YY1VuOp3I5FMdOO85n6WCEor-x_Qxb_i9K65UiGtqdsw16yR8",
+    image: "/covers/signal-from-the-deep.png",
+  },
+  {
+    id: "the-rosewood-vanishing",
+    target_lang: "en",
+    title_cn: "玫瑰木失踪案",
+    title_en: "The Rosewood Vanishing",
+    level: "B2",
+    level_system: "CEFR",
+    genre: "Detective Noir",
+    locked: false,
+    image: "/covers/the-rosewood-vanishing.png",
   },
 ];
 
@@ -92,9 +122,10 @@ export async function loadStory(id: string): Promise<StoryJSON | null> {
   return loader();
 }
 
-/** 列出卡片目录；可按目标语言过滤。 */
+/** 列出卡片目录；可按目标语言过滤。封面 URL 在出口处映射到当前存储后端。 */
 export function listCards(target?: TargetLang | null): StoryCard[] {
-  return target ? CATALOG.filter((c) => c.target_lang === target) : CATALOG;
+  const cards = target ? CATALOG.filter((c) => c.target_lang === target) : CATALOG;
+  return cards.map((c) => ({ ...c, image: assetUrl(c.image) ?? c.image }));
 }
 
 /**
@@ -141,8 +172,8 @@ export function nodeResponse(
   if (!node) return null;
   return {
     node_id: nodeId,
-    bg_image: node.bg_image,
-    audio_url: node.audio_url,
+    bg_image: assetUrl(node.bg_image),
+    audio_url: assetUrl(node.audio_url),
     text_segments: node.text_segments,
     timestamps: node.timestamps,
     choices: node.choices,

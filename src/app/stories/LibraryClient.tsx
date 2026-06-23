@@ -91,83 +91,104 @@ export default function LibraryClient({ cards, target }: Props) {
     <>
       <Navbar onSubscribeClick={() => setIsSubscribeOpen(true)} />
 
-      <main className="flex-grow w-full max-w-container-max mx-auto px-reading-inset py-12 flex flex-col gap-10">
+      <main className="flex-grow w-full max-w-container-max mx-auto px-5 md:px-reading-inset py-6 md:py-12 flex flex-col gap-0 md:gap-10">
 
         {/* Page Header */}
-        <header className="flex flex-col gap-4 border-b border-surface-container-high/30 pb-6">
-          <h1 className="font-story-title-lg text-4xl md:text-[48px] leading-tight text-on-background">
+        <header className="flex flex-col gap-4 pb-6 md:border-b md:border-surface-container-high/30">
+          <h1 className="font-story-title-lg text-2xl md:text-[48px] leading-tight text-on-background">
             {t("stories.welcome")}<br />{t("stories.title")}
           </h1>
-
-          {/* 学习目标语言切换 */}
-          <div className="flex items-center gap-2">
-            <span className="font-ui-body text-sm text-secondary">{t("nav.learning")}:</span>
-            {(["zh", "en"] as TargetLang[]).map((lng) => (
-              <button
-                key={lng}
-                onClick={() => handleTargetChange(lng)}
-                className={`px-3 py-1 rounded-full font-ui-pinyin-sm text-xs transition-colors cursor-pointer ${
-                  target === lng
-                    ? "bg-primary text-white"
-                    : "bg-surface-container-low text-on-surface-variant hover:text-primary"
-                }`}
-              >
-                {lng === "zh" ? "中文 Chinese" : "English 英语"}
-              </button>
-            ))}
-            <span className="opacity-40">·</span>
-            <span className="font-ui-body text-sm text-secondary">
-              {exploredCount} {t("stories.explored")}
-            </span>
-          </div>
+          <span className="hidden md:inline font-ui-body text-sm text-secondary">
+            {exploredCount} {t("stories.explored")}
+          </span>
         </header>
 
-        {/* Filter & Search Bar — mobile: search on top, levels scroll horizontally */}
-        <div className="flex flex-col-reverse md:flex-row gap-4 items-stretch md:items-center justify-between">
-          {/* Level Filter Tabs */}
-          <div className="flex items-center gap-2 bg-surface-container-low p-1 rounded-lg flex-nowrap md:flex-wrap overflow-x-auto no-scrollbar -mx-reading-inset px-reading-inset md:mx-0 md:px-1">
-            {["All", ...levelFilters].map((level) => {
-              const active = level === "All" ? !levelParam : levelParam === level;
-              return (
-                <button
-                  key={level}
-                  onClick={() => handleLevelChange(level)}
-                  className={`shrink-0 px-4 py-2 font-button-text text-xs uppercase tracking-wider rounded-md transition-all duration-300 cursor-pointer ${active
-                      ? "bg-primary text-white"
-                      : "text-on-surface-variant hover:text-primary hover:bg-surface-container"
-                    }`}
-                >
-                  {level === "All" ? t("stories.all") : level}
-                </button>
-              );
-            })}
+        {/* Body: mobile -> sidebar, filter card, recent title, list (stacked, via order);
+            desktop -> full-width filter card on top, then [main column | sidebar] two columns */}
+        <div className="flex flex-col md:flex-row md:flex-wrap gap-6 md:gap-x-12 md:gap-y-8 items-start">
+
+          {/* Filter & Search — full-width card spanning both columns on desktop */}
+          <div className="order-2 md:order-1 w-full bg-surface-container-lowest rounded-xl border border-surface-container-high/15 p-3 sm:p-4 flex flex-col gap-3 md:flex-row-reverse md:items-center md:justify-between">
+              {/* Search Input */}
+              <div className="relative w-full md:max-w-xs flex items-center">
+                <Search className="absolute left-3 text-on-surface-variant/50 h-5 w-5 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={t("stories.search")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-surface-container-low border border-surface-container-high/40 focus:border-primary focus:ring-0 focus:outline-none rounded-lg pl-10 pr-4 py-2.5 font-ui-body text-[14px] placeholder:text-on-surface-variant/40 transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 text-on-surface-variant/60 hover:text-on-surface flex items-center"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter groups: Learning language + Level */}
+              <div className="flex flex-col gap-3 min-w-0">
+                {/* Learning language toggle */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="shrink-0 w-14 md:w-auto font-button-text text-xs uppercase tracking-wider text-secondary">
+                    {t("nav.learning")}:
+                  </span>
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mr-3 pr-3 md:mr-0 md:pr-0">
+                    {(["zh", "en"] as TargetLang[]).map((lng) => (
+                      <button
+                        key={lng}
+                        onClick={() => handleTargetChange(lng)}
+                        className={`shrink-0 px-4 py-1.5 font-button-text text-xs uppercase tracking-wider rounded-full transition-all duration-300 cursor-pointer ${target === lng
+                            ? "bg-primary text-white"
+                            : "bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-surface-container"
+                          }`}
+                      >
+                        {lng === "zh" ? t("lang.zh") : t("lang.en")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Level Filter Tabs */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="shrink-0 w-14 md:w-auto font-button-text text-xs uppercase tracking-wider text-secondary">
+                    {t("stories.level")}:
+                  </span>
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mr-3 pr-3 md:mr-0 md:pr-0">
+                    {["All", ...levelFilters].map((level) => {
+                      const active = level === "All" ? !levelParam : levelParam === level;
+                      return (
+                        <button
+                          key={level}
+                          onClick={() => handleLevelChange(level)}
+                          className={`shrink-0 px-4 py-1.5 font-button-text text-xs uppercase tracking-wider rounded-full transition-all duration-300 cursor-pointer ${active
+                              ? "bg-primary text-white"
+                              : "bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-surface-container"
+                            }`}
+                        >
+                          {level === "All" ? t("stories.all") : level}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
           </div>
 
-          {/* Search Input */}
-          <div className="relative w-full md:max-w-xs flex items-center">
-            <Search className="absolute left-3 text-on-surface-variant/50 h-5 w-5 pointer-events-none" />
-            <input
-              type="text"
-              placeholder={t("stories.search")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-container-low border border-surface-container-high/40 focus:border-primary focus:ring-0 focus:outline-none rounded-lg pl-10 pr-4 py-2 font-ui-body text-[14px] placeholder:text-on-surface-variant/40 transition-colors"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 text-on-surface-variant/60 hover:text-on-surface flex items-center"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
+          {/* Main column: Recent title + story grid */}
+          <div className="order-3 md:order-2 flex-1 w-full flex flex-col gap-6">
+            {/* Recent Stories title */}
+            <div className="flex items-end justify-between">
+              <h2 className="font-story-title-lg text-2xl md:text-3xl text-on-background leading-tight">
+                {t("stories.recent")}
+              </h2>
+            </div>
 
-        {/* Main Content Layout: mobile -> sidebar on top, cards below; desktop -> cards left, sidebar right */}
-        <div className="flex flex-col-reverse md:flex-row gap-8 md:gap-12 items-start">
-          {/* Left Column: Story Cards Grid */}
-          <section className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter w-full">
+            {/* Story Cards Grid */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter w-full">
             {filteredStories.length > 0 ? (
               filteredStories.map((story) => {
                 const progress = progressMap[story.id] ?? 0;
@@ -281,32 +302,33 @@ export default function LibraryClient({ cards, target }: Props) {
                 </button>
               </div>
             )}
-          </section>
+            </section>
+          </div>
 
-          {/* Right Column: User Sidebar (mobile: side-by-side bento above the list) */}
-          <aside className="w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-4 md:gap-6">
+          {/* Sidebar — mobile: bento row pinned to the top; desktop: right column beside the grid */}
+          <aside className="order-1 md:order-3 w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-4 md:gap-6">
             <Link
               href="/saved-words"
               className="flex-1 flex flex-col gap-4 p-4 md:p-6 bg-surface-container-lowest rounded-xl border border-surface-container-high/15 hover:border-primary/30 hover:bg-surface-container-low/50 transition-colors"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Bookmark className="h-5 w-5 text-primary" />
-                  <span className="font-ui-body text-[14px] text-on-surface-variant">{t("savedWords.title")}</span>
+              <div className="flex w-full items-center justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Bookmark className="h-5 w-5 shrink-0 text-primary" />
+                  <span className="font-ui-body text-[14px] text-on-surface-variant truncate">{t("savedWords.title")}</span>
                 </div>
-                <span className="font-story-title-lg text-primary text-2xl">
+                <span className="font-story-title-lg text-primary text-2xl shrink-0 -translate-y-[2px]">
                   {savedWordsCount}
                 </span>
               </div>
             </Link>
 
             <div className="flex-1 flex flex-col gap-4 p-4 md:p-6 bg-surface-container-lowest rounded-xl border border-surface-container-high/15">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Flame className="h-5 w-5 text-rose-500 fill-rose-500" />
-                  <span className="font-ui-body text-[14px] text-on-surface-variant">Day Streak</span>
+              <div className="flex w-full items-center justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Flame className="h-5 w-5 shrink-0 text-rose-500 fill-rose-500" />
+                  <span className="font-ui-body text-[14px] text-on-surface-variant truncate">Day Streak</span>
                 </div>
-                <span className="font-story-title-lg text-primary text-2xl">
+                <span className="font-story-title-lg text-primary text-2xl shrink-0 -translate-y-[2px]">
                   {streakCount}
                 </span>
               </div>
