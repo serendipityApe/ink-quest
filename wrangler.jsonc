@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "inkquest",
+  "workers_dev": true,
+  "compatibility_date": "2026-07-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "routes": [
+    {
+      "pattern": "inkquest.dev",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.inkquest.dev",
+      "custom_domain": true
+    }
+  ]
+}

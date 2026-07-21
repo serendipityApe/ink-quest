@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 function SubscribeContent() {
@@ -17,6 +17,11 @@ function SubscribeContent() {
   const checkoutUrl = process.env.NEXT_PUBLIC_LEMONSQUEEZY_CHECKOUT_URL;
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);

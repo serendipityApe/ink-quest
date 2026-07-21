@@ -2,15 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
-// Use service role key for webhook — bypasses RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function createSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase webhook environment variables are not configured.");
+  }
+
+  // Use service role key for webhook — bypasses RLS
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 function verifySignature(payload: string, signature: string): boolean {
-  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET!;
+  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
+
+  if (!secret) {
+    throw new Error("LEMONSQUEEZY_WEBHOOK_SECRET is not configured.");
+  }
+
   const hmac = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+
+  if (hmac.length !== signature.length) {
+    return false;
+  }
+
   return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(signature));
 }
 
@@ -31,6 +47,8 @@ export async function POST(request: NextRequest) {
   const isInactive = ["subscription_cancelled", "subscription_expired", "subscription_paused"].includes(eventName);
 
   if (isActive || isInactive) {
+    const supabaseAdmin = createSupabaseAdmin();
+
     await supabaseAdmin
       .from("profiles")
       .update({

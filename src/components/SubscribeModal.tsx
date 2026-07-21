@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Lock, X } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 interface SubscribeModalProps {
@@ -17,8 +17,12 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
   useEffect(() => {
     if (!isOpen) return;
     document.body.style.overflow = "hidden";
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    }
+
     return () => { document.body.style.overflow = "unset"; };
   }, [isOpen]);
 

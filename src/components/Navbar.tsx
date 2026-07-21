@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Menu, X, LogOut, Globe } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useTranslations } from "@/i18n/I18nProvider";
 import type { User } from "@supabase/supabase-js";
 
@@ -17,6 +17,8 @@ export default function Navbar({ onSubscribeClick }: NavbarProps) {
   const { t, lang, setLang } = useTranslations();
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -26,6 +28,8 @@ export default function Navbar({ onSubscribeClick }: NavbarProps) {
   }, []);
 
   const handleSignOut = async () => {
+    if (!isSupabaseConfigured()) return;
+
     const supabase = createClient();
     await supabase.auth.signOut();
   };

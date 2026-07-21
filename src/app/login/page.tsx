@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -18,6 +17,14 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      setError("Authentication is not configured yet.");
+      return;
+    }
+
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${location.origin}/auth/callback` },
@@ -28,6 +35,12 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
+    if (!isSupabaseConfigured()) {
+      setError("Authentication is not configured yet.");
+      return;
+    }
+
+    const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${location.origin}/auth/callback` },

@@ -1,19 +1,25 @@
 import { cache } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
 export const getSession = cache(async () => {
+  if (!isSupabaseConfigured()) return null;
+
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   return session;
 });
 
 export const getUser = cache(async () => {
+  if (!isSupabaseConfigured()) return null;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 });
 
 export const isPremium = cache(async () => {
+  if (!isSupabaseConfigured()) return false;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return false;

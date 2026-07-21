@@ -60,12 +60,12 @@
   --spacing-reading-inset: max(40px, 10%);
   --spacing-gutter: 24px;
 
-  --font-ui-label-lg: var(--font-inter);
-  --font-story-title-lg: var(--font-noto-serif-sc);
-  --font-ui-body: var(--font-inter);
-  --font-ui-pinyin-sm: var(--font-inter);
-  --font-button-text: var(--font-inter);
-  --font-story-body-cn: var(--font-noto-serif-sc);
+  --font-ui-label-lg: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-story-title-lg: ui-serif, "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+  --font-ui-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-ui-pinyin-sm: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-button-text: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-story-body-cn: ui-serif, "Noto Serif CJK SC", "Songti SC", SimSun, serif;
 
   --text-ui-label-lg: 18px;
   --text-ui-label-lg--line-height: 24px;
