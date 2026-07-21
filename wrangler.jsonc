@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
   "name": "inkquest",
-  "workers_dev": true,
+  "workers_dev": false,
   "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
@@ -14,12 +14,12 @@
   },
   "routes": [
     {
-      "pattern": "inkquest.dev",
-      "custom_domain": true
+      "pattern": "inkquest.dev/*",
+      "zone_name": "inkquest.dev"
     },
     {
-      "pattern": "www.inkquest.dev",
-      "custom_domain": true
+      "pattern": "www.inkquest.dev/*",
+      "zone_name": "inkquest.dev"
     }
   ]
 }
