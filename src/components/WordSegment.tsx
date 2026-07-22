@@ -130,7 +130,7 @@ export default function WordSegment({
 
   return (
     <span
-      className={`word-interactive relative inline-block select-none ${baseClass} ${hoverClass} ${audioClass}`}
+      className={`word-interactive relative inline-block ${baseClass} ${hoverClass} ${audioClass}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
