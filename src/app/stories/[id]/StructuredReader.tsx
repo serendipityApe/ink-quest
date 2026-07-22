@@ -353,34 +353,17 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   return (
     <>
       <Navbar onSubscribeClick={() => setIsSubscribeOpen(true)} />
-      <main className="flex-grow flex flex-col items-center justify-center md:pt-24 md:pb-section-gap md:px-reading-inset max-w-container-max mx-auto w-full relative z-10 min-h-[60vh]">
+      <main className="flex-grow flex flex-col items-center justify-center pt-0 md:pb-section-gap md:px-reading-inset max-w-container-max mx-auto w-full relative z-10 min-h-[60vh]">
         {resumed && (
           <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-primary text-white px-4 py-2 rounded-full shadow-lg font-ui-pinyin-sm text-xs flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Map className="h-3.5 w-3.5" />
             {t("reader.resumed")}
           </div>
         )}
-        <button
-          onClick={() => setIsMapOpen(true)}
-          aria-label="View story path map"
-          className="absolute top-24 right-reading-inset hidden md:flex items-center gap-2 text-primary opacity-70 hover:opacity-100 transition-opacity py-2 px-4 rounded-full border border-primary/20 bg-primary/5 hover:bg-primary/10 cursor-pointer z-20"
-        >
-          <Map className="h-4 w-4" />
-          <span className="font-ui-pinyin-sm text-xs uppercase tracking-wider">{t("reader.map")}</span>
-        </button>
         <article
           ref={articleRef}
           className={`w-full max-w-2xl relative mb-0 md:mb-16 p-8 md:p-12 rounded-2xl min-h-[180px] md:text-justify ${mobileSentenceModeEnabled ? "select-none md:select-text" : ""}`}
         >
-          <button
-            onClick={handleAudio}
-            aria-label="Play audio narration"
-            disabled={!node}
-            className={`absolute -left-16 top-10 text-primary opacity-60 hover:opacity-100 transition-opacity p-3 rounded-full bg-surface-container/30 hover:bg-surface-container/70 hidden md:flex items-center justify-center disabled:opacity-20 ${isPlaying ? "animate-pulse opacity-100 bg-primary/10" : ""}`}
-          >
-            {isPlaying ? <Square className="h-5 w-5 fill-primary" /> : <Volume2 className="h-5 w-5" />}
-          </button>
-
           {node ? (
             <div className={bodyClass}>
               <div className={mobileSentenceModeEnabled ? "hidden md:block" : "block"}>
@@ -422,6 +405,26 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
               )}
             </div>
           )}
+
+          <div className="mt-8 hidden items-center justify-end gap-2 md:flex">
+            <button
+              onClick={handleAudio}
+              aria-label="Play audio narration"
+              title={isPlaying ? t("reader.stopListen") : t("reader.listen")}
+              disabled={!node}
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/15 text-primary transition-colors hover:border-primary/25 hover:bg-primary/5 disabled:opacity-20 disabled:cursor-not-allowed ${isPlaying ? "bg-primary/10 animate-pulse" : ""}`}
+            >
+              {isPlaying ? <Square className="h-4 w-4 fill-primary" /> : <Volume2 className="h-4 w-4" />}
+            </button>
+            <button
+              onClick={() => setIsMapOpen(true)}
+              aria-label="View story path map"
+              title={t("reader.map")}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/15 text-primary transition-colors hover:border-primary/25 hover:bg-primary/5"
+            >
+              <Map className="h-4 w-4" />
+            </button>
+          </div>
 
           <div className="mt-8 flex items-center justify-end gap-3 md:hidden">
             <button
