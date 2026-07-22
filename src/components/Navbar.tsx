@@ -59,11 +59,10 @@ export default function Navbar({ onSubscribeClick }: NavbarProps) {
           {/* 界面语言切换（与学习语言无关） */}
           <button
             onClick={() => setLang(lang === "zh" ? "en" : "zh")}
-            className="flex items-center gap-1.5 text-secondary hover:text-primary transition-colors cursor-pointer font-ui-pinyin-sm text-xs"
+            className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border border-[rgba(0,3,17,0.05)] bg-transparent text-on-surface font-button-text text-[13px] leading-none transition-colors hover:border-[rgba(0,3,17,0.08)] cursor-pointer"
             aria-label="Switch interface language"
           >
-            <Globe className="h-4 w-4" />
-            {lang === "zh" ? t("lang.en") : t("lang.zh")}
+            {lang === "zh" ? "中" : "EN"}
           </button>
           {user ? (
             <button
@@ -76,7 +75,7 @@ export default function Navbar({ onSubscribeClick }: NavbarProps) {
           ) : (
             <Link
               href="/login"
-              className="font-button-text text-button-text uppercase tracking-widest text-primary border-b border-transparent hover:border-primary transition-all duration-300 cursor-pointer pb-1"
+              className="inline-flex h-[30px] items-center leading-[30px] font-button-text text-button-text uppercase tracking-widest text-primary border-b border-transparent hover:border-primary transition-all duration-300 cursor-pointer"
             >
               {t("nav.signIn")}
             </Link>
