@@ -6,6 +6,7 @@
  *   tsx src/cli/enrich-draft.ts <draftPath> [outPath]
  *   pnpm --filter @inkquest/story-pipeline exec tsx src/cli/enrich-draft.ts drafts/foo.draft.json
  */
+import "../env.js";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
 import { getEnricher } from "../enrich/index.js";

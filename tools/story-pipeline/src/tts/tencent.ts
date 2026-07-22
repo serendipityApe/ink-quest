@@ -1,5 +1,6 @@
 import type { TargetLang } from "../schema.js";
 import type { TtsProvider, TtsResult, WordTiming } from "./types.js";
+import "../env.js";
 import { buildHeaders } from "./tencent-sign.js";
 
 /**

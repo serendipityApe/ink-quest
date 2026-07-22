@@ -64,11 +64,12 @@ pnpm --filter @inkquest/story-pipeline exec tsx src/cli/enrich-demo.ts en "An ab
 
 腾讯云环境变量（不入仓）：
 ```bash
-export TENCENT_SECRET_ID=...
-export TENCENT_SECRET_KEY=...
-export TENCENT_REGION=ap-guangzhou        # 可选
-export TENCENT_TTS_VOICE=101001           # 可选，需选支持时间戳的音色
+TENCENT_SECRET_ID=...
+TENCENT_SECRET_KEY=...
+TENCENT_REGION=ap-guangzhou        # 可选
+TENCENT_TTS_VOICE=101001           # 可选，需选支持时间戳的音色
 ```
+`story-pipeline` 启动时会自动读取仓库根 `.env` / `.env.local`，也支持 `tools/story-pipeline/.env` / `.env.local`。shell 里已经手动 export 的同名变量优先级最高。
 英文（`target_lang: en`）海外供应商（Azure/ElevenLabs）为 P3.5，接口已留 `getTtsProvider`。
 
 ## 进度
@@ -77,4 +78,3 @@ export TENCENT_TTS_VOICE=101001           # 可选，需选支持时间戳的音
 - [x] P2 agent 创作流（draft → enrich → 审校 → assemble），端到端验证通过
 - [x] P3 腾讯云 TTS（TC3 签名 + 字符级→词级聚合 + 分块拼接）+ 降级估时；英文海外供应商待接（P3.5）
 - [ ] P4 量产首发内容
-

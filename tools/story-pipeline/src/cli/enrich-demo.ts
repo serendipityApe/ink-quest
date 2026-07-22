@@ -5,6 +5,7 @@
  *   tsx src/cli/enrich-demo.ts zh "你推开房门，只见屋内寒气森森。"
  *   tsx src/cli/enrich-demo.ts en "You pushed the door open."
  */
+import "../env.js";
 import { getEnricher } from "../enrich/index.js";
 import type { TargetLang } from "../schema.js";
 

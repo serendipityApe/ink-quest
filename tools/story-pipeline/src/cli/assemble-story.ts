@@ -8,6 +8,7 @@
  *   不带 --write 为 dry-run：只校验并打印，不落盘。
  *   --no-audio 跳过 TTS，强制估时（即使配了密钥）。
  */
+import "../env.js";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
