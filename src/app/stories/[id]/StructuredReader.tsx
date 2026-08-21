@@ -283,12 +283,19 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
       return;
     }
 
+    const rangeStart = timestamps[start]?.start ?? 0;
+    const rangeTimestamps = timestamps.slice(start, end + 1).map((timestamp) => ({
+      start: timestamp.start - rangeStart,
+      end: timestamp.end - rangeStart,
+    }));
+
     play({
       audioUrl: null,
       text: joinSegments(segments.slice(start, end + 1), manifest.target_lang),
-      timestamps: [],
+      timestamps: rangeTimestamps,
       voices,
       lang: manifest.target_lang,
+      segmentOffset: start,
     });
   }, [node, timestamps, voices, manifest.target_lang, play, segments]);
 

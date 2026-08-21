@@ -13,6 +13,8 @@ interface PlayOpts {
    *  TTS fallback 不支持时间切片，调用方需自行预切 text。 */
   startMs?: number;
   endMs?: number;
+  /** TTS 传入局部时间戳时，用于还原正文中的全局 segment 索引。 */
+  segmentOffset?: number;
 }
 
 interface UseAudioSyncReturn {
@@ -30,6 +32,8 @@ export function useAudioSync(): UseAudioSyncReturn {
   const startTimeRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
   const timestampsRef = useRef<Timestamp[]>([]);
+  const segmentOffsetRef = useRef(0);
+  const tickRef = useRef<() => void>(() => undefined);
 
   const clearRaf = useCallback(() => cancelAnimationFrame(rafRef.current), []);
 
@@ -40,9 +44,13 @@ export function useAudioSync(): UseAudioSyncReturn {
     for (let i = 0; i < ts.length; i++) {
       if (elapsed >= ts[i].start && elapsed < ts[i].end) { idx = i; break; }
     }
-    setActiveSegmentIndex(idx);
-    rafRef.current = requestAnimationFrame(tick);
+    setActiveSegmentIndex(idx < 0 ? -1 : idx + segmentOffsetRef.current);
+    rafRef.current = requestAnimationFrame(() => tickRef.current());
   }, []);
+
+  useEffect(() => {
+    tickRef.current = tick;
+  }, [tick]);
 
   const stop = useCallback(() => {
     if (audioRef.current) {
@@ -58,8 +66,9 @@ export function useAudioSync(): UseAudioSyncReturn {
   }, [clearRaf]);
 
   const play = useCallback((opts: PlayOpts) => {
-    const { audioUrl, text, timestamps, voices, lang = "zh", startMs, endMs } = opts;
+    const { audioUrl, text, timestamps, voices, lang = "zh", startMs, endMs, segmentOffset = 0 } = opts;
     stop();
+    segmentOffsetRef.current = segmentOffset;
 
     if (audioUrl) {
       // ── Real audio path（支持时间切片：startMs/endMs）─────────────────────
@@ -68,18 +77,22 @@ export function useAudioSync(): UseAudioSyncReturn {
 
       const hasRange = typeof endMs === "number";
 
+      if (hasRange) {
+        const startIndex = timestamps.findIndex((timestamp) =>
+          (startMs ?? 0) >= timestamp.start && (startMs ?? 0) < timestamp.end
+        );
+        setActiveSegmentIndex(startIndex);
+      }
+
       audio.ontimeupdate = () => {
         const ms = audio.currentTime * 1000;
-        // 时间切片：到达 endMs 立即停 —— 比 onended 早
-        if (hasRange && ms >= (endMs as number)) {
-          stop();
-          return;
-        }
         let idx = -1;
         for (let i = 0; i < timestamps.length; i++) {
           if (ms >= timestamps[i].start && ms < timestamps[i].end) { idx = i; break; }
         }
         setActiveSegmentIndex(idx);
+        // 时间切片：到达 endMs 立即停 —— 比 onended 早
+        if (hasRange && ms >= (endMs as number)) stop();
       };
 
       audio.onplay = () => setIsPlaying(true);

@@ -26,7 +26,9 @@ export default function WordSegment({
   const { word, reading, meaning, level, tier } = segment;
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const triggerRef = useRef<HTMLSpanElement | null>(null);
   const tooltipRef = useRef<HTMLSpanElement | null>(null);
   const { speak, supported: ttsSupported } = useSpeak();
 
@@ -41,6 +43,7 @@ export default function WordSegment({
     clearTimer();
     setIsHovering(false);
     setShowTooltip(false);
+    setTooltipPosition(null);
   }, [clearTimer]);
 
   const canHover = useCallback(() => {
@@ -105,6 +108,30 @@ export default function WordSegment({
   useEffect(() => {
     if (!showTooltip) return;
 
+    const updateTooltipPosition = () => {
+      if (!canHover() || !triggerRef.current || !tooltipRef.current) return;
+
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const tooltipRect = tooltipRef.current.getBoundingClientRect();
+      const gap = 8;
+      const viewportPadding = 8;
+      const canPlaceAbove = triggerRect.top - tooltipRect.height - gap >= viewportPadding;
+      const canPlaceBelow = triggerRect.bottom + tooltipRect.height + gap <= window.innerHeight - viewportPadding;
+      const top = canPlaceAbove || !canPlaceBelow
+        ? triggerRect.top - tooltipRect.height - gap
+        : triggerRect.bottom + gap;
+      const left = Math.min(
+        Math.max(triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2, viewportPadding),
+        window.innerWidth - tooltipRect.width - viewportPadding,
+      );
+
+      setTooltipPosition({ top, left });
+    };
+
+    updateTooltipPosition();
+    window.addEventListener("resize", updateTooltipPosition);
+    window.addEventListener("scroll", updateTooltipPosition, true);
+
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Node | null;
       if (target && tooltipRef.current?.contains(target)) {
@@ -115,8 +142,12 @@ export default function WordSegment({
     };
 
     document.addEventListener("pointerdown", onPointerDown, true);
-    return () => document.removeEventListener("pointerdown", onPointerDown, true);
-  }, [showTooltip, hideTooltip]);
+    return () => {
+      window.removeEventListener("resize", updateTooltipPosition);
+      window.removeEventListener("scroll", updateTooltipPosition, true);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
+  }, [showTooltip, hideTooltip, canHover]);
 
   if (tier === "base") {
     return (
@@ -130,6 +161,7 @@ export default function WordSegment({
 
   return (
     <span
+      ref={triggerRef}
       className={`word-interactive relative inline-block ${baseClass} ${hoverClass} ${audioClass}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -150,7 +182,11 @@ export default function WordSegment({
           />
           <span
             ref={tooltipRef}
-            className="fixed bottom-6 left-4 right-4 z-50 mx-auto flex max-w-sm flex-col gap-1.5 rounded-card border-2 border-ink bg-paper px-4 py-3 text-center shadow-[0.4rem_0.4rem_0_var(--color-ink)] pointer-events-auto md:absolute md:bottom-full md:left-1/2 md:right-auto md:z-30 md:mx-0 md:min-w-[180px] md:max-w-none md:-translate-x-1/2"
+            className={`fixed bottom-6 left-4 right-4 z-50 mx-auto flex max-w-sm flex-col gap-1.5 rounded-card border-2 border-ink bg-paper px-4 py-3 text-center shadow-[0.4rem_0.4rem_0_var(--color-ink)] pointer-events-auto md:bottom-auto md:right-auto md:left-[var(--tooltip-left)] md:top-[var(--tooltip-top)] md:z-70 md:mx-0 md:min-w-[180px] md:max-w-none ${tooltipPosition ? "md:visible" : "md:invisible"}`}
+            style={{
+              "--tooltip-top": tooltipPosition ? `${tooltipPosition.top}px` : undefined,
+              "--tooltip-left": tooltipPosition ? `${tooltipPosition.left}px` : undefined,
+            } as React.CSSProperties}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
