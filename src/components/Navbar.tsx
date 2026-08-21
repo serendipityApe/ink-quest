@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Globe, LogOut, Menu, X } from "lucide-react";
+import { ArrowLeft, Globe, LogOut, Menu, X } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useTranslations } from "@/i18n/I18nProvider";
 import type { User } from "@supabase/supabase-js";
@@ -38,12 +38,12 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
   if (variant === "reader") {
     return (
       <header className="sticky top-0 z-50 bg-paper">
-        <div className="hallmark-shell flex min-h-14 items-center justify-between gap-4">
-          <Link href="/stories" className="inline-flex min-h-11 items-center gap-2 font-semibold whitespace-nowrap hover:text-primary">
-            <span aria-hidden="true">←</span>
-            {t("reader.backToLibrary")}
+        <div className="hallmark-shell relative flex min-h-12 items-center justify-between gap-4 md:min-h-14">
+          <Link href="/stories" className="inline-flex size-10 items-center justify-center rounded-full border border-ink text-ink transition-colors hover:bg-accent-soft md:size-auto md:min-h-11 md:gap-2 md:rounded-none md:border-0 md:font-semibold md:whitespace-nowrap md:hover:bg-transparent md:hover:text-primary" aria-label={t("reader.backToLibrary")}>
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            <span className="hidden md:inline">{t("reader.backToLibrary")}</span>
           </Link>
-          <div className="min-w-0 max-w-[58%] text-right">
+          <div className="absolute left-1/2 min-w-0 max-w-[58%] -translate-x-1/2 text-center md:static md:max-w-[58%] md:translate-x-0 md:text-right">
             <p className="truncate text-sm font-semibold leading-tight">{readerTitle}</p>
             {readerLevel && <p className="mt-0.5 font-outlier text-[10px] leading-tight text-muted">{readerLevel}</p>}
           </div>
