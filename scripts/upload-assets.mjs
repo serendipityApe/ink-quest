@@ -13,7 +13,7 @@
 //       node scripts/upload-assets.mjs --covers-only # 只处理封面
 //       node scripts/upload-assets.mjs --audio-only  # 只处理音频
 //
-// 读取 .env.local：NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY（service role 才能写 Storage）。
+// 读取 .env / .env.local：NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY（service role 才能写 Storage）。
 
 import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -51,20 +51,23 @@ const CONTENT_TYPES = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".svg": "image/svg+xml",
 };
 
 // PLACEHOLDER_BODY
 
-// ── 读取 .env.local（不引第三方依赖，手写极简解析）─────────────────────────
+// ── 读取 .env / .env.local（不引第三方依赖，手写极简解析）──────────────────
 function loadEnv() {
-  const file = join(ROOT, ".env.local");
-  if (!existsSync(file)) return;
-  for (const line of readFileSync(file, "utf8").split("\n")) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-    if (!m) continue;
-    const key = m[1];
-    let val = m[2].trim().replace(/^["']|["']$/g, "");
-    if (!(key in process.env)) process.env[key] = val;
+  for (const name of [".env", ".env.local"]) {
+    const file = join(ROOT, name);
+    if (!existsSync(file)) continue;
+    for (const line of readFileSync(file, "utf8").split("\n")) {
+      const m = line.match(/^\s*(?:export\s+)?([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+      if (!m) continue;
+      const key = m[1];
+      let val = m[2].trim().replace(/^["']|["']$/g, "");
+      if (!(key in process.env)) process.env[key] = val;
+    }
   }
 }
 loadEnv();
@@ -137,6 +140,16 @@ async function uploadBuffer(objectPath, buf, type) {
   throw new Error(`upload ${objectPath}: HTTP ${res.status} ${body}`);
 }
 
+async function objectExists(objectPath) {
+  const res = await fetchRetry(
+    `${STORAGE}/object/public/${BUCKET}/${objectPath}`,
+    { method: "HEAD", headers: { apikey: SERVICE_KEY } },
+    objectPath,
+    3
+  );
+  return res.ok;
+}
+
 async function migrateAudio() {
   const dir = join(ROOT, "public", "audio");
   if (!existsSync(dir)) {
@@ -164,6 +177,11 @@ async function migrateCovers() {
   for (const id of ids) {
     const src = COVER_SOURCES[id];
     try {
+      if (!FORCE && await objectExists(`covers/${id}.png`)) {
+        skip++;
+        console.log(`  – ${id}.png（Storage 已存在）`);
+        continue;
+      }
       const res = await fetch(src, { headers: { "User-Agent": "Mozilla/5.0" } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buf = Buffer.from(await res.arrayBuffer());
@@ -175,8 +193,27 @@ async function migrateCovers() {
       if (r === "ok") { ok++; console.log(`  ✓ ${id}.png (${(buf.length / 1024).toFixed(0)}K)`); }
       else { skip++; console.log(`  – ${id}.png（Storage 已存在）`); }
     } catch (e) {
+      if (await objectExists(`covers/${id}.png`)) {
+        skip++;
+        console.log(`  – ${id}.png（源图不可用，Storage 已存在）`);
+      } else {
+        fail++;
+        console.log(`  ✗ ${id}: ${e.message}（源图可能已失效，需手动提供封面）`);
+      }
+    }
+  }
+
+  const localFiles = readdirSync(localDir).filter((f) => /\.(png|jpe?g|webp|svg)$/i.test(f));
+  console.log(`\n▶ 本地封面：${localFiles.length} 个文件 → ${BUCKET}/covers/`);
+  for (const f of localFiles) {
+    try {
+      const buf = readFileSync(join(localDir, f));
+      const r = await uploadBuffer(`covers/${f}`, buf, contentType(f));
+      if (r === "ok") { ok++; console.log(`  ✓ ${f}`); }
+      else { skip++; console.log(`  – ${f}（Storage 已存在）`); }
+    } catch (e) {
       fail++;
-      console.log(`  ✗ ${id}: ${e.message}（源图可能已失效，需手动提供封面）`);
+      console.log(`  ✗ ${f}: ${e.message}`);
     }
   }
   console.log(`  封面完成：上传 ${ok}，跳过 ${skip}，失败 ${fail}`);
@@ -197,4 +234,3 @@ main().catch((e) => {
   console.error(`\n✗ 失败：${e.message}`);
   process.exit(1);
 });
-

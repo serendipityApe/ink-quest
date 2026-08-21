@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Volume2, Square, Lock, Map, Loader2, Play } from "lucide-react";
+import { Volume2, Square, Lock, Map, Loader2, Play, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SubscribeModal from "@/components/SubscribeModal";
@@ -92,7 +92,7 @@ function splitChoiceLabel(text: string, index: number) {
  */
 export default function StructuredReader({ storyId, manifest, startNode }: Props) {
   const router = useRouter();
-  const { t } = useTranslations();
+  const { t, lang } = useTranslations();
 
   const [currentNodeId, setCurrentNodeId] = useState<string>(manifest.start_node_id);
   const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
@@ -251,8 +251,8 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   const plainText = node ? joinSegments(segments, manifest.target_lang) : "";
   const sentenceGroups = useMemo(() => toSentenceGroups(segments), [segments]);
   const bodyClass = manifest.target_lang === "en"
-    ? "font-ui-body text-[20px] md:text-[22px] text-on-surface leading-loose break-words"
-    : "font-story-body-cn text-story-body-cn text-on-surface text-justify break-words tracking-wide leading-loose";
+    ? "font-body text-[20px] md:text-[22px] text-ink leading-[1.85] break-words"
+    : "font-reading text-[22px] md:text-[26px] text-ink break-words tracking-[0.045em] leading-[2]";
 
   const handleAudio = () => {
     if (!node) return;
@@ -350,19 +350,23 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
     );
   };
 
+  const primaryTitle = manifest.target_lang === "zh" ? manifest.title_cn : manifest.title_en;
+
   return (
     <>
-      <Navbar onSubscribeClick={() => setIsSubscribeOpen(true)} />
-      <main className="flex-grow flex flex-col items-center justify-center pt-0 md:pb-section-gap md:px-reading-inset max-w-container-max mx-auto w-full relative z-10 min-h-[60vh]">
+      <Navbar variant="reader" readerTitle={primaryTitle} readerLevel={manifest.level} />
+      <main className="flex-grow bg-paper pb-14 md:pb-20">
         {resumed && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-primary text-white px-4 py-2 rounded-full shadow-lg font-ui-pinyin-sm text-xs flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="fixed top-20 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-ink bg-accent px-4 py-2 font-outlier text-xs shadow-[0_2px_0_var(--color-ink)]">
             <Map className="h-3.5 w-3.5" />
             {t("reader.resumed")}
           </div>
         )}
+        <div className="hallmark-shell pt-7 md:pt-10">
+        <div className="mx-auto w-full max-w-3xl">
         <article
           ref={articleRef}
-          className={`w-full max-w-2xl relative mb-0 md:mb-16 p-8 md:p-12 rounded-2xl min-h-[180px] md:text-justify ${mobileSentenceModeEnabled ? "select-none md:select-text" : ""}`}
+          className={`relative min-h-[18rem] w-full py-8 md:py-12 ${mobileSentenceModeEnabled ? "select-none md:select-text" : ""}`}
         >
           {node ? (
             <div className={bodyClass}>
@@ -385,7 +389,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
                         type="button"
                         onClick={() => handleSentenceToggle(sentence.start, sentence.end)}
                         aria-label={active ? "Stop playback" : "Play current sentence"}
-                        className={`ml-2 inline-flex h-7 w-7 translate-y-1 items-center justify-center rounded-full transition-colors active:scale-95 ${active ? "bg-primary/15 text-primary animate-pulse" : "bg-primary/8 text-primary hover:bg-primary/15"}`}
+                        className={`ml-2 inline-flex size-9 translate-y-1 items-center justify-center rounded-full border border-ink transition-colors ${active ? "bg-accent text-ink" : "bg-accent-soft text-ink hover:bg-accent"}`}
                       >
                         {active ? <Square className="h-4 w-4 fill-primary" /> : <Volume2 className="h-4 w-4" />}
                       </button>
@@ -397,7 +401,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
               )}
             </div>
           ) : (
-            <div className="flex items-center justify-center py-12 text-secondary gap-2">
+            <div className="flex items-center justify-center gap-2 py-12 text-muted">
               {nodeError && nodeError !== "premium" ? (
                 <span className="font-ui-body text-sm">{t("reader.loadError")}</span>
               ) : (
@@ -406,50 +410,29 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
             </div>
           )}
 
-          <div className="mt-8 hidden items-center justify-end gap-2 md:flex">
+          <div className="mt-10 flex items-center justify-end gap-2">
             <button
+              type="button"
               onClick={handleAudio}
-              aria-label="Play audio narration"
-              title={isPlaying ? t("reader.stopListen") : t("reader.listen")}
               disabled={!node}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/15 text-primary transition-colors hover:border-primary/25 hover:bg-primary/5 disabled:opacity-20 disabled:cursor-not-allowed ${isPlaying ? "bg-primary/10 animate-pulse" : ""}`}
+              className={`inline-flex min-h-11 items-center gap-2 rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${isPlaying ? "bg-ink text-paper" : "bg-paper hover:bg-accent-soft"}`}
             >
-              {isPlaying ? <Square className="h-4 w-4 fill-primary" /> : <Volume2 className="h-4 w-4" />}
+              {isPlaying ? <Square className="size-4 fill-current" /> : <Volume2 className="size-4" />}
+              <span>{isPlaying ? t("reader.stopListen") : t("reader.listen")}</span>
             </button>
             <button
+              type="button"
               onClick={() => setIsMapOpen(true)}
-              aria-label="View story path map"
-              title={t("reader.map")}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/15 text-primary transition-colors hover:border-primary/25 hover:bg-primary/5"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 hover:bg-accent-soft active:translate-y-px"
             >
-              <Map className="h-4 w-4" />
+              <Map className="size-4" /> {t("reader.map")}
             </button>
           </div>
 
-          <div className="mt-8 flex items-center justify-end gap-3 md:hidden">
-            <button
-              onClick={handleAudio}
-              aria-label="Play audio narration"
-              disabled={!node}
-              className={`text-primary opacity-60 hover:opacity-100 transition-opacity p-2 border border-primary/20 rounded-full flex items-center gap-2 disabled:opacity-20 ${isPlaying ? "bg-primary/10 opacity-100" : "bg-primary/5"}`}
-            >
-              {isPlaying ? <Square className="h-4 w-4 fill-primary" /> : <Volume2 className="h-4 w-4" />}
-              <span className="font-ui-pinyin-sm text-xs uppercase tracking-wider">
-                {isPlaying ? t("reader.stopListen") : t("reader.listen")}
-              </span>
-            </button>
-            <button
-              onClick={() => setIsMapOpen(true)}
-              aria-label="View story path map"
-              className="text-primary opacity-60 hover:opacity-100 transition-opacity p-2 border border-primary/20 rounded-full flex items-center gap-2 bg-primary/5"
-            >
-              <Map className="h-4 w-4" />
-              <span className="font-ui-pinyin-sm text-xs uppercase tracking-wider">{t("reader.map")}</span>
-            </button>
-          </div>
         </article>
 
-        <section className="w-full max-w-md flex flex-col gap-4 mt-0 md:mt-6 p-8 md:p-0">
+        <section className="flex w-full flex-col pt-2">
+          <h2 className="mb-2 text-sm font-bold text-ink-2">{lang === "zh" ? "接下来" : "Next"}</h2>
           {(node?.choices ?? manifest.nodes[currentNodeId]?.choices ?? []).map((choice, i) => {
             const choiceLabel = splitChoiceLabel(choice.text, i);
 
@@ -458,21 +441,22 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
                 key={i}
                 onClick={() => handleChoiceClick(choice.next_node_id)}
                 disabled={nodeLoading}
-                className="group w-full min-h-[68px] md:min-h-0 px-4 md:px-0 py-3 md:py-4 text-center relative overflow-hidden transition-all duration-300 rounded-md md:rounded-lg border border-primary/20 md:border-0 cursor-pointer active:scale-98 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center"
+                className="group relative flex min-h-[4rem] w-full cursor-pointer items-center border-b border-rule bg-paper px-1 py-3 text-left disabled:cursor-wait disabled:opacity-50"
               >
-                <span className={`relative z-10 inline-grid grid-cols-[1.75rem_minmax(0,16rem)] items-start gap-4 font-button-text text-button-text uppercase tracking-widest leading-snug md:leading-none transition-colors ${choice.premium ? "text-primary/70 group-hover:text-primary" : "text-secondary group-hover:text-primary"}`}>
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/5 text-primary text-[11px] leading-none">
+                <span className="relative z-10 inline-grid grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-3 font-body font-bold leading-snug">
+                  <span className="inline-flex size-7 items-center justify-center rounded-full border border-ink bg-accent-soft font-outlier text-xs leading-none transition-[background-color,transform] duration-150 group-hover:bg-accent group-active:translate-y-px">
                     {choiceLabel.label}
                   </span>
                   <span className="text-left">{choiceLabel.text}</span>
                 </span>
-                {choice.premium && <Lock className="h-3.5 w-3.5 text-primary ml-2 inline-block shrink-0 relative z-10" />}
-                <div className="absolute inset-x-0 bottom-0 hidden md:block h-[1px] bg-secondary-fixed/50 group-hover:bg-primary/30 transition-colors" />
-                <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-0" />
+                {choice.premium && <Lock className="relative z-10 ml-auto size-4 shrink-0" />}
+                <ChevronRight aria-hidden="true" className="ml-auto size-5 -translate-x-1 text-muted opacity-0 transition-[opacity,transform] duration-150 group-hover:translate-x-0 group-hover:opacity-100" />
               </button>
             );
           })}
         </section>
+        </div>
+        </div>
       </main>
 
       {/* 划词浮动按钮：选区上方 8px，居中。fixed 定位，scroll 时跟随选区（hook 已用 scrollY 算过）。 */}
@@ -480,15 +464,15 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
         <button
           onClick={handlePlaySelection}
           aria-label="Play selected sentence"
-          className="absolute z-50 -translate-x-1/2 -translate-y-full bg-primary text-white px-3 py-1.5 rounded-full shadow-lg font-ui-pinyin-sm text-xs flex items-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors animate-in fade-in zoom-in-95 duration-150"
+          className="absolute z-50 flex -translate-x-1/2 -translate-y-full cursor-pointer items-center gap-1.5 rounded-full border-2 border-ink bg-accent px-3 py-1.5 font-outlier text-xs shadow-[0_3px_0_var(--color-ink)]"
           style={{ top: `${selAnchor.top - 8}px`, left: `${selAnchor.left}px` }}
         >
-          <Play className="h-3 w-3 fill-white" />
+          <Play className="h-3 w-3 fill-current" />
           {t("reader.playSentence")}
         </button>
       )}
 
-      <Footer />
+      <Footer variant="reader" backLabel={t("reader.backToLibrary")} />
       <SubscribeModal isOpen={isSubscribeOpen} onClose={() => setIsSubscribeOpen(false)} />
       {isMapOpen && (
         <StoryMap

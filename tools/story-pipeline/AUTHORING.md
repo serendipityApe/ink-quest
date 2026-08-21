@@ -64,6 +64,13 @@
 - `next_node_id` 必须命中真实节点（②③④会校验，断链会报错）；
 - 每节点正文 2~5 句，难度贴合 `level`。
 
+### 英文文本避坑
+
+- 少用连字符词、复杂缩写和花式标点：`forty-two`、`forty-second`、`p.m.` 等可能被分词成 `forty - two` / `p . m`，导致阅读正文和 TTS 产物要返工。
+- 优先改写成自然无连字符表达：`floor forty two`、`forty two floors`、`at night`。
+- 真实 TTS 前先用 `--no-audio` dry-run；确认最终文本重建无异常后，再 `--write` 生成 mp3。
+- 一旦发现正文显示问题，先修 draft/enriched，再重新富化/审校；不要先生成真实 mp3。
+
 ## ③ 审校释义（agent 的核心判断活）
 
 打开 `build/<id>.enriched.json`，每个非 base 的 token 形如：
@@ -89,9 +96,9 @@ agent 要做的：
 ## ④ 组装
 
 ```bash
-# 先 dry-run 看校验
-tsx src/cli/assemble-story.ts build/<id>.enriched.json
-# 通过后写盘
+# 先 dry-run 看校验和文本；第一次建议加 --no-audio，避免重复生成 mp3
+tsx src/cli/assemble-story.ts build/<id>.enriched.json --no-audio
+# 文本检查通过后写盘
 tsx src/cli/assemble-story.ts build/<id>.enriched.json --write
 ```
 

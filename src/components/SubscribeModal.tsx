@@ -40,29 +40,29 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#3a6664]/10 backdrop-blur-2xl transition-opacity duration-300" onClick={onClose} />
-      <div className="relative max-w-md w-full flex flex-col items-center text-center p-8 md:p-12 bg-surface/50 rounded-3xl border border-white/30 glass-panel shadow-2xl animate-in scale-in duration-300 z-10">
-        <button onClick={onClose} className="absolute top-4 right-4 text-on-surface-variant/60 hover:text-on-surface transition-colors p-2 rounded-full hover:bg-surface-container" aria-label="Close modal">
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <div className="absolute inset-0 bg-ink/45" onClick={onClose} />
+      <div className="relative z-10 flex w-full max-w-md flex-col items-center rounded-card border-2 border-ink bg-paper p-8 text-center shadow-[0.75rem_0.75rem_0_var(--color-ink)] md:p-12">
+        <button onClick={onClose} className="absolute right-4 top-4 grid size-11 place-items-center rounded-full border border-ink hover:bg-paper-3" aria-label="Close modal">
           <X className="h-5 w-5" />
         </button>
 
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 animate-bounce">
+        <div className="mb-6 grid size-16 place-items-center rounded-full border-2 border-ink bg-accent-soft">
           <Lock className="h-8 w-8" />
         </div>
-        <h2 className="font-story-title-lg text-3xl text-on-surface mb-4">Unlock the Full Adventure</h2>
-        <p className="font-ui-body text-ui-body text-secondary mb-8 leading-relaxed">
-          Get unlimited access to 10+ new interactive Xianxia, Cyberpunk, and Sci-Fi web novels every month.
+        <h2 className="hallmark-display mb-4 text-3xl">Unlock the Full Adventure</h2>
+        <p className="mb-8 font-body leading-relaxed text-ink-2">
+          Continue premium branches and unlock the full interactive story archive.
           <br />
-          <span className="font-semibold text-primary mt-2 block text-xl">$9.9 / Month</span>
+          <span className="mt-2 block text-xl font-semibold text-ink">$9.9 / Month</span>
         </p>
         <button
           onClick={handleCheckout}
-          className="w-full font-button-text text-button-text text-primary uppercase tracking-widest hover:bg-primary hover:text-white transition-all py-4 px-8 border border-primary/20 rounded-full bg-primary/5 flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+          className="hallmark-btn w-full"
         >
           {user ? "[ Subscribe Now ]" : "[ Sign In to Subscribe ]"}
         </button>
-        <p className="font-ui-pinyin-sm text-[12px] text-secondary/70 mt-4">Cancel anytime. 7-day money-back guarantee.</p>
+        <p className="mt-4 font-outlier text-[12px] text-muted">Cancel anytime. 7-day money-back guarantee.</p>
       </div>
     </div>
   );

@@ -71,27 +71,27 @@ export default function StoryMap({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-inverse-surface/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/45 p-4"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl max-h-[85vh] bg-surface rounded-2xl border border-surface-container-high/40 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-card border-2 border-ink bg-paper shadow-[0.75rem_0.75rem_0_var(--color-ink)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-container-high/30 shrink-0">
+        <div className="flex shrink-0 items-center justify-between border-b-2 border-ink bg-accent-soft px-6 py-4">
           <div className="flex flex-col gap-1">
-            <h2 className="font-story-title-lg text-[22px] text-on-surface tracking-tight">
+            <h2 className="hallmark-display text-[22px]">
               {(manifest.target_lang === "en" ? manifest.title_en : manifest.title_cn)} · {t("reader.map")}
             </h2>
-            <p className="font-ui-body text-xs text-on-surface-variant">
+            <p className="font-body text-xs text-ink-2">
               {t("storyMap.hint")}
             </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close map"
-            className="text-secondary hover:text-primary transition-colors p-1 cursor-pointer"
+            className="grid size-11 cursor-pointer place-items-center rounded-full border border-ink bg-paper hover:bg-paper-3"
           >
             <X className="h-5 w-5" />
           </button>
@@ -151,10 +151,7 @@ export default function StoryMap({
                   onClick={() => clickable && onJump(n.id)}
                 >
                   {isCurrent && (
-                    <circle r={NODE_R + 6} fill="none" stroke="var(--color-primary)" strokeWidth={1.5} opacity={0.4}>
-                      <animate attributeName="r" values={`${NODE_R + 4};${NODE_R + 9};${NODE_R + 4}`} dur="2s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" values="0.5;0.1;0.5" dur="2s" repeatCount="indefinite" />
-                    </circle>
+                    <circle r={NODE_R + 6} fill="none" stroke="var(--color-primary)" strokeWidth={1.5} opacity={0.4} />
                   )}
                   <circle r={NODE_R} fill={fill} stroke={stroke} strokeWidth={2} />
 

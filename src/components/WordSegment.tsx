@@ -150,7 +150,7 @@ export default function WordSegment({
           />
           <span
             ref={tooltipRef}
-            className="fixed left-4 right-4 bottom-6 z-50 mx-auto max-w-sm bg-surface/95 border border-surface-container-high/60 rounded-xl px-4 py-3 shadow-xl glass-panel text-center flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-auto md:absolute md:bottom-full md:left-1/2 md:right-auto md:z-30 md:mx-0 md:min-w-[180px] md:max-w-none md:-translate-x-1/2 md:pb-3 md:pt-3"
+            className="fixed bottom-6 left-4 right-4 z-50 mx-auto flex max-w-sm flex-col gap-1.5 rounded-card border-2 border-ink bg-paper px-4 py-3 text-center shadow-[0.4rem_0.4rem_0_var(--color-ink)] pointer-events-auto md:absolute md:bottom-full md:left-1/2 md:right-auto md:z-30 md:mx-0 md:min-w-[180px] md:max-w-none md:-translate-x-1/2"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
@@ -158,7 +158,7 @@ export default function WordSegment({
               确保任何带释义/级别的词都能听到读音。 */}
           <span className="flex items-center justify-center gap-2">
             {reading && (
-              <span className="font-ui-pinyin-sm text-sm text-secondary font-medium">
+              <span className="font-outlier text-sm font-medium text-ink-2">
                 {reading}
               </span>
             )}
@@ -166,26 +166,26 @@ export default function WordSegment({
               <button
                 onClick={(e) => { e.stopPropagation(); speak(word, lang); }}
                 aria-label={`Pronounce ${word}`}
-                className="text-primary/70 hover:text-primary transition-colors p-1 rounded-full hover:bg-primary/10 cursor-pointer"
+                className="grid size-9 place-items-center rounded-full border border-ink bg-accent-soft hover:bg-accent"
               >
                 <Volume2 className="h-3.5 w-3.5" />
               </button>
             )}
           </span>
           {meaning && (
-            <span className="font-ui-body text-sm text-on-surface-variant block whitespace-normal">{meaning}</span>
+            <span className="block whitespace-normal font-body text-sm text-ink-2">{meaning}</span>
           )}
           {level && (
-            <span className="text-[10px] uppercase tracking-wider text-primary bg-primary-container/10 px-2 py-0.5 rounded-full inline-block mx-auto">
+            <span className="mx-auto inline-block rounded-full border border-ink px-2 py-0.5 font-outlier text-[10px] uppercase tracking-wider">
               {level}
             </span>
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onToggleSave(segment); }}
-            className={`mt-1.5 font-button-text text-[11px] uppercase tracking-wider py-1 px-3 rounded-full flex items-center justify-center gap-1.5 cursor-pointer border ${
+            className={`mt-1.5 flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 font-body text-[11px] font-bold uppercase tracking-wider ${
               isSaved
-                ? "bg-primary text-white border-primary"
-                : "bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
+                ? "bg-accent text-ink"
+                : "bg-paper-2 text-ink hover:bg-accent-soft"
             }`}
           >
             {isSaved ? <BookmarkCheck className="h-3 w-3" /> : <Bookmark className="h-3 w-3" />}

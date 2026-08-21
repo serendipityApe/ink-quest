@@ -1,0 +1,66 @@
+/* Hallmark · design-system: InkQuest · theme: 青墨纸本 · axes: light / rounded-sans / chromatic-teal */
+:root {
+  --color-paper: oklch(97% 0.012 95);
+  --color-paper-2: oklch(94% 0.016 95);
+  --color-paper-3: oklch(91% 0.02 95);
+  --color-ink: oklch(20% 0.012 250);
+  --color-ink-2: oklch(34% 0.014 245);
+  --color-muted: oklch(47% 0.014 245);
+  --color-neutral: oklch(38% 0.014 245);
+  --color-rule: oklch(78% 0.018 95);
+  --color-rule-2: oklch(67% 0.02 95);
+  --color-accent: oklch(72% 0.105 190);
+  --color-accent-deep: oklch(44% 0.095 190);
+  --color-accent-soft: oklch(91% 0.035 190);
+  --color-accent-ink: oklch(18% 0.012 250);
+  --color-focus: oklch(45% 0.18 255);
+  --color-error: oklch(53% 0.2 25);
+  --color-error-soft: oklch(93% 0.035 25);
+  --color-success: oklch(43% 0.12 150);
+  --color-success-soft: oklch(91% 0.04 150);
+
+  --font-display: var(--font-jakarta), "Arial Rounded MT Bold", sans-serif;
+  --font-body: var(--font-jakarta), "Arial Rounded MT Bold", sans-serif;
+  --font-outlier: var(--font-jetbrains), monospace;
+  --font-reading: ui-serif, "Noto Serif CJK SC", "Songti SC", SimSun, serif;
+
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.5rem;
+  --space-3xl: 7rem;
+  --space-4xl: 10rem;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 1.953rem;
+  --text-2xl: 2.441rem;
+  --text-3xl: 3.052rem;
+  --text-display-s: clamp(2.75rem, 6vw, 5.25rem);
+  --text-display: clamp(3.2rem, 9.4vw, 9rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  --rule-hair: 1px;
+  --rule-fine: 2px;
+  --rule-heavy: 3px;
+  --radius-input: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+  --shadow-card: 0.45rem 0.45rem 0 var(--color-ink);
+  --page-max: 90rem;
+  --page-gutter: clamp(1rem, 3.5vw, 4rem);
+  --nav-height: 4.75rem;
+}

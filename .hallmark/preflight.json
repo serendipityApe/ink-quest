@@ -1,0 +1,9 @@
+{
+  "date": "2026-08-21",
+  "framework": "Next.js 16.2.9 App Router with Tailwind v4",
+  "fonts": "System sans and CJK serif tokens; upgraded to next/font Plus Jakarta Sans and JetBrains Mono",
+  "palette": "Warm paper, cool ink, muted teal",
+  "motion": "Motion-cut; no animation library",
+  "spacing": "Named 4-point scale",
+  "sourceFiles": ["package.json", "src/app/layout.tsx", "src/app/globals.css"]
+}

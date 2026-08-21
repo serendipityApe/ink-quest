@@ -6,6 +6,8 @@ import type {
   StoryCard,
   TargetLang,
 } from "@/types/story";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * 服务端故事注册表（单一数据源）。
@@ -33,6 +35,9 @@ const ASSET_BASE = (process.env.NEXT_PUBLIC_ASSET_BASE_URL ?? "").replace(/\/$/,
 function assetUrl(path: string | null): string | null {
   if (!path) return path;
   if (/^https?:\/\//.test(path)) return path; // 已是绝对 URL，原样返回
+  if (process.env.NODE_ENV === "development" && existsSync(join(process.cwd(), "public", path))) {
+    return path;
+  }
   if (!ASSET_BASE) return path; // 本地开发：交给 Next 直接服务 public/
   return `${ASSET_BASE}/${path.replace(/^\//, "")}`;
 }
@@ -43,12 +48,16 @@ const LOADERS: Record<string, () => Promise<StoryJSON>> = {
     import("@/data/stories/zh/master-secret.json").then((m) => m.default as StoryJSON),
   "last-train": () =>
     import("@/data/stories/zh/last-train.json").then((m) => m.default as StoryJSON),
-  "haunted-house": () =>
-    import("@/data/stories/en/haunted-house.json").then((m) => m.default as StoryJSON),
   "signal-from-the-deep": () =>
     import("@/data/stories/en/signal-from-the-deep.json").then((m) => m.default as StoryJSON),
   "the-rosewood-vanishing": () =>
     import("@/data/stories/en/the-rosewood-vanishing.json").then((m) => m.default as StoryJSON),
+  "receipt-from-tomorrow": () =>
+    import("@/data/stories/en/receipt-from-tomorrow.json").then((m) => m.default as StoryJSON),
+  "the-museum-after-closing": () =>
+    import("@/data/stories/en/the-museum-after-closing.json").then((m) => m.default as StoryJSON),
+  "the-interview-with-my-future-self": () =>
+    import("@/data/stories/en/the-interview-with-my-future-self.json").then((m) => m.default as StoryJSON),
 };
 
 /**
@@ -79,17 +88,6 @@ const CATALOG: StoryCard[] = [
     image: "/covers/last-train.png",
   },
   {
-    id: "haunted-house",
-    target_lang: "en",
-    title_cn: "鬼屋一夜",
-    title_en: "One Night in the Haunted House",
-    level: "B1",
-    level_system: "CEFR",
-    genre: "Horror",
-    locked: false,
-    image: "/covers/haunted-house.png",
-  },
-  {
     id: "signal-from-the-deep",
     target_lang: "en",
     title_cn: "深海信号",
@@ -110,6 +108,39 @@ const CATALOG: StoryCard[] = [
     genre: "Detective Noir",
     locked: false,
     image: "/covers/the-rosewood-vanishing.png",
+  },
+  {
+    id: "receipt-from-tomorrow",
+    target_lang: "en",
+    title_cn: "来自明天的收据",
+    title_en: "The Receipt from Tomorrow",
+    level: "B1",
+    level_system: "CEFR",
+    genre: "Urban Mystery",
+    locked: false,
+    image: "/covers/receipt-from-tomorrow.svg",
+  },
+  {
+    id: "the-museum-after-closing",
+    target_lang: "en",
+    title_cn: "闭馆后的博物馆",
+    title_en: "The Museum After Closing",
+    level: "B1",
+    level_system: "CEFR",
+    genre: "Supernatural Mystery",
+    locked: false,
+    image: "/covers/the-museum-after-closing.svg",
+  },
+  {
+    id: "the-interview-with-my-future-self",
+    target_lang: "en",
+    title_cn: "与未来自己的面试",
+    title_en: "The Interview with My Future Self",
+    level: "B1",
+    level_system: "CEFR",
+    genre: "Psychological Sci-Fi",
+    locked: false,
+    image: "/covers/the-interview-with-my-future-self.svg",
   },
 ];
 

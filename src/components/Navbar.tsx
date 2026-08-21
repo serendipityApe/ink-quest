@@ -1,132 +1,93 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { Menu, X, LogOut, Globe } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Globe, LogOut, Menu, X } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useTranslations } from "@/i18n/I18nProvider";
 import type { User } from "@supabase/supabase-js";
 
 interface NavbarProps {
   onSubscribeClick?: () => void;
+  variant?: "default" | "reader";
+  readerTitle?: string;
+  readerLevel?: string;
 }
 
-export default function Navbar({ onSubscribeClick }: NavbarProps) {
+export default function Navbar({ onSubscribeClick, variant = "default", readerTitle, readerLevel }: NavbarProps) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const { t, lang, setLang } = useTranslations();
 
   useEffect(() => {
+    if (variant === "reader") return;
     if (!isSupabaseConfigured()) return;
-
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
+    supabase.auth.getUser().then(({ data: { user: nextUser } }) => setUser(nextUser));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setUser(session?.user ?? null));
     return () => subscription.unsubscribe();
-  }, []);
+  }, [variant]);
 
   const handleSignOut = async () => {
     if (!isSupabaseConfigured()) return;
-
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await createClient().auth.signOut();
   };
 
-  const navLink = "text-on-surface-variant font-ui-label-lg text-ui-label-lg hover:text-primary transition-colors duration-300 cursor-pointer";
+  if (variant === "reader") {
+    return (
+      <header className="sticky top-0 z-50 bg-paper">
+        <div className="hallmark-shell flex min-h-14 items-center justify-between gap-4">
+          <Link href="/stories" className="inline-flex min-h-11 items-center gap-2 font-semibold whitespace-nowrap hover:text-primary">
+            <span aria-hidden="true">←</span>
+            {t("reader.backToLibrary")}
+          </Link>
+          <div className="min-w-0 max-w-[58%] text-right">
+            <p className="truncate text-sm font-semibold leading-tight">{readerTitle}</p>
+            {readerLevel && <p className="mt-0.5 font-outlier text-[10px] leading-tight text-muted">{readerLevel}</p>}
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  const membershipAction = onSubscribeClick ? (
+    <button type="button" onClick={onSubscribeClick}>{t("nav.pricing")}</button>
+  ) : <Link href="/subscribe">{t("nav.pricing")}</Link>;
 
   return (
-    <nav className="bg-surface/80 backdrop-blur-xl w-full top-0 sticky z-50 border-b border-surface-container-high/20 transition-all duration-300">
-      <div className="flex justify-between items-center w-full px-5 md:px-reading-inset py-base max-w-container-max mx-auto h-16">
-        <Link href="/" className="font-story-title-lg text-[24px] text-primary tracking-tighter decoration-none hover:opacity-80 transition-opacity">
-          <div className="flex items-center gap-2">
-            <span className="font-bold">IQ</span>
-            <span className="text-[20px] md:text-[24px]">InkQuest</span>
-          </div>
+    <header className="sticky top-0 z-50 border-b border-rule bg-paper">
+      <div className="hallmark-shell grid min-h-[var(--nav-height)] grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
+        <Link href="/" className="group inline-flex min-h-11 w-fit items-center gap-3 whitespace-nowrap font-display text-xl font-bold tracking-[-0.045em]">
+          <span className="grid size-9 place-items-center rounded-full border-2 border-ink bg-accent font-outlier text-xs shadow-[0_3px_0_var(--color-ink)] transition-transform duration-200 group-hover:-rotate-6" aria-hidden="true">IQ</span>
+          <span>InkQuest</span>
         </Link>
-
-        <ul className="hidden md:flex items-center gap-8">
-          <li><Link href="/stories" className={navLink}>{t("nav.stories")}</Link></li>
-          <li>
-            <button onClick={onSubscribeClick} className={`${navLink} text-left`}>
-              {t("nav.pricing")}
-            </button>
-          </li>
-        </ul>
-
-        <div className="hidden md:flex items-center gap-4">
-          {/* 界面语言切换（与学习语言无关） */}
-          <button
-            onClick={() => setLang(lang === "zh" ? "en" : "zh")}
-            className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border border-[rgba(0,3,17,0.05)] bg-transparent text-on-surface font-button-text text-[13px] leading-none transition-colors hover:border-[rgba(0,3,17,0.08)] cursor-pointer"
-            aria-label="Switch interface language"
-          >
-            {lang === "zh" ? "中" : "EN"}
-          </button>
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+          <Link href="/stories" aria-current={pathname.startsWith("/stories") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.stories")}</Link>
+          <Link href="/saved-words" aria-current={pathname === "/saved-words" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("savedWords.title")}</Link>
+          <span className="[&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:rounded-full [&>a]:px-4 [&>a]:text-sm [&>a]:font-semibold [&>a]:whitespace-nowrap [&>a]:hover:bg-paper-3 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:items-center [&>button]:rounded-full [&>button]:px-4 [&>button]:text-sm [&>button]:font-semibold [&>button]:whitespace-nowrap [&>button]:hover:bg-paper-3">{membershipAction}</span>
+        </nav>
+        <div className="hidden items-center justify-self-end gap-2 lg:flex">
+          <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="grid size-11 place-items-center rounded-full border border-rule bg-paper text-xs font-semibold hover:bg-paper-3" aria-label="Switch interface language">{lang === "zh" ? "中" : "EN"}</button>
           {user ? (
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 font-button-text text-button-text text-xs uppercase tracking-widest text-secondary hover:text-primary transition-colors cursor-pointer"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              {t("nav.signOut")}
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-[30px] items-center leading-[30px] font-button-text text-button-text uppercase tracking-widest text-primary border-b border-transparent hover:border-primary transition-all duration-300 cursor-pointer"
-            >
-              {t("nav.signIn")}
-            </Link>
-          )}
+            <button type="button" onClick={handleSignOut} className="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold whitespace-nowrap hover:text-primary"><LogOut className="size-4" /> {t("nav.signOut")}</button>
+          ) : <Link href="/login" className="inline-flex min-h-11 items-center px-3 text-sm font-semibold whitespace-nowrap hover:text-primary">{t("nav.signIn")}</Link>}
+          <Link href="/stories" className="hallmark-btn">{lang === "zh" ? "开始阅读" : "Start reading"}<span aria-hidden="true">→</span></Link>
         </div>
-
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-primary focus:outline-none flex items-center p-1"
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <button type="button" onClick={() => setIsOpen((open) => !open)} className="grid size-11 place-items-center justify-self-end rounded-full border-2 border-ink bg-paper lg:hidden" aria-expanded={isOpen} aria-controls="mobile-navigation" aria-label={isOpen ? "Close menu" : "Open menu"}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button>
       </div>
-
       {isOpen && (
-        <div className="md:hidden w-full bg-surface/95 backdrop-blur-xl border-b border-surface-container-high/40 px-5 py-6 flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-200">
-          <ul className="flex flex-col gap-4">
-            <li><Link href="/stories" onClick={() => setIsOpen(false)} className="block text-on-surface-variant font-ui-label-lg text-ui-label-lg hover:text-primary py-2 border-b border-surface-container/50">{t("nav.stories")}</Link></li>
-            <li>
-              <button onClick={() => { setIsOpen(false); onSubscribeClick?.(); }} className="block w-full text-left text-on-surface-variant font-ui-label-lg text-ui-label-lg hover:text-primary py-2 border-b border-surface-container/50">
-                {t("nav.pricing")}
-              </button>
-            </li>
-            <li>
-              <button onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="flex items-center gap-2 w-full text-left text-on-surface-variant font-ui-label-lg text-ui-label-lg hover:text-primary py-2 border-b border-surface-container/50">
-                <Globe className="h-4 w-4" />
-                {lang === "zh" ? t("lang.en") : t("lang.zh")}
-              </button>
-            </li>
-          </ul>
-          <div>
-            {user ? (
-              <button
-                onClick={() => { setIsOpen(false); handleSignOut(); }}
-                className="w-full text-center py-3 rounded-lg font-button-text text-button-text uppercase tracking-widest text-secondary border border-surface-container-high/40 hover:text-primary transition-colors"
-              >
-                {t("nav.signOut")}
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className="inline-block w-full text-center bg-primary-container text-on-primary-container py-3 rounded-lg font-button-text text-button-text uppercase tracking-widest hover:bg-surface-tint hover:text-on-primary transition-colors duration-300"
-              >
-                {t("nav.signIn")}
-              </Link>
-            )}
+        <nav id="mobile-navigation" className="border-b-[3px] border-ink bg-paper px-[var(--page-gutter)] pb-6 lg:hidden" aria-label="Mobile navigation">
+          <div className="flex flex-col">
+            <Link href="/stories" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.stories")}</Link>
+            <Link href="/saved-words" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("savedWords.title")}</Link>
+            <span className="[&>a]:flex [&>a]:min-h-12 [&>a]:items-center [&>a]:border-b [&>a]:border-rule [&>a]:font-semibold [&>a]:whitespace-nowrap [&>button]:flex [&>button]:min-h-12 [&>button]:w-full [&>button]:items-center [&>button]:border-b [&>button]:border-rule [&>button]:font-semibold [&>button]:whitespace-nowrap">{membershipAction}</span>
+            <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="flex min-h-12 items-center gap-2 border-b border-rule font-semibold whitespace-nowrap"><Globe className="size-4" /> {lang === "zh" ? t("lang.en") : t("lang.zh")}</button>
+            {user ? <button type="button" onClick={handleSignOut} className="mt-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-ink font-semibold whitespace-nowrap"><LogOut className="size-4" />{t("nav.signOut")}</button> : <Link href="/login" className="hallmark-btn mt-4">{t("nav.signIn")}</Link>}
           </div>
-        </div>
+        </nav>
       )}
-    </nav>
+    </header>
   );
 }

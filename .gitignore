@@ -51,3 +51,6 @@ next-env.d.ts
 
 # 故事封面：由 scripts/upload-assets.mjs 抓取生成，本地直读用；生产走 Supabase Storage。不入 git。
 /public/covers/
+.agents
+output
+design-demo

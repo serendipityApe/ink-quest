@@ -69,6 +69,8 @@ test -f tools/story-pipeline/.env && echo "有 .env"
 
 剧情要求：1 个 `start` + 多分支可汇合、**避免一步到死路**；结局节点的 choices 全指向 `end_back_to_list`；`next_node_id` 必须命中真实节点；每节点 2~5 句、难度贴合 level。建议 7~17 节点、含分支与多结局。
 
+英文草稿避坑：尽量避免会被 `Intl.Segmenter` 拆开的连字符词、缩写和花式标点。尤其是 `forty-two`、`forty-second`、`p.m.`、`mother-in-law` 这类，最终可能显示成 `forty - two` / `p . m`。优先改写成 `forty two`、`floor forty two`、`at night` 等自然无连字符表达；必须保留时，在 TTS 前先做文本重建检查。
+
 ### ② 富化（工具）
 
 ```bash
@@ -89,16 +91,34 @@ pnpm --filter @inkquest/story-pipeline exec tsx src/cli/enrich-draft.ts drafts/<
 ### ④ 组装 + 音频 + 校验（工具）
 
 ```bash
-# 先 dry-run 看校验
+# 先 dry-run 看校验；第一次必须加 --no-audio，避免文本问题导致重复生成 mp3
 node --env-file=tools/story-pipeline/.env tools/story-pipeline/node_modules/tsx/dist/cli.mjs \
-  tools/story-pipeline/src/cli/assemble-story.ts tools/story-pipeline/build/<id>.enriched.json
-# 通过后写盘（含真实 TTS 音频）
+  tools/story-pipeline/src/cli/assemble-story.ts tools/story-pipeline/build/<id>.enriched.json --no-audio
+
+# dry-run 后检查最终分词重建文本，重点找 "word - word"、缩写被拆、奇怪空格
+node - <<'NODE'
+const fs = require("fs");
+const id = "<id>";
+const p = `tools/story-pipeline/build/${id}.enriched.json`;
+const s = JSON.parse(fs.readFileSync(p, "utf8"));
+for (const [nodeId, node] of Object.entries(s.nodes)) {
+  const text = node.tokens.map(x => x.word).join(" ")
+    .replace(/\s+([.,;:?!])/g, "$1")
+    .replace(/\s+'/g, "'");
+  if (/\b\w+\s+-\s+\w+\b|[ap]\s+\.\s+m\b/i.test(text)) {
+    console.log(`[check] ${nodeId}: ${text}`);
+  }
+}
+NODE
+
+# 文本检查通过后再写盘（含真实 TTS 音频）
 node --env-file=tools/story-pipeline/.env tools/story-pipeline/node_modules/tsx/dist/cli.mjs \
   tools/story-pipeline/src/cli/assemble-story.ts tools/story-pipeline/build/<id>.enriched.json --write
 ```
 - 有腾讯云密钥 → 真音频写 `public/audio/<id>-<node>.mp3` + 词级时间戳；
 - 无密钥 / 加 `--no-audio` → 降级估时，不产音频；
 - 校验失败（断链/孤立节点/缺 reading|meaning）会报错，回到 ③ 修。
+- 如果发现正文显示问题（如连字符被拆成 `forty - two`），先改 `drafts/<id>.draft.json` 或 `build/<id>.enriched.json`，重新富化/审校，再生成音频；不要先写 TTS 再回头改。
 
 ### ⑤ 手动登记（不自动改源码，留审核确认点）
 
