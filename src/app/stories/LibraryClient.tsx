@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Bookmark, Flame, FolderOpen, Lock, Search, X } from "lucide-react";
+import { BookOpen, Bookmark, Flame, FolderOpen, Lock, Search, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SubscribeModal from "@/components/SubscribeModal";
@@ -25,6 +25,7 @@ export default function LibraryClient({ cards, target }: Props) {
   const [savedWordsCount, setSavedWordsCount] = useState(0);
   const [streakCount, setStreakCount] = useState(0);
   const [progressMap, setProgressMap] = useState<Record<string, number>>({});
+  const [failedCovers, setFailedCovers] = useState<Record<string, boolean>>({});
   const levelParam = searchParams.get("level");
 
   useEffect(() => {
@@ -90,7 +91,21 @@ export default function LibraryClient({ cards, target }: Props) {
                 const progress = progressMap[story.id] ?? 0;
                 const primary = story.target_lang === "zh" ? story.title_cn : story.title_en;
                 const secondary = story.target_lang === "zh" ? story.title_en : story.title_cn;
-                const card = <><div className={`relative min-w-0 overflow-clip ${index % 5 === 0 ? "aspect-[4/3]" : "aspect-video"}`}><Image src={story.image} alt={`${primary} cover`} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw" className={`object-cover ${story.locked ? "grayscale opacity-55" : ""}`} />{story.locked && <span className="absolute inset-0 grid place-items-center bg-ink/20"><span className="grid size-12 place-items-center rounded-full border-2 border-ink bg-paper"><Lock className="size-5" /></span></span>}</div><div className={`grid gap-3 p-5 ${index % 3 === 0 ? "bg-accent-soft" : index % 3 === 1 ? "bg-paper-2" : "bg-paper-3"}`}><div className="flex items-center justify-between gap-3"><span className="hallmark-eyebrow">{story.genre}</span><span className="rounded-full border border-ink px-3 py-1 text-xs whitespace-nowrap">{story.level}</span></div><h3 className="hallmark-display text-2xl">{primary}</h3><p className="m-0 text-sm text-ink-2">{secondary}</p><div className="mt-2 grid gap-2"><div className="flex justify-between text-xs"><span>{story.locked ? t("stories.locked") : progress ? t("stories.progress") : t("stories.notStarted")}</span><span className="tabular-nums">{story.locked ? "" : `${progress}%`}</span></div><div className="h-1 overflow-clip rounded-full bg-rule"><div className="h-full bg-accent-deep" style={{ transform: `scaleX(${progress / 100})`, transformOrigin: "left" }} /></div></div></div></>;
+                const card = <><div className={`relative min-w-0 overflow-clip ${index % 5 === 0 ? "aspect-[4/3]" : "aspect-video"}`}>
+                  {failedCovers[story.id] ? (
+                    <div className="absolute inset-0 grid place-items-center bg-paper-3 p-6 text-center" role="img" aria-label={`${primary} cover unavailable`}>
+                      <div>
+                        <span className="hallmark-eyebrow">InkQuest · {story.genre}</span>
+                        <span className="mx-auto mt-5 grid size-20 place-items-center rounded-full border-2 border-ink bg-accent-soft shadow-[0.3rem_0.3rem_0_var(--color-ink)]">
+                          <BookOpen className="size-8" aria-hidden="true" />
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <Image src={story.image} alt={`${primary} cover`} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw" className={`object-cover ${story.locked ? "grayscale opacity-55" : ""}`} onError={() => setFailedCovers((previous) => ({ ...previous, [story.id]: true }))} />
+                  )}
+                  {story.locked && <span className="absolute inset-0 grid place-items-center bg-ink/20"><span className="grid size-12 place-items-center rounded-full border-2 border-ink bg-paper"><Lock className="size-5" /></span></span>}
+                </div><div className={`grid gap-3 p-5 ${index % 3 === 0 ? "bg-accent-soft" : index % 3 === 1 ? "bg-paper-2" : "bg-paper-3"}`}><div className="flex items-center justify-between gap-3"><span className="hallmark-eyebrow">{story.genre}</span><span className="rounded-full border border-ink px-3 py-1 text-xs whitespace-nowrap">{story.level}</span></div><h3 className="hallmark-display text-2xl">{primary}</h3><p className="m-0 text-sm text-ink-2">{secondary}</p><div className="mt-2 grid gap-2"><div className="flex justify-between text-xs"><span>{story.locked ? t("stories.locked") : progress ? t("stories.progress") : t("stories.notStarted")}</span><span className="tabular-nums">{story.locked ? "" : `${progress}%`}</span></div><div className="h-1 overflow-clip rounded-full bg-rule"><div className="h-full bg-accent-deep" style={{ transform: `scaleX(${progress / 100})`, transformOrigin: "left" }} /></div></div></div></>;
                 return story.locked ? <button key={story.id} type="button" onClick={() => setIsSubscribeOpen(true)} className="min-w-0 overflow-clip rounded-card border-2 border-ink text-left shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-1 disabled:opacity-50">{card}</button> : <Link key={story.id} href={`/stories/${story.id}`} className="min-w-0 overflow-clip rounded-card border-2 border-ink shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-1">{card}</Link>;
               })}
             </div>

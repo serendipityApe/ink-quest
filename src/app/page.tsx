@@ -6,14 +6,24 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SubscribeModal from "@/components/SubscribeModal";
+import WordSegment from "@/components/WordSegment";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { ChevronRight, Volume2 } from "lucide-react";
+import type { TextSegment } from "@/types/story";
 
 const featuredStories = [
   { id: "master-secret", genre: "Xianxia", level: "HSK 4", titleZh: "掌门的秘密", titleEn: "The Secret of the Master", descriptionZh: "你拜入山门的第一夜，师父留下了一封不该存在的信。", descriptionEn: "On your first night at the sect, your master leaves a letter that should not exist.", image: "https://lh3.googleusercontent.com/aida-public/AB6AXuByAGR3eAj-islCdaxw-6Hx-2vtqhn3nBZaza3MPUZbedeFnRCjiBZQwwW1Do80PwO5P_o9YyRRQZj6dCsJo6h-CsEcWBw9ZaNKjbEEpya6Aex_415Kqo5VEc60vfrnewFcp97JiesxmS_0a3ou8G3tky6bFtJTTLTv7N5R1lhm6FIpiyJG-rh-kxa7B4Dxv5Ws6OnwY2NyIvCljmxprVpclM6CJH2SW_AiEw2tzcx_pYB45qVstjmN_XtnKebSsTuVVtvY9DIhfZhu" },
   { id: "receipt-from-tomorrow", genre: "Sci-Fi", level: "HSK 3", titleZh: "来自明天的收据", titleEn: "Receipt from Tomorrow", descriptionZh: "一张印着明天日期的收据，把普通的一天撕开一道缝。", descriptionEn: "A receipt dated tomorrow tears open an ordinary day.", image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAK9k_fl1ecLnHSrkzgIHZJRoM4FKQnbX7teZF1zGWruGOevP9yTZVowE1H03ohr9fARDSBqQAFCXBlK_pJlezQiDfwo18IgN8X5-oVd-_MkZFJLKhuCQ8XFbHC1Ag7fKmqqTHli8UGdOfXqQDiV-jxzX9hGVNUV2TH9iGR9WfwAzGCenZ2s-jNDm_Vb-ieCfjYqQE85z5xpfkzSM_IWG45K6bwsslWL41zX8FraJS5Ii4CeRJSCbO5uDzX8eUs33oXrCj-Wz3l5SOg" },
   { id: "last-train", genre: "Urban Horror", level: "HSK 5", titleZh: "末班车", titleEn: "The Last Train", descriptionZh: "末班地铁没有停在任何你认识的站。", descriptionEn: "The last train stops at none of the stations you know.", image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDFUoNSnoejdFuBy8VNwharovOHGD6g44r4kKn7_HVILQUTKdbPU48FpekULUMbqrfICHZzk8drJXQlfE7Zmpo2MtjCbaX5wf0AQSDK-XnGV6cfYHSHhlC-3-tSFt-DIcN8vRiPW9SWieyCFiFbFGKKOQl7CjTuUyaYpyKtK0f4zj9gjjXmT6xaztpmGo4yS8sw3HgMexbrkiYBJ2MIVz2X4ykjjgZDEUQSaPMAS49Mble2l-P2mxVaDZr90UrV_jiSw7k_emBDjkZ6" },
 ];
+
+const demoWord: TextSegment = {
+  word: "来了",
+  reading: "lái le",
+  meaning: "came; arrived",
+  level: "HSK 1",
+  tier: "key",
+};
 
 export default function Home() {
   const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
@@ -71,7 +81,7 @@ export default function Home() {
                 <strong className="font-display text-xl tracking-[-0.04em]">{isZh ? "掌门的秘密" : "The Secret of the Master"}</strong>
                 <span className="font-outlier text-xs text-muted">CHAPTER 01</span>
               </header>
-              <p className="m-0 font-reading text-[clamp(1.35rem,3vw,2rem)] leading-[2] tracking-[0.06em]">{isZh ? <>雨下得很大。你推开山门，看见师父站在灯下。他没有回头，只说：“你终于<span className="word-key rounded-[.2rem] px-0.5">来了</span>。”</> : <>The rain is heavy. You open the mountain gate and find your master under the lantern. Without turning, he says: “You finally <span className="word-key rounded-[.2rem] px-0.5">came</span>.”</>}</p>
+              <p className="m-0 font-reading text-[clamp(1.35rem,3vw,2rem)] leading-[2] tracking-[0.06em]">{isZh ? <>雨下得很大。你推开山门，看见师父站在灯下。他没有回头，只说：“你终于<WordSegment segment={demoWord} index={0} isAudioActive={false} lang="zh" isSaved={false} onToggleSave={() => undefined} />。”</> : <>The rain is heavy. You open the mountain gate and find your master under the lantern. Without turning, he says: “You finally <WordSegment segment={{ ...demoWord, word: "came", reading: "/keɪm/", meaning: "来；到达" }} index={0} isAudioActive={false} lang="en" isSaved={false} onToggleSave={() => undefined} />.”</>}</p>
               <div className="mt-8 flex items-center justify-between gap-4 border-t border-rule pt-5">
                 <span className="inline-flex items-center gap-2 font-outlier text-xs text-muted"><Volume2 className="size-4" /> {isZh ? "可播放旁白" : "Narration ready"}</span>
                 <span className="font-outlier text-xs text-muted">{isZh ? "接下来" : "NEXT"}</span>

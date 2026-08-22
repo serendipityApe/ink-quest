@@ -81,11 +81,11 @@ export default function WordSegment({
   }, [tier, canHover, hideTooltip]);
 
   const handleClick = useCallback(() => {
-    if (tier === "key" && !canHover()) {
+    if (tier === "key") {
       clearTimer();
       setShowTooltip(true);
     }
-  }, [tier, canHover, clearTimer]);
+  }, [tier, clearTimer]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLSpanElement>) => {
     if (tier === "base" || e.pointerType === "mouse") return;
