@@ -65,6 +65,7 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
         </Link>
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
           <Link href="/stories" aria-current={pathname.startsWith("/stories") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.stories")}</Link>
+          <Link href="/generate" aria-current={pathname.startsWith("/generate") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.create")}</Link>
           <Link href="/saved-words" aria-current={pathname === "/saved-words" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("savedWords.title")}</Link>
           <span className="[&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:rounded-full [&>a]:px-4 [&>a]:text-sm [&>a]:font-semibold [&>a]:whitespace-nowrap [&>a]:hover:bg-paper-3 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:items-center [&>button]:rounded-full [&>button]:px-4 [&>button]:text-sm [&>button]:font-semibold [&>button]:whitespace-nowrap [&>button]:hover:bg-paper-3">{membershipAction}</span>
         </nav>
@@ -81,6 +82,7 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
         <nav id="mobile-navigation" className="border-b-[3px] border-ink bg-paper px-[var(--page-gutter)] pb-6 lg:hidden" aria-label="Mobile navigation">
           <div className="flex flex-col">
             <Link href="/stories" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.stories")}</Link>
+            <Link href="/generate" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.create")}</Link>
             <Link href="/saved-words" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("savedWords.title")}</Link>
             <span className="[&>a]:flex [&>a]:min-h-12 [&>a]:items-center [&>a]:border-b [&>a]:border-rule [&>a]:font-semibold [&>a]:whitespace-nowrap [&>button]:flex [&>button]:min-h-12 [&>button]:w-full [&>button]:items-center [&>button]:border-b [&>button]:border-rule [&>button]:font-semibold [&>button]:whitespace-nowrap">{membershipAction}</span>
             <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="flex min-h-12 items-center gap-2 border-b border-rule font-semibold whitespace-nowrap"><Globe className="size-4" /> {lang === "zh" ? t("lang.en") : t("lang.zh")}</button>

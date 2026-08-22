@@ -9,9 +9,8 @@
 import "../env.js";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, basename } from "node:path";
-import { getEnricher } from "../enrich/index.js";
-import { decideTier, defaultMeaning } from "../tier.js";
-import type { StoryDraft, EnrichedStory, EnrichedNode, EnrichedTokenItem } from "../types-draft.js";
+import { enrichScene } from "../core/enrich-scene.js";
+import type { StoryDraft, EnrichedStory, EnrichedNode } from "../types-draft.js";
 
 function main() {
   const draftPath = process.argv[2];
@@ -20,28 +19,16 @@ function main() {
     process.exit(1);
   }
   const draft: StoryDraft = JSON.parse(readFileSync(draftPath, "utf8"));
-  const enricher = getEnricher(draft.target_lang);
-
   const nodes: Record<string, EnrichedNode> = {};
   for (const [id, node] of Object.entries(draft.nodes)) {
-    const plot = new Set(node.plotWords ?? []);
-    const tokens: EnrichedTokenItem[] = enricher.enrich(node.text).map((tk) => {
-      let tier = decideTier(tk, draft.target_lang);
-      const isPlot = plot.has(tk.word);
-      if (isPlot) tier = "key"; // 剧情词强制 key
-      const meaning = tier === "base" ? null : defaultMeaning(tk.candidates, draft.gloss_lang);
-      const item: EnrichedTokenItem = {
-        word: tk.word,
-        reading: tier === "base" ? null : tk.reading,
-        level: tier === "base" ? null : tk.level,
-        tier,
-        candidates: tk.candidates,
-        meaning,
-      };
-      if (isPlot) item.isPlotKeyword = true;
-      return item;
+    const enrichedNode = enrichScene({
+      text: node.text,
+      plotWords: node.plotWords,
+      choices: node.choices,
+      targetLang: draft.target_lang,
+      glossLang: draft.gloss_lang,
     });
-    nodes[id] = { choices: node.choices, tokens };
+    nodes[id] = { choices: enrichedNode.choices, tokens: enrichedNode.tokens };
   }
 
   const enriched: EnrichedStory = {

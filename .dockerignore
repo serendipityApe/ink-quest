@@ -1,0 +1,13 @@
+.git
+.env*
+.next
+.open-next
+.wrangler
+node_modules
+**/node_modules
+**/dist
+tools/story-pipeline/build
+tools/story-pipeline/drafts
+design-demo
+public/audio
+public/covers

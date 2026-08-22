@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Jieba } from "@node-rs/jieba";
-import { dict as jiebaDict } from "@node-rs/jieba/dict";
+import { dict as jiebaDict } from "@node-rs/jieba/dict.js";
 import { pinyin } from "pinyin-pro";
 import type { EnrichedToken, LanguageEnricher } from "./types.js";
 import type { LevelLabel } from "../schema.js";

@@ -9,6 +9,9 @@
   },
   "scripts": {
     "enrich:demo": "tsx src/cli/enrich-demo.ts",
+    "worker:build": "tsc -p tsconfig.worker.json",
+    "worker:dev": "tsx src/worker/server.ts",
+    "worker:start": "node dist/worker/server.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

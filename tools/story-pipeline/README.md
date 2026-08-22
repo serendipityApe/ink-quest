@@ -8,7 +8,36 @@
 把"一句话设定"变成符合 web app schema 的完整故事 JSON：
 LLM 写剧情 → 富化层机械填充（分词/读音/释义候选/分级）→ LLM 消歧 → TTS 真音频+词级时间戳 → 校验入库。
 
-当前已实现 **P1：富化层（enrich）**。
+当前已实现本地创作管线，以及云端文字生成、腾讯 TTS、私有音频上传和分项积分结算。
+
+## 云端 Worker
+
+```bash
+pnpm --filter @inkquest/story-pipeline worker:build
+pnpm --filter @inkquest/story-pipeline worker:start
+```
+
+Worker 暴露 `GET /health` 和受 Bearer token 保护的 `POST /jobs/:jobId`。它通过 Supabase RPC claim 任务，调用 OpenAI-compatible chat-completions 接口生成结构化规划与正文，复用本包富化层。正文先独立提交；开启 TTS 时再合成、用 FFmpeg 规范化多段 MP3、上传 Supabase Storage，并单独结算语音积分。语音最终失败只退还 TTS 积分，不回滚正文。
+
+环境变量：
+
+```text
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+GENERATION_WORKER_TOKEN
+LLM_CHAT_COMPLETIONS_URL
+LLM_API_KEY
+LLM_MODEL
+LLM_PROMPT_VERSION
+TENCENT_SECRET_ID
+TENCENT_SECRET_KEY
+TENCENT_REGION
+TENCENT_TTS_VOICE
+GENERATED_AUDIO_BUCKET
+PORT
+```
+
+容器入口见 `Dockerfile`。`data/` 中的词典仍是可选部署资产；缺失时会降级为分词和读音能力，释义由模型补齐。
 
 ## 安装
 

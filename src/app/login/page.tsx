@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { sanitizeRedirectPath } from "@/lib/auth/redirect";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+
+  const getCallbackUrl = () => {
+    const next = sanitizeRedirectPath(new URLSearchParams(location.search).get("next"));
+    return `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +33,7 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
+      options: { emailRedirectTo: getCallbackUrl() },
     });
     setLoading(false);
     if (error) { setError(error.message); return; }
@@ -43,7 +49,7 @@ export default function LoginPage() {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: getCallbackUrl() },
     });
   };
 

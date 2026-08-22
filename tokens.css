@@ -60,6 +60,7 @@
   --radius-card: 1.25rem;
   --radius-pill: 999px;
   --shadow-card: 0.45rem 0.45rem 0 var(--color-ink);
+  --shadow-soft: 0 1.4rem 3.2rem oklch(20% 0.012 250 / 0.12);
   --page-max: 90rem;
   --page-gutter: clamp(1rem, 3.5vw, 4rem);
   --nav-height: 4.75rem;

@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "concurrently --kill-others --names web,worker --prefix-colors cyan,magenta \"pnpm dev:web\" \"pnpm dev:worker\"",
+    "dev:web": "next dev --webpack",
+    "dev:worker": "PORT=8080 pnpm --filter @inkquest/story-pipeline worker:start",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -27,6 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",

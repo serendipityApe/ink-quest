@@ -14,6 +14,7 @@ export const UI_LANGS: Lang[] = ["en", "zh"];
 export const DICTS = {
   en: {
     "nav.stories": "Stories",
+    "nav.create": "Create",
     "nav.pricing": "Pricing",
     "nav.signIn": "Sign In",
     "nav.signOut": "Sign Out",
@@ -53,6 +54,7 @@ export const DICTS = {
   },
   zh: {
     "nav.stories": "故事库",
+    "nav.create": "生成故事",
     "nav.pricing": "会员",
     "nav.signIn": "登录",
     "nav.signOut": "退出",

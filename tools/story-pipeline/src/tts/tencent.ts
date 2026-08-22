@@ -2,6 +2,10 @@ import type { TargetLang } from "../schema.js";
 import type { TtsProvider, TtsResult, WordTiming } from "./types.js";
 import "../env.js";
 import { buildHeaders } from "./tencent-sign.js";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { spawn } from "node:child_process";
 
 /**
  * 腾讯云 TTS（TextToVoice）实现。中文默认供应商。
@@ -154,7 +158,7 @@ export class TencentTts implements TtsProvider {
     // 修补空洞（某些词无字幕重叠时 start/end=0）：用相邻时间戳线性填补，保证单调
     repairMonotonic(timings);
 
-    return { audio: Buffer.concat(audioParts), timings };
+    return { audio: await joinMp3Parts(audioParts), timings };
   }
 
   private async callOne(text: string, voiceType: number): Promise<{ audio: Buffer; subs: Subtitle[] }> {
@@ -179,7 +183,7 @@ export class TencentTts implements TtsProvider {
       payload,
     });
 
-    const res = await fetch(`https://${HOST}`, { method: "POST", headers, body: payload });
+    const res = await fetch(`https://${HOST}`, { method: "POST", headers, body: payload, signal: AbortSignal.timeout(45_000) });
     const json = (await res.json()) as { Response: TtsResponseInner };
     const r = json.Response;
     if (r.Error) throw new Error(`腾讯云 TTS 错误 ${r.Error.Code}: ${r.Error.Message}`);
@@ -190,6 +194,35 @@ export class TencentTts implements TtsProvider {
       subs: r.Subtitles ?? [],
     };
   }
+}
+
+async function joinMp3Parts(parts: Buffer[]): Promise<Buffer> {
+  if (parts.length === 1) return parts[0];
+  const directory = await mkdtemp(join(tmpdir(), "inkquest-tts-"));
+  try {
+    const partPaths = await Promise.all(parts.map(async (part, index) => {
+      const path = join(directory, `part-${index}.mp3`);
+      await writeFile(path, part);
+      return path;
+    }));
+    const listPath = join(directory, "concat.txt");
+    const outputPath = join(directory, "output.mp3");
+    await writeFile(listPath, partPaths.map((path) => `file '${path}'`).join("\n"));
+    await runFfmpeg(["-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", listPath, "-c:a", "libmp3lame", "-b:a", "64k", outputPath]);
+    return await readFile(outputPath);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+function runFfmpeg(args: string[]): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const process = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "pipe"] });
+    let stderr = "";
+    process.stderr.on("data", (chunk) => { stderr += String(chunk); });
+    process.on("error", reject);
+    process.on("close", (code) => code === 0 ? resolve() : reject(new Error(`ffmpeg failed (${code}): ${stderr.slice(-500)}`)));
+  });
 }
 
 /** 把 start/end=0 的空洞用前后相邻时间戳填补，并保证整体单调不减。 */

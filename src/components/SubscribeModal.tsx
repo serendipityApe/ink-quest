@@ -12,7 +12,8 @@ interface SubscribeModalProps {
 
 export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps) {
   const [user, setUser] = useState<User | null>(null);
-  const checkoutUrl = process.env.NEXT_PUBLIC_LEMONSQUEEZY_CHECKOUT_URL;
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -28,15 +29,26 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
   if (!isOpen) return null;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!user) {
       window.location.href = `/login?next=/subscribe`;
       return;
     }
-    const url = checkoutUrl
-      ? `${checkoutUrl}?checkout[email]=${encodeURIComponent(user.email ?? "")}`
-      : "#";
-    window.open(url, "_blank");
+    setCheckoutLoading(true);
+    setCheckoutError("");
+    try {
+      const response = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productCode: "premium_monthly" }),
+      });
+      const body = await response.json() as { url?: string };
+      if (!response.ok || !body.url) throw new Error("checkout_unavailable");
+      window.location.assign(body.url);
+    } catch {
+      setCheckoutLoading(false);
+      setCheckoutError("Checkout is temporarily unavailable. Please try again.");
+    }
   };
 
   return (
@@ -54,14 +66,17 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         <p className="mb-8 font-body leading-relaxed text-ink-2">
           Continue premium branches and unlock the full interactive story archive.
           <br />
-          <span className="mt-2 block text-xl font-semibold text-ink">$9.9 / Month</span>
+          <span className="mt-2 block text-xl font-semibold text-ink">Monthly membership</span>
         </p>
         <button
           onClick={handleCheckout}
-          className="hallmark-btn w-full"
+          disabled={checkoutLoading}
+          aria-busy={checkoutLoading}
+          className="hallmark-btn w-full disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {user ? "[ Subscribe Now ]" : "[ Sign In to Subscribe ]"}
+          {checkoutLoading ? "[ Opening Checkout… ]" : user ? "[ Subscribe Now ]" : "[ Sign In to Subscribe ]"}
         </button>
+        {checkoutError && <p role="alert" className="mt-4 text-sm text-error">{checkoutError}</p>}
         <p className="mt-4 font-outlier text-[12px] text-muted">Cancel anytime. 7-day money-back guarantee.</p>
       </div>
     </div>
