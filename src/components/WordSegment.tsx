@@ -15,6 +15,15 @@ interface WordSegmentProps {
   onToggleSave: (seg: TextSegment) => void;
 }
 
+interface TooltipPosition {
+  top: number;
+  left: number;
+  bridgeTop: number;
+  bridgeLeft: number;
+  bridgeWidth: number;
+  bridgeHeight: number;
+}
+
 export default function WordSegment({
   segment,
   index: _index,
@@ -26,7 +35,7 @@ export default function WordSegment({
   const { word, reading, meaning, level, tier } = segment;
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const triggerRef = useRef<HTMLSpanElement | null>(null);
   const tooltipRef = useRef<HTMLSpanElement | null>(null);
@@ -124,8 +133,16 @@ export default function WordSegment({
         Math.max(triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2, viewportPadding),
         window.innerWidth - tooltipRect.width - viewportPadding,
       );
+      const bridgePadding = 24;
+      const bridgeLeft = Math.min(triggerRect.left, left) - bridgePadding;
+      const bridgeRight = Math.max(triggerRect.right, left + tooltipRect.width) + bridgePadding;
+      const bridgeWidth = bridgeRight - bridgeLeft;
+      const bridgeTop = top < triggerRect.top ? top + tooltipRect.height : triggerRect.bottom;
+      const bridgeHeight = Math.abs(top < triggerRect.top
+        ? triggerRect.top - bridgeTop
+        : top - triggerRect.bottom);
 
-      setTooltipPosition({ top, left });
+      setTooltipPosition({ top, left, bridgeTop, bridgeLeft, bridgeWidth, bridgeHeight });
     };
 
     updateTooltipPosition();
@@ -180,6 +197,18 @@ export default function WordSegment({
             onPointerDown={hideTooltip}
             onClick={(e) => e.stopPropagation()}
           />
+          {tooltipPosition && (
+            <span
+              aria-hidden="true"
+              className="fixed z-[69] hidden pointer-events-auto md:block"
+              style={{
+                top: `${tooltipPosition.bridgeTop}px`,
+                left: `${tooltipPosition.bridgeLeft}px`,
+                width: `${tooltipPosition.bridgeWidth}px`,
+                height: `${tooltipPosition.bridgeHeight}px`,
+              }}
+            />
+          )}
           <span
             ref={tooltipRef}
             className={`fixed bottom-6 left-4 right-4 z-50 mx-auto flex max-w-sm flex-col gap-1.5 rounded-card border-2 border-ink bg-paper px-4 py-3 text-center shadow-[0.4rem_0.4rem_0_var(--color-ink)] pointer-events-auto md:bottom-auto md:right-auto md:left-[var(--tooltip-left)] md:top-[var(--tooltip-top)] md:z-70 md:mx-0 md:min-w-[180px] md:max-w-none ${tooltipPosition ? "md:visible" : "md:invisible"}`}

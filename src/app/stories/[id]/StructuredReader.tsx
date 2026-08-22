@@ -422,7 +422,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
               type="button"
               onClick={handleAudio}
               disabled={!node}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${isPlaying ? "bg-ink text-paper" : "bg-paper hover:bg-accent-soft"}`}
+              className={`inline-flex min-h-11 items-center gap-2 cursor-pointer rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${isPlaying ? "bg-ink text-paper" : "bg-paper hover:bg-accent-soft"}`}
             >
               {isPlaying ? <Square className="size-4 fill-current" /> : <Volume2 className="size-4" />}
               <span>{isPlaying ? t("reader.stopListen") : t("reader.listen")}</span>
@@ -430,7 +430,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
             <button
               type="button"
               onClick={() => setIsMapOpen(true)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 hover:bg-accent-soft active:translate-y-px"
+              className="inline-flex min-h-11 items-center gap-2 cursor-pointer rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 hover:bg-accent-soft active:translate-y-px"
             >
               <Map className="size-4" /> {t("reader.map")}
             </button>
