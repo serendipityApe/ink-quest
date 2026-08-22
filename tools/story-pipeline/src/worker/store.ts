@@ -69,6 +69,29 @@ export class GenerationJobStore {
     });
   }
 
+  async listPendingJobIds(limit = 5): Promise<string[]> {
+    const query = new URLSearchParams({
+      select: "job_id",
+      status: "eq.pending",
+      next_attempt_at: `lte.${new Date().toISOString()}`,
+      order: "created_at.asc",
+      limit: String(limit),
+    });
+    const response = await fetch(`${this.supabaseUrl.replace(/\/$/, "")}/rest/v1/job_outbox?${query}`, {
+      headers: {
+        apikey: this.serviceRoleKey,
+        Authorization: `Bearer ${this.serviceRoleKey}`,
+      },
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Supabase outbox query failed (${response.status}): ${error.slice(0, 500)}`);
+    }
+    const rows = await response.json() as Array<{ job_id: string }>;
+    return rows.map((row) => row.job_id);
+  }
+
   commit(input: CommitGeneratedTextInput) {
     return this.rpc<{ storyId: string; nodeId: string; status: string }>("commit_generated_story_text", {
       p_job_id: input.jobId,

@@ -1,16 +1,17 @@
 "use client";
 
 /* Hallmark · macrostructure: Workbench · genre: editorial + playful · theme: InkQuest locked system
- * pre-emit critique: P5 H5 E4 S5 R5 V4 · mobile: single-column workbench
+ * pre-emit critique: P5 H5 E5 S5 R5 V4 · mobile: single-column workbench
  */
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Coins, LockKeyhole, RefreshCw, Sparkles, Volume2 } from "lucide-react";
+import { Coins, LockKeyhole, RefreshCw, Sparkles, Square, Volume2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import WordSegment from "@/components/WordSegment";
+import { useAudioSync } from "@/hooks/useAudioSync";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { fromSegment, loadSavedWords, toggleSaved, type SavedWord } from "@/lib/savedWords";
-import type { TextSegment } from "@/types/story";
+import type { TextSegment, Timestamp } from "@/types/story";
 
 type TargetLanguage = "zh" | "en";
 type TtsMode = "off" | "every_scene";
@@ -56,8 +57,16 @@ interface GeneratedStoryResponse {
     id: string;
     node_id: string;
     duration_ms: number | null;
+    timestamps: Timestamp[] | null;
     audio_url: string | null;
   }>;
+}
+
+interface SentenceGroup {
+  start: number;
+  end: number;
+  segments: TextSegment[];
+  complete: boolean;
 }
 
 const OPTIONS = {
@@ -98,8 +107,18 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const [jobStage, setJobStage] = useState("queued");
   const [storyData, setStoryData] = useState<GeneratedStoryResponse | null>(null);
   const [savedWords, setSavedWords] = useState<SavedWord[]>([]);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [playingNodeId, setPlayingNodeId] = useState<string | null>(null);
+  const [playingSentence, setPlayingSentence] = useState<string | null>(null);
+  const [typingNodeId, setTypingNodeId] = useState<string | null>(null);
+  const [revealedUnits, setRevealedUnits] = useState(0);
   const requestKey = useRef<string | null>(null);
   const previewedJob = useRef<string | null>(null);
+  const knownNodeIds = useRef(new Set<string>());
+  const animatedNodeIds = useRef(new Set<string>());
+  const previousPlaying = useRef(false);
+  const restartingPlayback = useRef(false);
+  const { isPlaying, activeSegmentIndex, play, stop } = useAudioSync();
 
   const selections = useMemo(() => ({
     genre: OPTIONS.genre[selected.genre],
@@ -117,17 +136,30 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     setCredits(body.credits?.available ?? 0);
   }, []);
 
-  const loadStory = useCallback(async (storyId: string) => {
+  const loadStory = useCallback(async (storyId: string, options?: { animateLatest?: boolean }) => {
     const response = await fetch(`/api/generated-stories/${storyId}`, { cache: "no-store" });
     if (!response.ok) throw new Error("story_load_failed");
     const data = await response.json() as GeneratedStoryResponse;
+    const newNodes = data.nodes.filter((node) => !knownNodeIds.current.has(node.id));
+    knownNodeIds.current = new Set(data.nodes.map((node) => node.id));
     setStoryData(data);
     setTargetLanguage(data.story.target_language);
     setLearnerLevel(data.story.learner_level);
     setTtsMode(data.story.tts_mode);
+    const latestNode = newNodes.at(-1);
+    if (options?.animateLatest && latestNode && !animatedNodeIds.current.has(latestNode.id)) {
+      stop();
+      setPlayingNodeId(null);
+      setPlayingSentence(null);
+      animatedNodeIds.current.add(latestNode.id);
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setTypingNodeId(latestNode.id);
+        setRevealedUnits(1);
+      }
+    }
     if (data.nodes.length > 0) setPhase("reader");
     return data;
-  }, []);
+  }, [stop]);
 
   useEffect(() => {
     queueMicrotask(() => { void refreshBalance(); });
@@ -135,6 +167,14 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
 
   useEffect(() => {
     queueMicrotask(() => setSavedWords(loadSavedWords()));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
+    loadVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
   }, []);
 
   useEffect(() => {
@@ -184,11 +224,11 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
         if (cancelled) return;
         setJobStage(body.job.stage);
         if (body.job.stage.includes("tts") && previewedJob.current !== activeJob.jobId) {
-          await loadStory(activeJob.storyId);
+          await loadStory(activeJob.storyId, { animateLatest: true });
           previewedJob.current = activeJob.jobId;
         }
         if (body.job.status === "completed" || body.job.status === "partial_success") {
-          await loadStory(activeJob.storyId);
+          await loadStory(activeJob.storyId, { animateLatest: true });
           await refreshBalance();
           if (body.job.status === "partial_success") {
             setError(body.job.error_message_safe ?? (isZh ? "正文已完成，语音生成失败；语音积分已自动退回。" : "The scene is ready, but narration failed. Its credits were returned."));
@@ -274,6 +314,9 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
 
   const chooseBranch = async (choiceId: string) => {
     if (!storyData || activeJob) return;
+    stop();
+    setPlayingNodeId(null);
+    setPlayingSentence(null);
     setError("");
     const idempotencyKey = crypto.randomUUID();
     try {
@@ -297,6 +340,107 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const handleToggleSave = useCallback((segment: TextSegment, target: TargetLanguage) => {
     setSavedWords((current) => toggleSaved(current, fromSegment(segment, target)));
   }, []);
+
+  const typingNode = storyData?.nodes.find((node) => node.id === typingNodeId) ?? null;
+  const typingTotal = typingNode?.text_segments?.length
+    ? typingNode.text_segments.length
+    : Array.from(typingNode?.text ?? "").length;
+
+  useEffect(() => {
+    if (!typingNodeId || typingTotal <= 0) return;
+
+    let visible = 1;
+    const interval = window.setInterval(() => {
+      visible += 1;
+      setRevealedUnits(Math.min(visible, typingTotal));
+      if (visible >= typingTotal) {
+        window.clearInterval(interval);
+        setTypingNodeId(null);
+      }
+    }, typingNode?.text_segments?.length ? 42 : 24);
+
+    return () => window.clearInterval(interval);
+  }, [typingNode?.text_segments?.length, typingNodeId, typingTotal]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      previousPlaying.current = true;
+      return;
+    }
+    if (previousPlaying.current) {
+      if (restartingPlayback.current) restartingPlayback.current = false;
+      else {
+        setPlayingNodeId(null);
+        setPlayingSentence(null);
+      }
+    }
+    previousPlaying.current = false;
+  }, [isPlaying]);
+
+  const toggleNodePlayback = (node: GeneratedNode) => {
+    const active = playingNodeId === node.id && playingSentence === null;
+    if (active) {
+      stop();
+      setPlayingNodeId(null);
+      return;
+    }
+
+    const segments = node.text_segments ?? [];
+    const audio = storyData?.audioAssets.find((asset) => asset.node_id === node.id && asset.audio_url);
+    restartingPlayback.current = isPlaying;
+    setPlayingNodeId(node.id);
+    setPlayingSentence(null);
+    play({
+      audioUrl: audio?.audio_url,
+      text: segments.length ? joinSegments(segments, storyData?.story.target_language ?? "zh") : node.text ?? "",
+      timestamps: audio?.timestamps ?? [],
+      voices,
+      lang: storyData?.story.target_language ?? "zh",
+    });
+  };
+
+  const toggleSentencePlayback = (node: GeneratedNode, sentence: SentenceGroup) => {
+    if (!storyData) return;
+    const key = `${node.id}:${sentence.start}-${sentence.end}`;
+    if (playingSentence === key) {
+      stop();
+      setPlayingNodeId(null);
+      setPlayingSentence(null);
+      return;
+    }
+
+    const audio = storyData.audioAssets.find((asset) => asset.node_id === node.id && asset.audio_url);
+    const timestamps = audio?.timestamps ?? [];
+    restartingPlayback.current = isPlaying;
+    setPlayingNodeId(node.id);
+    setPlayingSentence(key);
+
+    if (audio?.audio_url && timestamps[sentence.start] && timestamps[sentence.end]) {
+      play({
+        audioUrl: audio.audio_url,
+        text: "",
+        timestamps,
+        voices,
+        lang: storyData.story.target_language,
+        startMs: timestamps[sentence.start].start,
+        endMs: timestamps[sentence.end].end,
+      });
+      return;
+    }
+
+    const rangeStart = timestamps[sentence.start]?.start ?? 0;
+    play({
+      audioUrl: null,
+      text: joinSegments(sentence.segments, storyData.story.target_language),
+      timestamps: timestamps.slice(sentence.start, sentence.end + 1).map((timestamp) => ({
+        start: timestamp.start - rangeStart,
+        end: timestamp.end - rangeStart,
+      })),
+      voices,
+      lang: storyData.story.target_language,
+      segmentOffset: sentence.start,
+    });
+  };
 
   const currentNode = storyData?.nodes.find((node) => node.id === storyData.story.current_node_id) ?? storyData?.nodes.at(-1);
   const generatingLabel = jobStage === "queued"
@@ -363,16 +507,112 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
 
           {phase === "generating" && <GeneratingPanel label={generatingLabel} tts={ttsMode === "every_scene"} isZh={isZh} />}
 
-          {phase === "reader" && storyData && <div className="mx-auto w-full max-w-4xl pb-20">
-            <header className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><p className="hallmark-eyebrow text-muted">Your generated story</p><h2 className="mt-2 text-3xl font-bold tracking-[-0.045em]">{storyData.story.title ?? (isZh ? "未命名故事" : "Untitled story")}</h2><p className="mt-1 font-outlier text-xs text-muted">{storyData.story.target_language === "zh" ? "中文" : "English"} · {storyData.story.learner_level}{storyData.story.tts_mode === "every_scene" ? (isZh ? " · 含语音" : " · Narrated") : ""}</p></div><Link href="/generate" className="inline-flex min-h-11 items-center rounded-full border border-ink px-4 text-sm font-bold hover:bg-paper-3">{isZh ? "再开一个故事" : "Start another"}</Link></header>
-            <article className="rounded-card border border-rule-2 bg-paper p-6 shadow-[var(--shadow-soft)] sm:p-10">
+          {phase === "reader" && storyData && <div className="mx-auto w-full max-w-3xl pb-20">
+            <header className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-10">
+              <div className="min-w-0">
+                <h2 className="text-3xl font-bold tracking-[-0.045em] [overflow-wrap:anywhere]">{storyData.story.title ?? (isZh ? "未命名故事" : "Untitled story")}</h2>
+                <p className="mt-1 text-xs text-muted">{storyData.story.target_language === "zh" ? "中文" : "English"} · {storyData.story.learner_level}{storyData.story.tts_mode === "every_scene" ? (isZh ? " · 含语音" : " · Narrated") : ""}</p>
+              </div>
+              <Link href="/generate" className="inline-flex min-h-11 items-center rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-px">{isZh ? "再开一个故事" : "Start another"}</Link>
+            </header>
+
+            <article aria-busy={Boolean(typingNodeId)}>
               {storyData.nodes.map((node, index) => {
-                const audio = storyData.audioAssets.find((asset) => asset.node_id === node.id && asset.audio_url);
                 const segments = node.text_segments ?? [];
-                return <section key={node.id} className={index ? "mt-8 border-t border-rule pt-8" : ""}><div className="flex flex-wrap items-center justify-between gap-3"><p className="hallmark-eyebrow text-accent-deep">Chapter {String(index + 1).padStart(2, "0")}</p>{audio?.audio_url && <audio controls preload="metadata" src={audio.audio_url} className="h-9 w-full max-w-64" aria-label={isZh ? `播放第 ${index + 1} 段语音` : `Play narration for scene ${index + 1}`} />}</div>{node.summary && <h3 className="mt-3 text-2xl font-bold tracking-[-0.035em]">{node.summary}</h3>}<p className="mt-6 whitespace-pre-wrap font-reading text-[clamp(1.08rem,2vw,1.28rem)] leading-[2] tracking-[0.025em]">{segments.length ? segments.map((segment, segmentIndex) => <span key={`${node.id}-${segmentIndex}`}>{shouldPrefixSpace(segment.word, storyData.story.target_language, segmentIndex === 0) ? " " : ""}<WordSegment segment={segment} index={segmentIndex} isAudioActive={false} lang={storyData.story.target_language} isSaved={savedSet.has(segment.word)} onToggleSave={(selectedSegment) => handleToggleSave(selectedSegment, storyData.story.target_language)} /></span>) : node.text}</p></section>;
+                const isTyping = typingNodeId === node.id;
+                const visibleSegments = isTyping ? segments.slice(0, revealedUnits) : segments;
+                const visibleText = isTyping ? Array.from(node.text ?? "").slice(0, revealedUnits).join("") : node.text;
+                const sentenceGroups = toSentenceGroups(visibleSegments, !isTyping);
+                const wholeNodeActive = playingNodeId === node.id && playingSentence === null;
+                const bodyClass = storyData.story.target_language === "en"
+                  ? "font-body text-[20px] text-ink leading-[1.85] break-words md:text-[22px]"
+                  : "font-reading text-[22px] text-ink break-words tracking-[0.045em] leading-[2] md:text-[26px]";
+                const renderSegment = (segment: TextSegment, segmentIndex: number, isFirst: boolean) => (
+                  <span key={`${node.id}-${segmentIndex}`}>
+                    {shouldPrefixSpace(segment.word, storyData.story.target_language, isFirst) ? " " : ""}
+                    <WordSegment
+                      segment={segment}
+                      index={segmentIndex}
+                      isAudioActive={playingNodeId === node.id && activeSegmentIndex === segmentIndex}
+                      lang={storyData.story.target_language}
+                      isSaved={savedSet.has(segment.word)}
+                      onToggleSave={(selectedSegment) => handleToggleSave(selectedSegment, storyData.story.target_language)}
+                    />
+                  </span>
+                );
+
+                return (
+                  <section key={node.id} className={index ? "mt-12 pt-2 md:mt-16" : ""} aria-label={isZh ? `故事第 ${index + 1} 段` : `Story scene ${index + 1}`}>
+                    <div className={bodyClass}>
+                      {segments.length ? (
+                        <>
+                          <p className="hidden whitespace-pre-wrap md:block">
+                            {visibleSegments.map((segment, segmentIndex) => renderSegment(segment, segmentIndex, segmentIndex === 0))}
+                          </p>
+                          <div className="flex flex-col gap-5 md:hidden">
+                            {sentenceGroups.map((sentence) => {
+                              const sentenceKey = `${node.id}:${sentence.start}-${sentence.end}`;
+                              const sentenceActive = playingSentence === sentenceKey;
+                              return (
+                                <p key={sentenceKey} className="block">
+                                  <span>{sentence.segments.map((segment, offset) => renderSegment(segment, sentence.start + offset, offset === 0))}</span>
+                                  {sentence.complete && (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleSentencePlayback(node, sentence)}
+                                      aria-label={sentenceActive ? (isZh ? "停止播放当前句" : "Stop current sentence") : (isZh ? "播放当前句" : "Play current sentence")}
+                                      className={`relative ml-2 inline-flex size-9 translate-y-1 cursor-pointer items-center justify-center rounded-full border border-ink transition-colors before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-[5px] ${sentenceActive ? "bg-accent text-ink" : "bg-accent-soft text-ink hover:bg-accent"}`}
+                                    >
+                                      {sentenceActive ? <Square className="size-4 fill-current" /> : <Volume2 className="size-4" />}
+                                    </button>
+                                  )}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </>
+                      ) : <p className="whitespace-pre-wrap">{visibleText}</p>}
+                    </div>
+
+                    <div className="mt-7 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => toggleNodePlayback(node)}
+                        disabled={isTyping}
+                        className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-px disabled:cursor-wait disabled:opacity-50 ${wholeNodeActive ? "bg-ink text-paper" : "bg-paper hover:bg-accent-soft"}`}
+                      >
+                        {wholeNodeActive ? <Square className="size-4 fill-current" /> : <Volume2 className="size-4" />}
+                        <span>{wholeNodeActive ? (isZh ? "停止播放" : "Stop") : (isZh ? "听这一段" : "Listen")}</span>
+                      </button>
+                    </div>
+                  </section>
+                );
               })}
-              {activeJob && <div className="mt-8 flex items-center gap-3 border-t border-rule pt-6 text-sm text-ink-2"><span className="size-4 animate-spin rounded-full border-2 border-rule-2 border-r-accent-deep" />{generatingLabel}</div>}
-              {currentNode && <section className="mt-10 border-t border-rule pt-8"><div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="hallmark-eyebrow text-muted">Choose what happens</p><h3 className="mt-2 text-xl font-bold">{isZh ? "下一步，你要怎么做？" : "What do you do next?"}</h3></div><span className="font-outlier text-xs text-muted">{isZh ? "选择后生成下一段" : "Your choice generates the next scene"}</span></div><div className="grid gap-3">{currentNode.story_choices.map((choice, index) => <button key={choice.id} type="button" disabled={Boolean(activeJob)} onClick={() => chooseBranch(choice.id)} className="group grid min-h-20 cursor-pointer grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-input border border-rule-2 bg-paper p-4 text-left transition-colors hover:border-ink active:bg-paper-2 disabled:cursor-not-allowed disabled:opacity-50"><span className="grid size-9 place-items-center rounded-full border border-ink bg-accent-soft font-outlier text-xs font-bold">{String.fromCharCode(65 + index)}</span><span><strong className="block">{choice.label}</strong>{choice.intent && <small className="mt-1 block text-muted">{choice.intent}</small>}</span></button>)}</div></section>}
+
+              {activeJob && <div className="mt-10 flex items-center gap-3 text-sm text-ink-2" aria-live="polite"><span className="size-4 animate-spin rounded-full border-2 border-rule-2 border-r-accent-deep" />{generatingLabel}</div>}
+
+              {currentNode && !typingNodeId && <section className="mt-10 pt-2">
+                <h3 className="mb-2 text-sm font-bold text-ink-2">{isZh ? "接下来" : "Next"}</h3>
+                <div className="flex w-full flex-col">
+                  {currentNode.story_choices.map((choice, index) => (
+                    <button
+                      key={choice.id}
+                      type="button"
+                      disabled={Boolean(activeJob)}
+                      onClick={() => chooseBranch(choice.id)}
+                      className="group relative flex min-h-16 w-full cursor-pointer items-center border-b border-rule bg-paper px-1 py-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-wait disabled:opacity-50"
+                    >
+                      <span className="relative z-10 inline-grid grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-3 font-body font-bold leading-snug">
+                        <span className="inline-flex size-7 items-center justify-center rounded-full border border-ink bg-accent-soft font-outlier text-xs leading-none transition-[background-color,transform] duration-150 group-hover:bg-accent group-active:translate-y-px">{String.fromCharCode(65 + index)}</span>
+                        <span className="min-w-0">
+                          <span className="block">{choice.label}</span>
+                          {choice.intent && <small className="mt-1 block font-normal text-muted">{choice.intent}</small>}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>}
             </article>
             {error && <div className="mt-5"><ErrorNotice message={error} /></div>}
           </div>}
@@ -387,6 +627,36 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
 
 function shouldPrefixSpace(word: string, lang: TargetLanguage, isFirst: boolean) {
   return lang === "en" && !isFirst && !/^[.,!?:;)]/.test(word);
+}
+
+function joinSegments(segments: TextSegment[], lang: TargetLanguage) {
+  return segments.reduce((text, segment, index) => {
+    const space = shouldPrefixSpace(segment.word, lang, index === 0) ? " " : "";
+    return `${text}${space}${segment.word}`;
+  }, "");
+}
+
+function toSentenceGroups(segments: TextSegment[], finalizeLast: boolean) {
+  const groups: SentenceGroup[] = [];
+  let start = 0;
+
+  segments.forEach((segment, index) => {
+    if (/[.!?。！？…]$/.test(segment.word)) {
+      groups.push({ start, end: index, segments: segments.slice(start, index + 1), complete: true });
+      start = index + 1;
+    }
+  });
+
+  if (start < segments.length) {
+    groups.push({
+      start,
+      end: segments.length - 1,
+      segments: segments.slice(start),
+      complete: finalizeLast,
+    });
+  }
+
+  return groups;
 }
 
 function ControlLabel({ title, marker }: { title: string; marker: string }) {
