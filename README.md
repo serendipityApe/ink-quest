@@ -27,6 +27,7 @@ Required server environment variables:
 ```text
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
+NEXT_PUBLIC_GOOGLE_CLIENT_ID
 SUPABASE_SERVICE_ROLE_KEY
 NEXT_PUBLIC_SITE_URL
 
@@ -44,6 +45,8 @@ GENERATION_OPENING_TTS_CREDITS
 GENERATION_SCENE_TEXT_CREDITS
 GENERATION_SCENE_TTS_CREDITS
 ```
+
+`NEXT_PUBLIC_GOOGLE_CLIENT_ID` is the Web OAuth client ID from Google Cloud. Add each deployed site origin (including local development) to its authorized JavaScript origins, and enable Google provider in Supabase.
 
 Credit-pack variables are optional until that product is enabled. TTS pricing is required only when `every_scene` is offered. Never expose the service-role key, Lemon API key, or webhook secret through a `NEXT_PUBLIC_` variable.
 

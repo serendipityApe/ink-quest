@@ -38,6 +38,8 @@ const READER_INTERACTION_CONFIG = {
   mobileSentenceBreaks: true,
 };
 
+const ONBOARDING_KEY = "inkquest_reader_onboarding_v1";
+
 interface SentenceGroup {
   start: number;
   end: number;
@@ -102,6 +104,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [resumed, setResumed] = useState(false);
   const [selectionEnabled, setSelectionEnabled] = useState(!READER_INTERACTION_CONFIG.mobileSentenceMode);
+  const [onboardingStep, setOnboardingStep] = useState<"word" | "audio" | "choice" | null>(null);
 
   const [nodeCache, setNodeCache] = useState<Record<string, StoryNodeResponse>>({
     [manifest.start_node_id]: startNode,
@@ -146,6 +149,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
 
   useEffect(() => {
     setSavedWords(loadSavedWords());
+    if (!localStorage.getItem(ONBOARDING_KEY)) setOnboardingStep("word");
 
     const v = localStorage.getItem(`cm_visited_${storyId}`);
     if (v) {
@@ -224,6 +228,10 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   }, [manifest.target_lang]);
 
   const handleChoiceClick = (nextNodeId: string) => {
+    if (onboardingStep === "choice") {
+      localStorage.setItem(ONBOARDING_KEY, "complete");
+      setOnboardingStep(null);
+    }
     if (nextNodeId === "end_back_to_list") {
       clearReadingPosition(storyId);
       router.push("/stories");
@@ -265,7 +273,12 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
       voices,
       lang: manifest.target_lang,
     });
+    setOnboardingStep((current) => current === "audio" ? "choice" : current);
   };
+
+  const handleWordReveal = useCallback(() => {
+    setOnboardingStep((current) => current === "word" ? "audio" : current);
+  }, []);
 
   const playSegmentRange = useCallback((start: number, end: number) => {
     if (!node) return;
@@ -352,6 +365,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
           lang={manifest.target_lang}
           isSaved={savedSet.has(seg.word)}
           onToggleSave={handleToggleSave}
+          onReveal={handleWordReveal}
         />
       </span>
     );
@@ -371,6 +385,12 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
         )}
         <div className="hallmark-shell pt-7 md:pt-10">
         <div className="mx-auto w-full max-w-3xl">
+        {onboardingStep === "word" && (
+          <div className="mb-2 flex items-center justify-between gap-4 rounded-card border border-ink bg-accent-soft px-4 py-3 text-sm" role="status">
+            <span><strong>{lang === "zh" ? "先试一下：" : "Try this first: "}</strong>{lang === "zh" ? "点一个有下划线的词，看拼音和释义。" : "Tap an underlined word to see its pinyin and meaning."}</span>
+            <button type="button" onClick={() => setOnboardingStep("audio")} className="shrink-0 font-bold whitespace-nowrap hover:text-primary">{lang === "zh" ? "跳过" : "Skip"}</button>
+          </div>
+        )}
         <article
           ref={articleRef}
           className={`relative min-h-[18rem] w-full py-8 md:py-12 ${mobileSentenceModeEnabled ? "select-none md:select-text" : ""}`}
@@ -418,6 +438,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
           )}
 
           <div className="mt-10 flex items-center justify-end gap-2">
+            {onboardingStep === "audio" && <span className="mr-auto text-sm font-semibold text-accent-deep">{lang === "zh" ? "现在听一遍这一段 →" : "Now listen to the scene →"}</span>}
             <button
               type="button"
               onClick={handleAudio}
@@ -439,7 +460,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
         </article>
 
         <section className="flex w-full flex-col pt-2">
-          <h2 className="mb-2 text-sm font-bold text-ink-2">{lang === "zh" ? "接下来" : "Next"}</h2>
+          <div className="mb-2 flex items-end justify-between gap-4"><h2 className="text-sm font-bold text-ink-2">{lang === "zh" ? "接下来" : "Next"}</h2>{onboardingStep === "choice" && <span className="text-right text-sm font-semibold text-accent-deep">{lang === "zh" ? "选一个去向，看看剧情如何改变。" : "Choose a direction and change the story."}</span>}</div>
           {(node?.choices ?? manifest.nodes[currentNodeId]?.choices ?? []).map((choice, i) => {
             const choiceLabel = splitChoiceLabel(choice.text, i);
 

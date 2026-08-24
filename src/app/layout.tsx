@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/I18nProvider";
+import GoogleOneTap from "@/components/GoogleOneTap";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -30,7 +31,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${jakarta.variable} ${jetbrains.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider>
+          {children}
+          <GoogleOneTap />
+        </I18nProvider>
       </body>
     </html>
   );

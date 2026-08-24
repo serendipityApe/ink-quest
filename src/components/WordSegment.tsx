@@ -13,6 +13,7 @@ interface WordSegmentProps {
   lang: "zh" | "en";
   isSaved: boolean;
   onToggleSave: (seg: TextSegment) => void;
+  onReveal?: () => void;
 }
 
 interface TooltipPosition {
@@ -26,11 +27,11 @@ interface TooltipPosition {
 
 export default function WordSegment({
   segment,
-  index: _index,
   isAudioActive,
   lang,
   isSaved,
   onToggleSave,
+  onReveal,
 }: WordSegmentProps) {
   const { word, reading, meaning, level, tier } = segment;
   const [showTooltip, setShowTooltip] = useState(false);
@@ -64,7 +65,8 @@ export default function WordSegment({
     clearTimer();
     setIsHovering(true);
     setShowTooltip(true);
-  }, [clearTimer]);
+    onReveal?.();
+  }, [clearTimer, onReveal]);
 
   const cancelMobilePress = useCallback(() => {
     if (canHover()) return;
@@ -77,11 +79,12 @@ export default function WordSegment({
     setIsHovering(true);
     if (tier === "key") {
       setShowTooltip(true);
+      onReveal?.();
     } else {
       // normal: wait for underline animation to complete (700ms)
       timerRef.current = setTimeout(() => setShowTooltip(true), 700);
     }
-  }, [tier, canHover]);
+  }, [tier, canHover, onReveal]);
 
   const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
     if (tier === "base" || !canHover()) return;
@@ -93,8 +96,9 @@ export default function WordSegment({
     if (tier === "key") {
       clearTimer();
       setShowTooltip(true);
+      onReveal?.();
     }
-  }, [tier, clearTimer]);
+  }, [tier, clearTimer, onReveal]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLSpanElement>) => {
     if (tier === "base" || e.pointerType === "mouse") return;
@@ -103,10 +107,11 @@ export default function WordSegment({
     setIsHovering(true);
     if (tier === "key") {
       setShowTooltip(true);
+      onReveal?.();
       return;
     }
     timerRef.current = setTimeout(showNormalTooltip, 500);
-  }, [tier, clearTimer, showNormalTooltip]);
+  }, [tier, clearTimer, showNormalTooltip, onReveal]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
     if (!canHover()) e.preventDefault();

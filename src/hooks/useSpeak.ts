@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * 单字读音 hook：基于 Web Speech API 的一次性 TTS。
@@ -13,9 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function useSpeak() {
   const [speaking, setSpeaking] = useState(false);
-  const supportedRef = useRef(
-    typeof window !== "undefined" && !!window.speechSynthesis
-  );
+  const [supported, setSupported] = useState(false);
 
   const cancel = useCallback(() => {
     if (typeof window !== "undefined") window.speechSynthesis?.cancel();
@@ -23,7 +21,7 @@ export function useSpeak() {
   }, []);
 
   const speak = useCallback((text: string, lang: "zh" | "en" = "zh") => {
-    if (!supportedRef.current || typeof window === "undefined") return;
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
 
     const utt = new SpeechSynthesisUtterance(text);
@@ -50,7 +48,10 @@ export function useSpeak() {
     window.speechSynthesis.speak(utt);
   }, []);
 
-  useEffect(() => () => cancel(), [cancel]);
+  useEffect(() => {
+    queueMicrotask(() => setSupported(Boolean(window.speechSynthesis)));
+    return () => cancel();
+  }, [cancel]);
 
-  return { speak, cancel, speaking, supported: supportedRef.current };
+  return { speak, cancel, speaking, supported };
 }

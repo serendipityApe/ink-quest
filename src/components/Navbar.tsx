@@ -19,6 +19,7 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [resumeStoryId, setResumeStoryId] = useState<string | null>(null);
   const { t, lang, setLang } = useTranslations();
 
   useEffect(() => {
@@ -29,6 +30,14 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setUser(session?.user ?? null));
     return () => subscription.unsubscribe();
   }, [variant]);
+
+  useEffect(() => {
+    if (variant === "reader" || typeof window === "undefined") return;
+    queueMicrotask(() => {
+      const resumeKey = Object.keys(localStorage).find((key) => key.startsWith("cm_pos_") && localStorage.getItem(key));
+      setResumeStoryId(resumeKey?.slice("cm_pos_".length) ?? null);
+    });
+  }, [pathname, variant]);
 
   const handleSignOut = async () => {
     if (!isSupabaseConfigured()) return;
@@ -66,24 +75,26 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
           <Link href="/stories" aria-current={pathname.startsWith("/stories") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.stories")}</Link>
           <Link href="/generate" aria-current={pathname.startsWith("/generate") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.create")}</Link>
-          <Link href="/saved-words" aria-current={pathname === "/saved-words" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("savedWords.title")}</Link>
-          <span className="[&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:rounded-full [&>a]:px-4 [&>a]:text-sm [&>a]:font-semibold [&>a]:whitespace-nowrap [&>a]:hover:bg-paper-3 [&>button]:inline-flex [&>button]:min-h-11 [&>button]:items-center [&>button]:rounded-full [&>button]:px-4 [&>button]:text-sm [&>button]:font-semibold [&>button]:whitespace-nowrap [&>button]:hover:bg-paper-3">{membershipAction}</span>
+          {user && <Link href="/saved-words" aria-current={pathname === "/saved-words" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.learning")}</Link>}
         </nav>
         <div className="hidden items-center justify-self-end gap-2 lg:flex">
           <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="grid size-11 place-items-center rounded-full border border-rule bg-paper text-xs font-semibold hover:bg-paper-3" aria-label="Switch interface language">{lang === "zh" ? "中" : "EN"}</button>
           {user ? (
             <button type="button" onClick={handleSignOut} className="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold whitespace-nowrap hover:text-primary"><LogOut className="size-4" /> {t("nav.signOut")}</button>
           ) : <Link href="/login" className="inline-flex min-h-11 items-center px-3 text-sm font-semibold whitespace-nowrap hover:text-primary">{t("nav.signIn")}</Link>}
-          <Link href="/stories" className="hallmark-btn">{lang === "zh" ? "开始阅读" : "Start reading"}<span aria-hidden="true">→</span></Link>
+          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : "/stories/master-secret"} className="hallmark-btn">{resumeStoryId ? (lang === "zh" ? "继续阅读" : "Continue reading") : (lang === "zh" ? "免费试读" : "Read free")}<span aria-hidden="true">→</span></Link>
         </div>
-        <button type="button" onClick={() => setIsOpen((open) => !open)} className="grid size-11 place-items-center justify-self-end rounded-full border-2 border-ink bg-paper lg:hidden" aria-expanded={isOpen} aria-controls="mobile-navigation" aria-label={isOpen ? "Close menu" : "Open menu"}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button>
+        <div className="flex items-center justify-self-end gap-2 lg:hidden">
+          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : "/stories/master-secret"} className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 text-sm font-bold text-paper whitespace-nowrap">{resumeStoryId ? (lang === "zh" ? "继续" : "Continue") : (lang === "zh" ? "试读" : "Read free")}</Link>
+          <button type="button" onClick={() => setIsOpen((open) => !open)} className="grid size-11 place-items-center rounded-full border-2 border-ink bg-paper" aria-expanded={isOpen} aria-controls="mobile-navigation" aria-label={isOpen ? "Close menu" : "Open menu"}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button>
+        </div>
       </div>
       {isOpen && (
         <nav id="mobile-navigation" className="border-b-[3px] border-ink bg-paper px-[var(--page-gutter)] pb-6 lg:hidden" aria-label="Mobile navigation">
           <div className="flex flex-col">
             <Link href="/stories" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.stories")}</Link>
             <Link href="/generate" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.create")}</Link>
-            <Link href="/saved-words" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("savedWords.title")}</Link>
+            {user && <Link href="/saved-words" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.learning")}</Link>}
             <span className="[&>a]:flex [&>a]:min-h-12 [&>a]:items-center [&>a]:border-b [&>a]:border-rule [&>a]:font-semibold [&>a]:whitespace-nowrap [&>button]:flex [&>button]:min-h-12 [&>button]:w-full [&>button]:items-center [&>button]:border-b [&>button]:border-rule [&>button]:font-semibold [&>button]:whitespace-nowrap">{membershipAction}</span>
             <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="flex min-h-12 items-center gap-2 border-b border-rule font-semibold whitespace-nowrap"><Globe className="size-4" /> {lang === "zh" ? t("lang.en") : t("lang.zh")}</button>
             {user ? <button type="button" onClick={handleSignOut} className="mt-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-ink font-semibold whitespace-nowrap"><LogOut className="size-4" />{t("nav.signOut")}</button> : <Link href="/login" className="hallmark-btn mt-4">{t("nav.signIn")}</Link>}

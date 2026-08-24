@@ -223,6 +223,28 @@ body {
   }
 }
 
+.language-roller {
+  display: inline-flex;
+  height: 1.18em;
+  overflow: hidden;
+  vertical-align: -0.02em;
+}
+
+.language-roller__track {
+  display: flex;
+  flex-direction: column;
+  transition: transform 360ms var(--ease-out);
+}
+
+.language-roller__word {
+  box-sizing: border-box;
+  display: block;
+  height: 1.18em;
+  padding-block: 0.03em 0.07em;
+  line-height: 1.06;
+  white-space: nowrap;
+}
+
 /* New Oriental Minimalism: Subtle text fading for inactive states */
 .glass-nav-item {
   opacity: 0.6;
