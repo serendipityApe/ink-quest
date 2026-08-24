@@ -48,7 +48,7 @@ GENERATION_SCENE_TTS_CREDITS
 
 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is the Web OAuth client ID from Google Cloud. Add each deployed site origin (including local development) to its authorized JavaScript origins, and enable Google provider in Supabase.
 
-Credit-pack variables are optional until that product is enabled. TTS pricing is required only when `every_scene` is offered. Never expose the service-role key, Lemon API key, or webhook secret through a `NEXT_PUBLIC_` variable.
+Credit-pack variables are optional until that product is enabled. Generation pricing falls back to 20 credits for opening text, 10 for opening TTS, 12 for scene text, and 6 for scene TTS when the corresponding environment variables are missing or invalid. TTS pricing is required only when `every_scene` is offered. Never expose the service-role key, Lemon API key, or webhook secret through a `NEXT_PUBLIC_` variable.
 
 Apply the migrations in filename order. Existing environments that already ran the first two migrations should next apply `supabase/migrations/202608230001_generated_story_tts.sql`; it creates the private audio bucket and adds independent TTS commit/retry/refund transactions.
 

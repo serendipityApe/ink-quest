@@ -6,9 +6,16 @@ export interface GenerationQuote {
   items: Array<{ code: "scene_text" | "scene_tts"; credits: number }>;
 }
 
-function readPositiveCredit(name: string) {
+const DEFAULT_CREDITS = {
+  GENERATION_OPENING_TEXT_CREDITS: 20,
+  GENERATION_OPENING_TTS_CREDITS: 10,
+  GENERATION_SCENE_TEXT_CREDITS: 12,
+  GENERATION_SCENE_TTS_CREDITS: 6,
+} as const;
+
+function readPositiveCredit(name: keyof typeof DEFAULT_CREDITS) {
   const value = Number(process.env[name]);
-  return Number.isSafeInteger(value) && value > 0 ? value : null;
+  return Number.isSafeInteger(value) && value > 0 ? value : DEFAULT_CREDITS[name];
 }
 
 export function quoteOpening(ttsMode: TtsMode): GenerationQuote | null {
