@@ -199,6 +199,59 @@ body {
   transform: none;
 }
 
+.legal-copy {
+  color: var(--color-ink-2);
+  line-height: 1.75;
+}
+
+.legal-copy section + section {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--color-rule);
+}
+
+.legal-copy h2 {
+  margin: 0 0 1rem;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.legal-copy p + p,
+.legal-copy ul + p,
+.legal-copy ol + p {
+  margin-top: 1rem;
+}
+
+.legal-copy ul,
+.legal-copy ol {
+  margin-top: 1rem;
+  padding-left: 1.4rem;
+}
+
+.legal-copy li + li {
+  margin-top: 0.65rem;
+}
+
+.legal-copy ul {
+  list-style: disc;
+}
+
+.legal-copy ol {
+  list-style: decimal;
+}
+
+.legal-copy a {
+  color: var(--color-accent-deep);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
 .hallmark-btn--ink {
   --button-face: var(--color-ink);
   --button-ink: var(--color-paper);
