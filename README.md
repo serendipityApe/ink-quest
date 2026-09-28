@@ -79,10 +79,16 @@ TENCENT_SECRET_ID
 TENCENT_SECRET_KEY
 TENCENT_REGION
 TENCENT_TTS_VOICE
+AZURE_SPEECH_KEY
+AZURE_SPEECH_REGION
+AZURE_TTS_VOICE_ZH
+AZURE_TTS_VOICE_EN
+STORY_TTS_ZH_PROVIDER
+STORY_TTS_EN_PROVIDER
 GENERATED_AUDIO_BUCKET
 ```
 
-`GENERATED_AUDIO_BUCKET` defaults to `generated-audio`. The Worker image installs FFmpeg so multi-part Tencent audio is normalized into one seekable MP3 before upload. English currently uses Tencent's English voice as the MVP fallback when those credentials are configured.
+`GENERATED_AUDIO_BUCKET` defaults to `generated-audio`. Configure the Azure Speech key and region on the Cloud Run Worker; the verified evaluation resource uses `eastasia`. Azure is preferred for both Chinese and English when configured, with `zh-CN-XiaoxiaoNeural` and `en-US-JennyNeural` as defaults. Set `STORY_TTS_ZH_PROVIDER` or `STORY_TTS_EN_PROVIDER` to `azure` or `tencent` to override selection. The Worker image also installs FFmpeg to normalize multi-part Tencent audio into one seekable MP3 before upload.
 
 Create `inkquest-generation` and `inkquest-generation-dlq` in Cloudflare, deploy the main app, then deploy `tools/generation-dispatcher/wrangler.jsonc`. Configure `GENERATION_WORKER_URL` on the dispatcher and store `GENERATION_WORKER_TOKEN` with `wrangler secret put`.
 

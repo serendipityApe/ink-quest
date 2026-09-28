@@ -8,7 +8,7 @@
 把"一句话设定"变成符合 web app schema 的完整故事 JSON：
 LLM 写剧情 → 富化层机械填充（分词/读音/释义候选/分级）→ LLM 消歧 → TTS 真音频+词级时间戳 → 校验入库。
 
-当前已实现本地创作管线，以及云端文字生成、腾讯 TTS、私有音频上传和分项积分结算。
+当前已实现本地创作管线，以及云端文字生成、Azure Speech / 腾讯云 TTS、私有音频上传和分项积分结算。
 
 ## 云端 Worker
 
@@ -33,6 +33,12 @@ TENCENT_SECRET_ID
 TENCENT_SECRET_KEY
 TENCENT_REGION
 TENCENT_TTS_VOICE
+AZURE_SPEECH_KEY
+AZURE_SPEECH_REGION
+AZURE_TTS_VOICE_ZH
+AZURE_TTS_VOICE_EN
+STORY_TTS_ZH_PROVIDER
+STORY_TTS_EN_PROVIDER
 GENERATED_AUDIO_BUCKET
 PORT
 ```
@@ -88,8 +94,18 @@ pnpm --filter @inkquest/story-pipeline exec tsx src/cli/enrich-demo.ts en "An ab
 ## TTS（P3）
 
 `assemble-story` 第④步自动产音频 + 词级时间戳：
-- 配了腾讯云密钥（env）→ 真实音频 + 词级对齐；
+- 配了 Azure Speech 的密钥和区域（env）→ 真实 MP3 + Azure WordBoundary 词级对齐；
+- 未配置 Azure 但配置了腾讯云密钥 → 使用腾讯云；
 - 未配置 / `--no-audio` → 降级为估时，不产音频（CI/本地友好）。
+
+Azure Speech 环境变量（密钥不入仓；本项目验证资源位于 `eastasia`）：
+```bash
+AZURE_SPEECH_KEY=...
+AZURE_SPEECH_REGION=eastasia
+AZURE_TTS_VOICE_ZH=zh-CN-XiaoxiaoNeural  # 可选，默认即此音色
+AZURE_TTS_VOICE_EN=en-US-JennyNeural      # 可选，默认即此音色
+```
+Azure 和腾讯云同时配置时，默认优先 Azure。可按语言设置 `STORY_TTS_ZH_PROVIDER=azure`、`STORY_TTS_EN_PROVIDER=azure`（或 `tencent`）来固定供应商。Worker 的运行环境也必须配置 Azure 密钥与区域；仅在本地 `.env.local` 配置不会影响已部署的 Worker。Azure 的字符位置映射到 InkQuest 原有分词；若有非标点词缺少词边界，任务会按现有 TTS 重试机制处理，不会发布虚构时间戳。
 
 腾讯云环境变量（不入仓）：
 ```bash
@@ -99,11 +115,12 @@ TENCENT_REGION=ap-guangzhou        # 可选
 TENCENT_TTS_VOICE=101001           # 可选，需选支持时间戳的音色
 ```
 `story-pipeline` 启动时会自动读取仓库根 `.env` / `.env.local`，也支持 `tools/story-pipeline/.env` / `.env.local`。shell 里已经手动 export 的同名变量优先级最高。
-英文（`target_lang: en`）海外供应商（Azure/ElevenLabs）为 P3.5，接口已留 `getTtsProvider`。
+英文（`target_lang: en`）同样可使用 Azure Speech 的词边界。
 
 ## 进度
 
 - [x] P1 富化层（zh: jieba+pinyin-pro+CC-CEDICT+HSK；en: Intl.Segmenter+ECDICT）+ 校验抽离
 - [x] P2 agent 创作流（draft → enrich → 审校 → assemble），端到端验证通过
-- [x] P3 腾讯云 TTS（TC3 签名 + 字符级→词级聚合 + 分块拼接）+ 降级估时；英文海外供应商待接（P3.5）
+- [x] P3 腾讯云 TTS（TC3 签名 + 字符级→词级聚合 + 分块拼接）+ 降级估时
+- [x] P3.5 Azure Speech 中英文 TTS（MP3 + WordBoundary 对齐）
 - [ ] P4 量产首发内容
