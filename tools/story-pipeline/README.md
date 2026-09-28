@@ -102,7 +102,7 @@ Azure Speech 环境变量（密钥不入仓；本项目验证资源位于 `easta
 ```bash
 AZURE_SPEECH_KEY=...
 AZURE_SPEECH_REGION=eastasia
-AZURE_TTS_VOICE_ZH=zh-CN-XiaoxiaoNeural  # 可选，默认即此音色
+AZURE_TTS_VOICE_ZH=zh-CN-Xiaoxiao:DragonHDFlashLatestNeural  # 可选，默认即此音色
 AZURE_TTS_VOICE_EN=en-US-JennyNeural      # 可选，默认即此音色
 ```
 Azure 和腾讯云同时配置时，默认优先 Azure。可按语言设置 `STORY_TTS_ZH_PROVIDER=azure`、`STORY_TTS_EN_PROVIDER=azure`（或 `tencent`）来固定供应商。Worker 的运行环境也必须配置 Azure 密钥与区域；仅在本地 `.env.local` 配置不会影响已部署的 Worker。Azure 的字符位置映射到 InkQuest 原有分词；若有非标点词缺少词边界，任务会按现有 TTS 重试机制处理，不会发布虚构时间戳。

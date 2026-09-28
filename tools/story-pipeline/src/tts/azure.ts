@@ -5,10 +5,11 @@ import { alignAzureBoundaries, spokenText, type AzureBoundary } from "./azure-al
 import "../env.js";
 
 const DEFAULT_VOICES: Record<TargetLang, string> = {
-  zh: "zh-CN-XiaoxiaoNeural",
+  zh: "zh-CN-Xiaoxiao:DragonHDFlashLatestNeural",
   en: "en-US-JennyNeural",
 };
 const SYNTHESIS_TIMEOUT_MS = 120_000;
+const AUDIO_DURATION_TOLERANCE_MS = 50;
 
 export class AzureTts implements TtsProvider {
   readonly name = "azure";
@@ -64,8 +65,10 @@ export class AzureTts implements TtsProvider {
       if (!result.audioData?.byteLength) throw new Error("Azure Speech TTS returned no audio.");
       const timings = alignAzureBoundaries(words, this.lang, boundaries);
       const durationMs = result.audioDuration / 10_000;
-      if (Number.isFinite(durationMs) && durationMs > 0 && timings.at(-1)!.end > durationMs + 10) {
-        throw new Error("Azure Speech TTS word boundaries exceed audio duration.");
+      // HD Flash may report a final boundary a few milliseconds beyond its rounded MP3 duration.
+      if (Number.isFinite(durationMs) && durationMs > 0 && timings.at(-1)!.end > durationMs + AUDIO_DURATION_TOLERANCE_MS) {
+        const lastBoundary = boundaries.at(-1);
+        throw new Error(`Azure Speech TTS word boundaries exceed audio duration: ${timings.at(-1)!.end}ms > ${durationMs}ms (last boundary ${lastBoundary ? (lastBoundary.audioOffset + lastBoundary.duration) / 10_000 : "none"}ms).`);
       }
       return {
         audio: Buffer.from(result.audioData),
