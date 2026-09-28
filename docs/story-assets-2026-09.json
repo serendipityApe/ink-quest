@@ -1,0 +1,771 @@
+{
+  "bucket": "assets",
+  "verified_at": "2026-09-28T08:41:28.243400+00:00",
+  "object_count": 109,
+  "total_bytes": 31527294,
+  "objects": [
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-start.mp3",
+      "size": 173952,
+      "sha256": "82b8194729ddb52ab6b4cd06fa902af7ed8ce1be23c68ddc51509f4a17d59a5a",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-gate.mp3",
+      "size": 179568,
+      "sha256": "bbf0af2c66d3f88371b0f0938f194f93af36587f9a98d9022ad74c38310996aa",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-kitchen.mp3",
+      "size": 178128,
+      "sha256": "17e7c9611d218547862b2491495fd9125ef152c1b2eb60abf6900901f3afafd6",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-water.mp3",
+      "size": 176976,
+      "sha256": "c9953b6de1eb5fc2e17a07e450d9acb06bef19c7d4a3c062a12c8241715d43d0",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-orders.mp3",
+      "size": 187776,
+      "sha256": "2f668e07da7b63d41c3fa0431bc2fa60847dde44baa5cadfea10a77407f38d58",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-archive.mp3",
+      "size": 179424,
+      "sha256": "7b9e7fb12f8946437cbc04c234062d49ecc0de05c4903861f2662602ca31e336",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-ledger.mp3",
+      "size": 177120,
+      "sha256": "faa6026da48d4eeb58bcd17e9f2e26efeed38e0cfbbccabe2ddc01a87b7c97c8",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-river.mp3",
+      "size": 174240,
+      "sha256": "c753520517734efe6bab9c8c44e0a68ef37b8ca32e3b2cdcfad2524d75e2cf36",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-wheel.mp3",
+      "size": 186192,
+      "sha256": "bad3a3ed1a1f629272fcc8f7fb257c14550e2fc77ff2a93b39a8fc93f5bfe695",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-night_meeting.mp3",
+      "size": 186192,
+      "sha256": "ccedb9d817ce5325c112c4bd14851d16d256e18d9019f473ea155655a16eb1dd",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-practice.mp3",
+      "size": 189504,
+      "sha256": "d0a7ae7c09605642458c9542170a4264bceb8361323d78654896d608a3c751da",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-dawn.mp3",
+      "size": 182304,
+      "sha256": "f2fee604f2a44dba741b0b0db8929ab6f768e981f6f952be214976a7d1ef9057",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-sealed_gate.mp3",
+      "size": 178416,
+      "sha256": "067a76e2704079ddc8d35504b1ad347033c8573e749e73fab697506d45d6346a",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-rescue_bridge.mp3",
+      "size": 203760,
+      "sha256": "c03a5c22d34b3df4d088ba8d100efb34dd29a355f8d1121374336d3e285edf2b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-bridge_cost.mp3",
+      "size": 183312,
+      "sha256": "1aa97d501cb51254aee3bc4f5bbca3e1b16a8060eb4b9eb0824eee6e75cba00e",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-repair_channel.mp3",
+      "size": 202896,
+      "sha256": "2f52e6aff378a3cd787eff6826457ec1ac25f429bf860a6f5b62f8532200499b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-channel_cost.mp3",
+      "size": 182736,
+      "sha256": "0309165540ec11908f72b38e619e015414f74fb4a9df171ce7ccd0455176c739",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-hearing.mp3",
+      "size": 190080,
+      "sha256": "5af942cbb1a7b551add0d946d55bf5853a7d18e980973678bd4f198fcb205aed",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-proof.mp3",
+      "size": 185904,
+      "sha256": "8ff4cb12789c238e604cd4ae8f881ab5dbc3f6fc09549483e3e9516ac666fb42",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-choice.mp3",
+      "size": 185040,
+      "sha256": "c9d8f4c28650364f99cccb3f4747dc89ddd3ac0fdf59257a979373206654890b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-ending_open.mp3",
+      "size": 186624,
+      "sha256": "98b7235756e9ac300d35a68a678b0045779ce76988c0af78175d2ee718cb7127",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-ending_guard.mp3",
+      "size": 211824,
+      "sha256": "90924995dfab19ac85971418ab0df88a881ed91f8ca37db2f6b7023e43ed1c37",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-road_open.mp3",
+      "size": 184752,
+      "sha256": "dda790a8e75c7bbf7b59de16cdce3e3e9774fd95020ddab83ff775ab6e669a0e",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "audio/the-borrowed-sect-1-road_guard.mp3",
+      "size": 189360,
+      "sha256": "27df6545eec441029dccccd48d5cad6703b1f767fa580e038888b09fc577f426",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-borrowed-sect-1",
+      "object_key": "covers/the-borrowed-sect-1-inkwash.png",
+      "size": 3656799,
+      "sha256": "6753c9d2a7bf369ba23f9ae431413b301c77491a0f7b19ca21c497f0d9efa52d",
+      "content_type": "image/png"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-start.mp3",
+      "size": 155664,
+      "sha256": "0ede94878d6cc73b013090b362dd2f936e6ae097fcb30ae4d83eeb1c05664547",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-desk.mp3",
+      "size": 157248,
+      "sha256": "1bf82efff8760ead5ba79b515be53005021085759145e21e192223e1e311bbc3",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-register.mp3",
+      "size": 157248,
+      "sha256": "a8770c1499143bfb47a197d1e79a0566d1054f65e4a1fdccd01b80d24f9e5db4",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-platform.mp3",
+      "size": 151056,
+      "sha256": "b9998bf0d4e5a52c542736947625f26da16344a9ff5d4886aa010a305bd82ce6",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-cleaner.mp3",
+      "size": 161856,
+      "sha256": "ca9f80f0e4299c778a410fd2122c7b265a6ac5681f858bf7fcf2296b6951b26a",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-meeting.mp3",
+      "size": 155088,
+      "sha256": "5ed9959a7a4581590e598a017708a538dfc6e5d9c1e7f7d3317f40fab46877b0",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-deadline.mp3",
+      "size": 160992,
+      "sha256": "900144f2411f636f600eaf649e45ff86b437b3dc0e1a2b7d98b78ed956df6379",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-bus_route.mp3",
+      "size": 153648,
+      "sha256": "f33f8795a583588f030758436e2b4cb14036519dbaea2136b64830a822042562",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-bus_cost.mp3",
+      "size": 177120,
+      "sha256": "e4df59a64bd19110636c568a157f9cf783004fec5f3af5b8c67b3f777346da32",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-phone_route.mp3",
+      "size": 177408,
+      "sha256": "4615917b434303102a3203dc2135eb8e616dd2dd597bece4b33d2b213404613b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-phone_cost.mp3",
+      "size": 175248,
+      "sha256": "604c974f34d43c35e4a0481a30aaddc8e358ef09450d33aeb13a34c1f71c99d1",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-reveal.mp3",
+      "size": 166752,
+      "sha256": "e58e5361f992c437be19205a51542e4edb9b4dcbdab921a2d661b431a56c8920",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-test.mp3",
+      "size": 151776,
+      "sha256": "aae9b14f904fa3273ee058bc574b57ac41af78688e4cfff41623c9a90252448c",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-decision.mp3",
+      "size": 177696,
+      "sha256": "e4a707cc13fc6624989fcdc117f837b911476ef69d58a1204a576bc7124af2d9",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-deliver.mp3",
+      "size": 162720,
+      "sha256": "a30a25f8738a44ea8106230d1d52979411ff048589543852aec9b4a88ea9d530",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-ending_reunion.mp3",
+      "size": 175104,
+      "sha256": "023e6594a248361c6ed5df8625e031478d3035a5c64c6a35f61518ec1e0ea82c",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-copy.mp3",
+      "size": 184320,
+      "sha256": "e7b3dd3a0b66c98a11cb0a1ede5ab564324573adbed918d8d3955cc251eac1c0",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-ending_voice.mp3",
+      "size": 174816,
+      "sha256": "a77d1e01958ff33b73b0656234d9f1efd8d9fefb35b17bab3c18a7b9495e0582",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-wait.mp3",
+      "size": 171360,
+      "sha256": "ae647bd8f44ee594decf88e4d77f566fd5686b24de36e46657cdf8a0bd5ebe9f",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "audio/the-seven-oclock-lost-and-found-ending_tomorrow.mp3",
+      "size": 182592,
+      "sha256": "a33480492f9ab7f9a8a47c44d413c233580e6fd8c907c20c19e046a97d48e18e",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-seven-oclock-lost-and-found",
+      "object_key": "covers/the-seven-oclock-lost-and-found-v2.png",
+      "size": 2460592,
+      "sha256": "c7a25d6371c0f1241860720f42ffa0afaebfabd8f01d8408fe48e4a86265fd12",
+      "content_type": "image/png"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-start.mp3",
+      "size": 153936,
+      "sha256": "59e8eaf46c3497f78875e3bb0c20af87b4ea0a448cbac28a9e8177463a72293f",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-control.mp3",
+      "size": 155664,
+      "sha256": "d42d33143fc2a843df4cff5c942dfa58044605ebdad858d63ca935c77e8a023d",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-logs.mp3",
+      "size": 166896,
+      "sha256": "daf8ff035d700ed2d99cb9297c309edbaf06c78b1a72a37aeb704b7f39c7fd80",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-plants.mp3",
+      "size": 154656,
+      "sha256": "cdfe4cd07caf5b5de05cb6fd863d7fc65d4e83c4efd6cffcce2d28b33e3fb1e3",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-bees.mp3",
+      "size": 166320,
+      "sha256": "9dd25e0278786ce6c83811ae051e290d85170734710479c88ece070c0ee4fb3e",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-meeting.mp3",
+      "size": 152640,
+      "sha256": "4e3ebbbe3df1ca9bd781261495d7840e44c55748f00d7a0a845c9d52846c66fc",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-deadline.mp3",
+      "size": 168192,
+      "sha256": "0f262200aae75fbf153bb11472f93f3717309af86e5c18127df62dad8700faa2",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-outer_panel.mp3",
+      "size": 166464,
+      "sha256": "24f64bcc62bc33457a02ecaa28e9fef6ed0b5cb72ed287784bb8f7a72ea7a95d",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-panel_cost.mp3",
+      "size": 158976,
+      "sha256": "0156be146a963a49b0194a7d1898811a0b34de5d3044dc46d2c652d0bcbcbef3",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-air_duct.mp3",
+      "size": 154512,
+      "sha256": "26b34af707cf71ec4f65c047cf22bf228fd8de22f3acd004c68569b3a435dbcf",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-duct_cost.mp3",
+      "size": 157824,
+      "sha256": "62dcbc2d56c945ee1f70be7f157bc71cb92b9b3d1c775901f541b38cd453cdd7",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-reveal.mp3",
+      "size": 162000,
+      "sha256": "366764672e7a2c80648452aa05eb91e9aa7a032d85aefe690de19f2415d438d5",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-test.mp3",
+      "size": 165312,
+      "sha256": "ef2a6c634e4b6cf52231867f6748b0c27e0132771e98c1383f06ccb5a83da7e4",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-decision.mp3",
+      "size": 154656,
+      "sha256": "e1586ad79b0b5a1eca4c9e4088f9cf3be983c977979abcc51f6fd9961ac0af0b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-share_power.mp3",
+      "size": 155664,
+      "sha256": "dab0b749836aaf1f9626bb89e36c3eec0eb871c0ee146f1df0ac611d6fef72a6",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-ending_shared.mp3",
+      "size": 158976,
+      "sha256": "18633d0ff25c2c5bd3e1e8a52b09722da68e2df8fb88c13d1bdb6ac44ab15a54",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-trim_crop.mp3",
+      "size": 157824,
+      "sha256": "c5cc9abcf5792d638f9de8e88416e288fcafcf609bb9229f8d2532c8063b562b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-ending_seed.mp3",
+      "size": 162288,
+      "sha256": "e069b69cb121e65ba4c431ff83380f77a8b9e0760fd40751baa88960511be0a3",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-manual_watch.mp3",
+      "size": 161712,
+      "sha256": "e241df045b5b233d14de9a4fb45c4a381bc90b31f840cad0f61ac111fd4bbc7e",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "audio/the-moon-greenhouse-ending_dawn.mp3",
+      "size": 165168,
+      "sha256": "1402463fe263257977f4be8b8e07f6e530bca7ffeff02cb7eabd5fb6b3c57af6",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "the-moon-greenhouse",
+      "object_key": "covers/the-moon-greenhouse-v2.png",
+      "size": 2811244,
+      "sha256": "bfe9e7480f4c84f79ba0f79b8f7c33a76a4831b588cb78683cd6d92030e3d11f",
+      "content_type": "image/png"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-start.mp3",
+      "size": 152064,
+      "sha256": "742147f087899a4201ad641fc699260b0058aca909a888f52269bbaed3ca6127",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-shelf.mp3",
+      "size": 162864,
+      "sha256": "af2a82a1ac18e2fe36ecd3a0531d4ce64405c26aea41cc8999e8adb6229c0b64",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-book_note.mp3",
+      "size": 157392,
+      "sha256": "d3e6bb1215cd3503ca0c43277801d3da675875b32a052cdae0375fcc2edebc57",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-window.mp3",
+      "size": 165744,
+      "sha256": "d3059931d3b3e15c525ca596a3b152d655d910e9e19ad467f7e3bc056dd17df6",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-city_map.mp3",
+      "size": 158976,
+      "sha256": "5a1aae60580412a39d13f4b8610a0924b4d6768bec49211dbe4d1049a1132b3b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-meeting.mp3",
+      "size": 158544,
+      "sha256": "3806bd0ac13d9cc4efd68b08681a07cfa80470c35dc3c358648eae75e411ae8b",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-deadline.mp3",
+      "size": 151200,
+      "sha256": "4f1465cd9e6347b15052185fcb258e03307c72f89ca4db27e227d86ac10af1ad",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-photo_box.mp3",
+      "size": 165024,
+      "sha256": "ed78e1ed63bdd3c8b490edd4d5936bd75a5b25e6bcd03dcb0b9c33673301f234",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-photo_memory.mp3",
+      "size": 167616,
+      "sha256": "dd4c3cbcd3de1b1d5cc45dede28f5a92fce9a75a886aff0bd9959edf6fa50c5c",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-reading_table.mp3",
+      "size": 169776,
+      "sha256": "3aa69e8a7634be943a2720d2bbfa5e3cb841501ec3b1facb8f472df67161aa3d",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-table_memory.mp3",
+      "size": 171360,
+      "sha256": "9467238f003847ff407035cd971ce486830a8c35241e903bedd1b8e6ba5bf402",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-reveal.mp3",
+      "size": 165168,
+      "sha256": "1dd4f1f732758062cf59b3614f4b9aac775fcca74ba09f32f5767f99dfb91a07",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-test.mp3",
+      "size": 158976,
+      "sha256": "2b0ace6205cb3d3784216e7f9a6002585756fe516748ab9a06297792cd8bab6f",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-decision.mp3",
+      "size": 143856,
+      "sha256": "b307a6f1a4ecf481199424f073bff5fe29a9993cc4ba92ede07e32f3979464ea",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-speak.mp3",
+      "size": 175248,
+      "sha256": "c2b0c63c8a51a8eca53fd799f62ac83a16c85774d0d4a68a19955ba83db735e7",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-ending_beginning.mp3",
+      "size": 171648,
+      "sha256": "1e2589ee59aebb3c3abe393bed0ba7d918aefc3dd4806758d7770314c933ad98",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-next_visit.mp3",
+      "size": 171360,
+      "sha256": "4b4fa0c392d4ef07b03831776bf149a2bfb4f7ca1b76f4c99abcc80fa7b52600",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-ending_date.mp3",
+      "size": 176256,
+      "sha256": "fbf26d9fdbdd44e1f8b6c9c9a1af6d4b9462f779dedfd6120143aeb69dce71e1",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-friendship.mp3",
+      "size": 178272,
+      "sha256": "87ce1b357b2290b46b3b5979d8ba53acc06186f7669c80c3dccbedac4e876d4a",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "audio/before-the-rain-stops-ending_friends.mp3",
+      "size": 190512,
+      "sha256": "b363ccdceb5460eb48e253512282f05fdead2fafe447229a55044a2b904e8d25",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "before-the-rain-stops",
+      "object_key": "covers/before-the-rain-stops-v2.png",
+      "size": 2633348,
+      "sha256": "ef11c6e291530562cba9b243927bc16fb8fe0c8bf0530095ace938dff537f979",
+      "content_type": "image/png"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-start.mp3",
+      "size": 156240,
+      "sha256": "40ec9a2f9dab2668e2242d09d9aaa6cec54502c0ce535499f11f41abf211485d",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-kitchen.mp3",
+      "size": 154944,
+      "sha256": "d5a3cd59200b73d4c4b4a8a7da707add6e9cb7ba9f6d1ea594d6c245722511e8",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-tickets.mp3",
+      "size": 159696,
+      "sha256": "f55fe12333ad62c672503f7a819183f9d089af13c9b2942d03c98cf8be419a68",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-counter.mp3",
+      "size": 155520,
+      "sha256": "4e7e3f2f7e03d73136544bd4923d08e0b25cc0cfaedaf1ab3045ba0b46f3eefb",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-phone.mp3",
+      "size": 159984,
+      "sha256": "21549b5ad4784e16007b3941b4f4e66895c4c368fb1af0592b0b5b405245c6de",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-meeting.mp3",
+      "size": 167040,
+      "sha256": "63fa671c7a92239d122256414c86405ba5ffcc412c9f0358aefd411c21b1d723",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-deadline.mp3",
+      "size": 155952,
+      "sha256": "06fa2f2e8e04eceee6b8c4c4afc0bcceea8817bc7b9bbeaccbfd7336c5548411",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-delivery.mp3",
+      "size": 160128,
+      "sha256": "ecad82ab5d939801b69e406e1dc6ee9f9f15e5c5cc927a42d43455cfadc008cb",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-delivery_cost.mp3",
+      "size": 160128,
+      "sha256": "614cfc675e038ac87bdec817c7101f9ce3644a9b43f0d72cf669e4b4b64b5091",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-table_plan.mp3",
+      "size": 173232,
+      "sha256": "01d00e5098ad55c2b5e8d182b32594dbea927948c592724f660aadadd5989f18",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-table_cost.mp3",
+      "size": 163440,
+      "sha256": "2383c77a7d2acb9348806dcbd3ca1b1af12dcc1e4ff88f09f2e45ea0c9742c38",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-reveal.mp3",
+      "size": 163440,
+      "sha256": "533fff28c9195a7d4176e1516af70455afd1e84861c9b8b051eac091ff443865",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-test.mp3",
+      "size": 157824,
+      "sha256": "b5d6d63203b5da77589425fa0d2e0336564971d4d487b4374c9ca6606c2b6ad0",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-decision.mp3",
+      "size": 158688,
+      "sha256": "3ab2c543b13804a88a00104237d49f4cf26c6c9bb31637dd39cc1eff793c65a9",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-simple_menu.mp3",
+      "size": 157104,
+      "sha256": "04f622aa89363fa894b3d332c1f58c2000d8d0af3fcfa3089dce4434ebce25c8",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-ending_lunch.mp3",
+      "size": 164736,
+      "sha256": "83e4f4881c49ca0c14179fb53fcac64ab564161cd425d4276e80f3f75dc57a50",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-split_delivery.mp3",
+      "size": 158112,
+      "sha256": "4f8fd5bd2a0f44e81e0a767f719b517f6e5d00f791851899a11cfca9dcf82956",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-ending_team.mp3",
+      "size": 167040,
+      "sha256": "145d5daf25bcf82900f45e8c6a4f7330fdc60c77073e29b52a89daf6ed392a51",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-shared_table.mp3",
+      "size": 157104,
+      "sha256": "5ef63d45128389eb42faa32243d865e6ff06dacbe90edc51ec9908ccab9f07a7",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "audio/manager-for-a-day-ending_neighbors.mp3",
+      "size": 163152,
+      "sha256": "3c405d96c657e6d5f6b2f0b023da1ef7d8468e6248736663a6ce761a880de3a2",
+      "content_type": "audio/mpeg"
+    },
+    {
+      "story_id": "manager-for-a-day",
+      "object_key": "covers/manager-for-a-day-v2.png",
+      "size": 2454479,
+      "sha256": "1b4ccf228b58b8917c2d3ebb4157fe7cfb658762eaab0a7988d6f03a10206c4e",
+      "content_type": "image/png"
+    }
+  ]
+}

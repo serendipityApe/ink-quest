@@ -44,6 +44,16 @@ function assetUrl(path: string | null): string | null {
 
 /** 故事正文加载器（按 story_id 索引；id 全局唯一）。 */
 const LOADERS: Record<string, () => Promise<StoryJSON>> = {
+  "the-borrowed-sect-1": () =>
+    import("@/data/stories/zh/the-borrowed-sect-1.json").then((m) => m.default as StoryJSON),
+  "the-seven-oclock-lost-and-found": () =>
+    import("@/data/stories/zh/the-seven-oclock-lost-and-found.json").then((m) => m.default as StoryJSON),
+  "the-moon-greenhouse": () =>
+    import("@/data/stories/zh/the-moon-greenhouse.json").then((m) => m.default as StoryJSON),
+  "before-the-rain-stops": () =>
+    import("@/data/stories/zh/before-the-rain-stops.json").then((m) => m.default as StoryJSON),
+  "manager-for-a-day": () =>
+    import("@/data/stories/zh/manager-for-a-day.json").then((m) => m.default as StoryJSON),
   "master-secret": () =>
     import("@/data/stories/zh/master-secret.json").then((m) => m.default as StoryJSON),
   "last-train": () =>
@@ -68,26 +78,62 @@ const LOADERS: Record<string, () => Promise<StoryJSON>> = {
  */
 const CATALOG: StoryCard[] = [
   {
-    id: "master-secret",
+    id: "the-borrowed-sect-1",
     target_lang: "zh",
-    title_cn: "师尊的秘密",
-    title_en: "The Secret of the Master",
+    title_cn: "借来的山门 1：山下无水",
+    title_en: "The Borrowed Sect 1: The Dry Village",
     level: "HSK 4",
     level_system: "HSK",
     genre: "Xianxia",
     locked: false,
-    image: "/covers/master-secret.png",
+    image: "/covers/the-borrowed-sect-1-inkwash.png",
   },
   {
-    id: "last-train",
+    id: "the-seven-oclock-lost-and-found",
     target_lang: "zh",
-    title_cn: "末班地铁",
-    title_en: "The Last Train",
+    title_cn: "七点前的失物",
+    title_en: "Lost and Found Before Seven",
     level: "HSK 4",
     level_system: "HSK",
-    genre: "Urban Horror",
+    genre: "Mystery",
     locked: false,
-    image: "/covers/last-train.png",
+    image: "/covers/the-seven-oclock-lost-and-found-v2.png",
+    imagePosition: "center 20%",
+  },
+  {
+    id: "the-moon-greenhouse",
+    target_lang: "zh",
+    title_cn: "月面温室",
+    title_en: "The Moon Greenhouse",
+    level: "HSK 4",
+    level_system: "HSK",
+    genre: "Science Fiction",
+    locked: false,
+    image: "/covers/the-moon-greenhouse-v2.png",
+    imagePosition: "center 20%",
+  },
+  {
+    id: "before-the-rain-stops",
+    target_lang: "zh",
+    title_cn: "雨停之前",
+    title_en: "Before the Rain Stops",
+    level: "HSK 3",
+    level_system: "HSK",
+    genre: "Romance",
+    locked: false,
+    image: "/covers/before-the-rain-stops-v2.png",
+  },
+  {
+    id: "manager-for-a-day",
+    target_lang: "zh",
+    title_cn: "今天谁当店长",
+    title_en: "Manager for a Day",
+    level: "HSK 3",
+    level_system: "HSK",
+    genre: "Comedy",
+    locked: false,
+    image: "/covers/manager-for-a-day-v2.png",
+    imagePosition: "center 20%",
   },
   {
     id: "signal-from-the-deep",

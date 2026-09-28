@@ -9,25 +9,30 @@ import Navbar from "@/components/Navbar";
 import WordSegment from "@/components/WordSegment";
 import { useSpeak } from "@/hooks/useSpeak";
 import { useTranslations } from "@/i18n/I18nProvider";
+import { DEFAULT_STORY_HREF, DEFAULT_STORY_ID } from "@/lib/stories/entry-points";
 import type { TextSegment } from "@/types/story";
 
+const COVER_BASE = process.env.NODE_ENV === "development"
+  ? ""
+  : (process.env.NEXT_PUBLIC_ASSET_BASE_URL ?? "").replace(/\/$/, "");
+
 const featuredStories = [
-  { id: "master-secret", genre: "Xianxia", level: "HSK 4", titleZh: "掌门的秘密", titleEn: "The Secret of the Master", descriptionZh: "你拜入山门的第一夜，师父留下了一封不该存在的信。", descriptionEn: "On your first night at the sect, your master leaves a letter that should not exist.", image: "https://lh3.googleusercontent.com/aida-public/AB6AXuByAGR3eAj-islCdaxw-6Hx-2vtqhn3nBZaza3MPUZbedeFnRCjiBZQwwW1Do80PwO5P_o9YyRRQZj6dCsJo6h-CsEcWBw9ZaNKjbEEpya6Aex_415Kqo5VEc60vfrnewFcp97JiesxmS_0a3ou8G3tky6bFtJTTLTv7N5R1lhm6FIpiyJG-rh-kxa7B4Dxv5Ws6OnwY2NyIvCljmxprVpclM6CJH2SW_AiEw2tzcx_pYB45qVstjmN_XtnKebSsTuVVtvY9DIhfZhu" },
-  { id: "receipt-from-tomorrow", genre: "Sci-Fi", level: "HSK 3", titleZh: "来自明天的收据", titleEn: "Receipt from Tomorrow", descriptionZh: "一张印着明天日期的收据，把普通的一天撕开一道缝。", descriptionEn: "A receipt dated tomorrow tears open an ordinary day.", image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAK9k_fl1ecLnHSrkzgIHZJRoM4FKQnbX7teZF1zGWruGOevP9yTZVowE1H03ohr9fARDSBqQAFCXBlK_pJlezQiDfwo18IgN8X5-oVd-_MkZFJLKhuCQ8XFbHC1Ag7fKmqqTHli8UGdOfXqQDiV-jxzX9hGVNUV2TH9iGR9WfwAzGCenZ2s-jNDm_Vb-ieCfjYqQE85z5xpfkzSM_IWG45K6bwsslWL41zX8FraJS5Ii4CeRJSCbO5uDzX8eUs33oXrCj-Wz3l5SOg" },
-  { id: "last-train", genre: "Urban Horror", level: "HSK 5", titleZh: "末班车", titleEn: "The Last Train", descriptionZh: "末班地铁没有停在任何你认识的站。", descriptionEn: "The last train stops at none of the stations you know.", image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDFUoNSnoejdFuBy8VNwharovOHGD6g44r4kKn7_HVILQUTKdbPU48FpekULUMbqrfICHZzk8drJXQlfE7Zmpo2MtjCbaX5wf0AQSDK-XnGV6cfYHSHhlC-3-tSFt-DIcN8vRiPW9SWieyCFiFbFGKKOQl7CjTuUyaYpyKtK0f4zj9gjjXmT6xaztpmGo4yS8sw3HgMexbrkiYBJ2MIVz2X4ykjjgZDEUQSaPMAS49Mble2l-P2mxVaDZr90UrV_jiSw7k_emBDjkZ6" },
+  { id: DEFAULT_STORY_ID, genre: "Xianxia", level: "HSK 4", titleZh: "借来的山门 1：山下无水", titleEn: "The Borrowed Sect 1: The Dry Village", descriptionZh: "山上的水池满了，山下的村庄却无水可用。父亲留下的铜钥匙，藏着一份旧约的线索。", descriptionEn: "The mountain pools are full, but the village below is dry. Your father’s copper key points to an old agreement.", image: "/covers/the-borrowed-sect-1-inkwash.png" },
+  { id: "receipt-from-tomorrow-zh", genre: "Urban Mystery", level: "HSK 5", titleZh: "来自明天的收据", titleEn: "The Receipt from Tomorrow", descriptionZh: "一张印着明天日期的收据，把普通的一天撕开一道缝。", descriptionEn: "A receipt dated tomorrow tears open an ordinary day.", image: "/covers/receipt-from-tomorrow-zh.svg" },
+  { id: "the-seven-oclock-lost-and-found", genre: "Mystery", level: "HSK 4", titleZh: "七点前的失物", titleEn: "Lost and Found Before Seven", descriptionZh: "失物处七点就要搬空。你能替老人找回装着妻子声音的蓝布包吗？", descriptionEn: "The lost and found closes at seven. Can you recover a blue bag holding a recording of an old man’s wife?", image: "/covers/the-seven-oclock-lost-and-found-v2.png", imagePosition: "center 20%" },
 ];
 
 const demoWord: TextSegment = {
-  word: "来了",
-  reading: "lái le",
-  meaning: "came; arrived",
-  level: "HSK 1",
+  word: "发现",
+  reading: "fā xiàn",
+  meaning: "to notice; to discover",
+  level: "HSK 3",
   tier: "key",
 };
 
 const demoChoices = [
-  { zh: "推开师尊的房门", en: "Enter the master’s room", result: "门后没有人，桌上的信却刚刚写完。", resultEn: "No one is there, but the letter on the desk has just been finished." },
-  { zh: "躲到窗外继续观察", en: "Hide outside the window", result: "灯影里，多出了一道本不该存在的人影。", resultEn: "A second shadow appears in the lamplight—one that should not exist." },
+  { zh: "去找借山的旧账", en: "Look through the old accounts", result: "旧账写着：门派借山建院，村民和门派共用山泉。", resultEn: "The old accounts say the sect borrowed this land. The village and the sect share its spring." },
+  { zh: "跟阿禾查看河道", en: "Follow A He to the water channel", result: "河道旁的水轮没有坏，槽口却被一块新木板堵住。", resultEn: "The waterwheel is working, but a new wooden board blocks the channel." },
 ];
 
 export default function Home() {
@@ -37,7 +42,7 @@ export default function Home() {
   const { lang } = useTranslations();
   const isZh = lang === "zh";
   const rotatingLanguages = isZh ? ["中文", "英文"] : ["Chinese", "English"];
-  const localizedDemoWord = isZh ? { ...demoWord, meaning: "到了；出现了" } : demoWord;
+  const localizedDemoWord = isZh ? { ...demoWord, meaning: "注意到；找到原来不知道的事" } : demoWord;
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -62,7 +67,7 @@ export default function Home() {
                 : "Interactive web novels for language learners. Tap any word for instant definitions, listen with native audio, and shape the plot."}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Link href="/stories/master-secret" className="hallmark-btn">
+              <Link href={DEFAULT_STORY_HREF} className="hallmark-btn">
                 {isZh ? "免费读 3 分钟" : "Read free for 3 minutes"}<span aria-hidden="true">→</span>
               </Link>
               <Link href="/stories" className="inline-flex min-h-11 items-center font-semibold whitespace-nowrap hover:text-primary">
@@ -75,15 +80,15 @@ export default function Home() {
           <article className="min-w-0 rounded-card border-2 border-ink bg-paper p-5 shadow-[0.7rem_0.7rem_0_var(--color-ink)] sm:p-7 md:p-8" aria-label={isZh ? "可操作的互动阅读示例" : "Interactive reading demo"}>
             <header className="flex items-center justify-between gap-4 border-b border-rule pb-4">
               <div className="min-w-0">
-                <strong className="block truncate font-display text-lg tracking-[-0.04em]">{isZh ? "掌门的秘密" : "The Secret of the Master"}</strong>
+                <strong className="block truncate font-display text-lg tracking-[-0.04em]">{isZh ? "借来的山门 1" : "The Borrowed Sect 1"}</strong>
                 <span className="mt-1 block font-outlier text-[10px] text-muted">HSK 4 · XIANXIA</span>
               </div>
               <span className="rounded-full border border-ink bg-accent-soft px-3 py-1 text-xs font-semibold whitespace-nowrap">{isZh ? "可以点" : "Try it"}</span>
             </header>
 
             <div className="py-7">
-              <p className="font-reading text-[clamp(1.35rem,3vw,1.9rem)] leading-[2] tracking-[0.05em]">雨下得很大。你推开山门，看见师父站在灯下。他没有回头，只说：“你终于<WordSegment segment={localizedDemoWord} index={0} isAudioActive={speaking} lang="zh" isSaved={false} onToggleSave={() => undefined} />。”</p>
-              <button type="button" disabled={!supported} onClick={() => speak("雨下得很大。你推开山门，看见师父站在灯下。他没有回头，只说：你终于来了。", "zh")} className="mt-5 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-50">
+              <p className="font-reading text-[clamp(1.35rem,3vw,1.9rem)] leading-[2] tracking-[0.05em]">山上的水池满了，山下的水沟却干了。阿禾带你来到红色水门前，你<WordSegment segment={localizedDemoWord} index={0} isAudioActive={speaking} lang="zh" isSaved={false} onToggleSave={() => undefined} />门上贴着一张告示：“春试以前不得开门。”</p>
+              <button type="button" disabled={!supported} onClick={() => speak("山上的水池满了，山下的水沟却干了。阿禾带你来到红色水门前，你发现门上贴着一张告示：春试以前不得开门。", "zh")} className="mt-5 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-50">
                 <Volume2 className="size-4" aria-hidden="true" />
                 {speaking ? (isZh ? "正在播放" : "Playing") : (isZh ? "听这一句" : "Listen to this line")}
               </button>
@@ -108,7 +113,7 @@ export default function Home() {
                 {!isZh && <p className="mt-2 text-sm text-ink-2">{demoChoices[demoChoice].resultEn}</p>}
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <span className="text-sm font-semibold">{isZh ? "你的选择改变了剧情。" : "Your choice changed the story."}</span>
-                  <Link href="/stories/master-secret" className="inline-flex min-h-11 items-center font-bold whitespace-nowrap hover:text-primary">
+                  <Link href={DEFAULT_STORY_HREF} className="inline-flex min-h-11 items-center font-bold whitespace-nowrap hover:text-primary">
                     {isZh ? "继续完整故事" : "Continue the story"}<span aria-hidden="true">→</span>
                   </Link>
                 </div>
@@ -140,7 +145,7 @@ export default function Home() {
             {featuredStories.map((story, index) => (
               <Link key={story.id} href={`/stories/${story.id}`} className={`group flex min-w-0 flex-col overflow-clip rounded-card border-2 border-ink bg-paper-2 shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0.65rem_0.65rem_0_var(--color-ink)] ${index === 0 ? "md:row-span-2" : ""}`}>
                 <div className={`relative min-w-0 overflow-clip ${index === 0 ? "aspect-[4/3] lg:min-h-[24rem]" : "aspect-video"}`}>
-                  <Image src={story.image} alt={`${isZh ? story.titleZh : story.titleEn} cover`} fill sizes={index === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 30vw"} className="object-cover" />
+                  <Image src={`${COVER_BASE}${story.image}`} alt={`${isZh ? story.titleZh : story.titleEn} cover`} fill style={{ objectPosition: story.imagePosition }} sizes={index === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 30vw"} className="object-cover" />
                 </div>
                 <div className={`${index === 0 ? "bg-accent-soft" : "bg-paper-2"} grid flex-1 gap-3 p-5 md:p-6`}>
                   <div className="flex items-center justify-between gap-3"><span className="font-outlier text-xs uppercase tracking-[0.08em]">{story.genre}</span><span className="rounded-full border border-ink px-3 py-1 text-xs whitespace-nowrap">{story.level}</span></div>

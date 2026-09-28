@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Globe, LogOut, Menu, X } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useTranslations } from "@/i18n/I18nProvider";
+import { DEFAULT_STORY_HREF, WITHDRAWN_STORY_IDS } from "@/lib/stories/entry-points";
 import type { User } from "@supabase/supabase-js";
 
 interface NavbarProps {
@@ -34,7 +35,11 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
   useEffect(() => {
     if (variant === "reader" || typeof window === "undefined") return;
     queueMicrotask(() => {
-      const resumeKey = Object.keys(localStorage).find((key) => key.startsWith("cm_pos_") && localStorage.getItem(key));
+      const resumeKey = Object.keys(localStorage).find((key) => {
+        if (!key.startsWith("cm_pos_")) return false;
+        const storyId = key.slice("cm_pos_".length);
+        return storyId && !WITHDRAWN_STORY_IDS.has(storyId) && localStorage.getItem(key);
+      });
       setResumeStoryId(resumeKey?.slice("cm_pos_".length) ?? null);
     });
   }, [pathname, variant]);
@@ -82,10 +87,10 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
           {user ? (
             <button type="button" onClick={handleSignOut} className="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold whitespace-nowrap hover:text-primary"><LogOut className="size-4" /> {t("nav.signOut")}</button>
           ) : <Link href="/login" className="inline-flex min-h-11 items-center px-3 text-sm font-semibold whitespace-nowrap hover:text-primary">{t("nav.signIn")}</Link>}
-          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : "/stories/master-secret"} className="hallmark-btn">{resumeStoryId ? (lang === "zh" ? "继续阅读" : "Continue reading") : (lang === "zh" ? "免费试读" : "Read free")}<span aria-hidden="true">→</span></Link>
+          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : DEFAULT_STORY_HREF} className="hallmark-btn">{resumeStoryId ? (lang === "zh" ? "继续阅读" : "Continue reading") : (lang === "zh" ? "免费试读" : "Read free")}<span aria-hidden="true">→</span></Link>
         </div>
         <div className="flex items-center justify-self-end gap-2 lg:hidden">
-          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : "/stories/master-secret"} className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 text-sm font-bold text-paper whitespace-nowrap">{resumeStoryId ? (lang === "zh" ? "继续" : "Continue") : (lang === "zh" ? "试读" : "Read free")}</Link>
+          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : DEFAULT_STORY_HREF} className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 text-sm font-bold text-paper whitespace-nowrap">{resumeStoryId ? (lang === "zh" ? "继续" : "Continue") : (lang === "zh" ? "试读" : "Read free")}</Link>
           <button type="button" onClick={() => setIsOpen((open) => !open)} className="grid size-11 place-items-center rounded-full border-2 border-ink bg-paper" aria-expanded={isOpen} aria-controls="mobile-navigation" aria-label={isOpen ? "Close menu" : "Open menu"}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button>
         </div>
       </div>

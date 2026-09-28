@@ -109,4 +109,5 @@ export interface StoryCard {
   genre: string;
   locked: boolean;
   image: string;
+  imagePosition?: string;
 }

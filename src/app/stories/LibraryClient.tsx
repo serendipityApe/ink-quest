@@ -25,6 +25,7 @@ export default function LibraryClient({ cards, target }: Props) {
   const [savedWordsCount, setSavedWordsCount] = useState(0);
   const [streakCount, setStreakCount] = useState(0);
   const [progressMap, setProgressMap] = useState<Record<string, number>>({});
+  const [localCovers, setLocalCovers] = useState<Record<string, string>>({});
   const [failedCovers, setFailedCovers] = useState<Record<string, boolean>>({});
   const levelParam = searchParams.get("level");
 
@@ -102,7 +103,15 @@ export default function LibraryClient({ cards, target }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <Image src={story.image} alt={`${primary} cover`} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw" className={`object-cover ${story.locked ? "grayscale opacity-55" : ""}`} onError={() => setFailedCovers((previous) => ({ ...previous, [story.id]: true }))} />
+                    <Image src={localCovers[story.id] ?? story.image} alt={`${primary} cover`} fill style={{ objectPosition: story.imagePosition }} sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw" className={`object-cover ${story.locked ? "grayscale opacity-55" : ""}`} onError={() => {
+                      // New covers may exist locally before the storage upload completes.
+                      const localCover = story.image.match(/^https?:\/\/[^?#]+(\/covers\/[^?#]+)(?:[?#].*)?$/)?.[1];
+                      if (localCover && !localCovers[story.id]) {
+                        setLocalCovers((previous) => ({ ...previous, [story.id]: localCover }));
+                      } else {
+                        setFailedCovers((previous) => ({ ...previous, [story.id]: true }));
+                      }
+                    }} />
                   )}
                   {story.locked && <span className="absolute inset-0 grid place-items-center bg-ink/20"><span className="grid size-12 place-items-center rounded-full border-2 border-ink bg-paper"><Lock className="size-5" /></span></span>}
                 </div><div className={`grid gap-3 p-5 ${index % 3 === 0 ? "bg-accent-soft" : index % 3 === 1 ? "bg-paper-2" : "bg-paper-3"}`}><div className="flex items-center justify-between gap-3"><span className="hallmark-eyebrow">{story.genre}</span><span className="rounded-full border border-ink px-3 py-1 text-xs whitespace-nowrap">{story.level}</span></div><h3 className="hallmark-display text-2xl">{primary}</h3><p className="m-0 text-sm text-ink-2">{secondary}</p><div className="mt-2 grid gap-2"><div className="flex justify-between text-xs"><span>{story.locked ? t("stories.locked") : progress ? t("stories.progress") : t("stories.notStarted")}</span><span className="tabular-nums">{story.locked ? "" : `${progress}%`}</span></div><div className="h-1 overflow-clip rounded-full bg-rule"><div className="h-full bg-accent-deep" style={{ transform: `scaleX(${progress / 100})`, transformOrigin: "left" }} /></div></div></div></>;
