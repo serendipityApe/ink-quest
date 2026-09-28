@@ -62,9 +62,9 @@ pnpm install
 
 | 文件 | 用途 | 来源 |
 |------|------|------|
-| `data/cedict_ts.u8` | 中→英释义候选 | CC-CEDICT (CC-BY-SA) |
+| `data/cedict_ts.u8` | 中→英释义候选 | [CC-CEDICT](https://cc-cedict.org/wiki/) (CC-BY-SA) |
 | `data/ecdict.csv` | 英→中释义 + CEFR/词频 | ECDICT |
-| `data/hsk30.json` | 中文 HSK 3.0 分级 | HSK 3.0 词表 |
+| `data/hsk30.json` | 中文 HSK 3.0 分级 | [2026 HSK 词表数据](https://github.com/profesorm/hsk30) (CC BY 4.0，源自 Chinese Testing International 考试大纲) |
 
 `data/` 已 gitignore（大文件，用 LFS 或本地放置）。
 
@@ -106,6 +106,8 @@ AZURE_TTS_VOICE_ZH=zh-CN-Xiaoxiao:DragonHDFlashLatestNeural  # 可选，默认�
 AZURE_TTS_VOICE_EN=en-US-JennyNeural      # 可选，默认即此音色
 ```
 Azure 和腾讯云同时配置时，默认优先 Azure。可按语言设置 `STORY_TTS_ZH_PROVIDER=azure`、`STORY_TTS_EN_PROVIDER=azure`（或 `tencent`）来固定供应商。Worker 的运行环境也必须配置 Azure 密钥与区域；仅在本地 `.env.local` 配置不会影响已部署的 Worker。Azure 的字符位置映射到 InkQuest 原有分词；若有非标点词缺少词边界，任务会按现有 TTS 重试机制处理，不会发布虚构时间戳。
+
+中文 `reading` 是阅读器展示的拼音，目前不会传给 Azure TTS；合成器直接朗读正文，可能误读多音字。发布前应试听并改写有歧义的句子。若必须保留原字形，需另行实现 SSML `<phoneme>` 指定读音，并验证词边界对齐。
 
 腾讯云环境变量（不入仓）：
 ```bash

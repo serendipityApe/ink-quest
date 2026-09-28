@@ -54,6 +54,8 @@ const LOADERS: Record<string, () => Promise<StoryJSON>> = {
     import("@/data/stories/en/the-rosewood-vanishing.json").then((m) => m.default as StoryJSON),
   "receipt-from-tomorrow": () =>
     import("@/data/stories/en/receipt-from-tomorrow.json").then((m) => m.default as StoryJSON),
+  "receipt-from-tomorrow-zh": () =>
+    import("@/data/stories/zh/receipt-from-tomorrow-zh.json").then((m) => m.default as StoryJSON),
   "the-museum-after-closing": () =>
     import("@/data/stories/en/the-museum-after-closing.json").then((m) => m.default as StoryJSON),
   "the-interview-with-my-future-self": () =>
@@ -119,6 +121,17 @@ const CATALOG: StoryCard[] = [
     genre: "Urban Mystery",
     locked: false,
     image: "/covers/receipt-from-tomorrow.svg",
+  },
+  {
+    id: "receipt-from-tomorrow-zh",
+    target_lang: "zh",
+    title_cn: "来自明天的收据",
+    title_en: "The Receipt from Tomorrow",
+    level: "HSK 5",
+    level_system: "HSK",
+    genre: "Urban Mystery",
+    locked: false,
+    image: "/covers/receipt-from-tomorrow-zh.svg",
   },
   {
     id: "the-museum-after-closing",
