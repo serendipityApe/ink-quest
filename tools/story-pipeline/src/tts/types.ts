@@ -11,6 +11,10 @@ export interface TtsResult {
   audio: Buffer;
   /** 词级时间戳，长度 === 输入 words.length，已从供应商的字符/音素级聚合到词 */
   timings: WordTiming[];
+  /** 音频真实时长（毫秒），若供应商提供。 */
+  durationMs?: number;
+  /** 实际使用的音色。 */
+  voiceId?: string;
 }
 
 export interface TtsProvider {

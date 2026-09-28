@@ -135,7 +135,7 @@ async function synthesizeAndCommit(
 
     const result = await tts.synthesize(words, job.ttsVoiceId ?? undefined);
     if (result.timings.length !== words.length) throw new Error("TTS word timing count does not match the scene tokens.");
-    const durationMs = Math.max(...result.timings.map((timing) => timing.end));
+    const durationMs = result.durationMs ?? Math.max(...result.timings.map((timing) => timing.end));
     if (!Number.isFinite(durationMs) || durationMs <= 0) throw new Error("TTS provider returned an invalid duration.");
 
     const stored = await SupabaseAudioStorage.fromEnv().put({
@@ -149,7 +149,7 @@ async function synthesizeAndCommit(
       jobId: job.jobId,
       leaseOwner,
       provider: tts.name,
-      voiceId: job.ttsVoiceId,
+      voiceId: result.voiceId ?? job.ttsVoiceId,
       objectKey: stored.objectKey,
       contentHash: stored.contentHash,
       durationMs,

@@ -1,25 +1,18 @@
 import type { TargetLang } from "../schema.js";
 import type { TtsProvider } from "./types.js";
 import { TencentTts } from "./tencent.js";
+import { AzureTts } from "./azure.js";
 
-/**
- * 按 target_lang 选 TTS 供应商。未配置（无密钥）返回 null → 上层降级到估时。
- *
- * 当前：
- *   zh → 腾讯云（中文默认）
- *   en → 海外供应商（二期；暂时若配了腾讯云英文 key 也可临时用腾讯云 PrimaryLanguage=2）
- *
- * 可经 env STORY_TTS_<LANG>_PROVIDER 覆盖（预留，暂只实现 tencent）。
- */
+/** 按语言选供应商：显式指定优先，否则优先 Azure，再回退到腾讯云。 */
 export function getTtsProvider(target: TargetLang): TtsProvider | null {
-  if (target === "zh") {
-    return TencentTts.isConfigured() ? new TencentTts("zh") : null;
+  const selected = process.env[`STORY_TTS_${target.toUpperCase()}_PROVIDER`];
+  if (selected && selected !== "azure" && selected !== "tencent") {
+    throw new Error(`Unsupported TTS provider: ${selected}`);
   }
-  if (target === "en") {
-    // TODO(P3.5): 接 Azure / ElevenLabs。暂时若配了腾讯云，用其英文合成兜底。
-    return TencentTts.isConfigured() ? new TencentTts("en") : null;
-  }
-  return null;
+  if (selected === "azure") return AzureTts.isConfigured() ? new AzureTts(target) : null;
+  if (selected === "tencent") return TencentTts.isConfigured() ? new TencentTts(target) : null;
+  if (AzureTts.isConfigured()) return new AzureTts(target);
+  return TencentTts.isConfigured() ? new TencentTts(target) : null;
 }
 
 export type { TtsProvider, TtsResult, WordTiming } from "./types.js";
