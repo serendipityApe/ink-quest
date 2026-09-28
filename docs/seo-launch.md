@@ -17,7 +17,7 @@
 
 Production Next.js build and TypeScript check passed using webpack. The initial default build could not download Google Fonts because the shell did not use the system's HTTP proxy; using the configured proxy resolved font access.
 
-Cloudflare/OpenNext packaging also passed after generating the standalone Next.js output required by the adapter. The prepared worker is `.open-next/worker.js`; it has not been deployed.
+Cloudflare/OpenNext packaging also passed after generating the standalone Next.js output required by the adapter. The SEO release was pushed as `7dcc225982deaf1f39c0a58e370be162d085dab0` and deployed successfully by [GitHub Actions](https://github.com/serendipityApe/ink-quest/actions/runs/36401415004). Production HTTP checks also passed **29/29** after deployment.
 
 Generated `output/` source copies are excluded from TypeScript checking. The release includes only SEO changes; the workspace's Paddle migration, funnel instrumentation and library redesign remain outside this commit. The staged release was also built independently from those changes.
 
@@ -34,20 +34,20 @@ The five new story covers returned HTTP 200 at the configured production asset l
 
 ESLint passed for the new SEO files and changed metadata/catalog/library/config files. The reader still has two pre-existing `react-hooks/set-state-in-effect` findings in its initialization and node-fetch effects; other lint rules on that file passed. These unrelated effects were not rewritten for SEO.
 
-## Search Console: prepared, pending production publication
+## Search Console: ownership verified and sitemap processed (2026-09-28)
 
-The signed-in Google account did not have an InkQuest resource. The URL-prefix resource `https://inkquest.dev/` was added and its HTML verification token was copied into the homepage's Metadata API `verification.google` field. This token is public website markup, not an API credential.
+The URL-prefix resource `https://inkquest.dev/` was verified using the homepage HTML meta tag. Search Console explicitly displayed “已完成所有权验证”. Keep the tag permanently. This token is public website markup, not an API credential.
 
-Ownership has **not yet been verified**. Sitemap submission and Google's URL Inspection/live tests have **not yet been completed**. Local HTTP checks are not a substitute for those Google results.
+`https://inkquest.dev/sitemap.xml` was submitted successfully. Search Console showed **成功**, **17 discovered pages**, and a last-read date of **2026-09-28**. This confirms sitemap processing, not indexing of all 17 pages.
 
-Before publication, production `/sitemap.xml` returned 404. See `output/seo/production-before.json` for direct HTTP checks of the homepage, library, representative story, sitemap and robots file. The workspace also contains independent billing and other unpublished changes; production publication needs a confirmed release scope.
+The homepage URL Inspection was initiated in the existing Chrome tab, but no completed inspection result or live test was confirmed. Browser interaction was paused because the user was concurrently switching tabs; it should resume when the GSC tab can stay available. No indexing request was confirmed.
 
-After publishing the intended release:
+Remaining Google-side validation:
 
-1. Run `pnpm check:seo https://inkquest.dev` (Node 24 can use the system proxy through `NODE_USE_ENV_PROXY=1` and `HTTPS_PROXY` when needed).
-2. Return to the Search Console HTML-tag verification dialog for `https://inkquest.dev/`, verify, and retain the tag permanently.
-3. Submit `https://inkquest.dev/sitemap.xml` in Sitemaps. Check Google's fetch status separately from the submission acknowledgement.
-4. Inspect `/`, `/stories`, `/stories/the-borrowed-sect-1`, and `/stories/before-the-rain-stops`. Record the indexed state and run the live test for each. Confirm HTTP availability, crawl/index permission, visible content and declared canonical; Google's selected canonical may be unavailable before indexing.
-5. Request indexing for those representative pages after successful live tests. Record a request as a request, not successful indexing.
+1. Inspect `/`, `/stories`, `/stories/the-borrowed-sect-1`, and `/stories/before-the-rain-stops`.
+2. Record each indexed state and run its live test. Confirm crawl/index permission and declared canonical; Google's selected canonical may be unavailable before indexing.
+3. Request indexing after successful live tests. Record a request as a request, not successful indexing.
+
+Production HTTP/SSR validation is complete, but it is not a substitute for these Google-side results. Local evidence is stored in `output/seo/check.json` and `output/seo/gsc-results.json`.
 
 References: [Google noindex guidance](https://developers.google.com/search/docs/crawling-indexing/block-indexing), [canonical guidance](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls), [requesting recrawls](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl).
