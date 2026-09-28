@@ -393,6 +393,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
         )}
         <article
           ref={articleRef}
+          lang={manifest.target_lang === "zh" ? "zh-Hans" : "en"}
           className={`relative min-h-[18rem] w-full py-8 md:py-12 ${mobileSentenceModeEnabled ? "select-none md:select-text" : ""}`}
         >
           {node ? (

@@ -107,6 +107,14 @@ export interface StoryCard {
   level: LevelLabel;
   level_system: LevelSystem;
   genre: string;
+  description_en: string;
+  description_cn: string;
+  series?: {
+    id: string;
+    title_en: string;
+    title_cn: string;
+    part: number;
+  };
   locked: boolean;
   image: string;
   imagePosition?: string;

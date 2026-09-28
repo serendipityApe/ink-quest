@@ -7,6 +7,7 @@
     "dev:web": "next dev --webpack",
     "dev:worker": "PORT=8080 pnpm --filter @inkquest/story-pipeline worker:start",
     "build": "next build",
+    "check:seo": "node scripts/check-seo.mjs",
     "start": "next start",
     "lint": "eslint",
     "upload-assets": "node scripts/upload-assets.mjs",

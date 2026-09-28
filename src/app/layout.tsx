@@ -17,10 +17,15 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InkQuest - Learn Chinese through Interactive Web Novels",
-  description: "Ditch boring textbooks. Learn real, idiomatic Chinese through immersive Xianxia, Sci-Fi, and Cyberpunk interactive web novels.",
+  metadataBase: new URL("https://inkquest.dev"),
+  title: {
+    default: "InkQuest — Learn Chinese through Interactive Stories",
+    template: "%s · InkQuest",
+  },
+  description: "Read levelled Chinese stories, tap words for definitions, hear each line, and choose what happens next.",
   keywords: ["Mandarin", "Learn Chinese", "Interactive Fiction", "Web Novels", "Xianxia", "Cyberpunk", "HSK"],
   authors: [{ name: "InkQuest Team" }],
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

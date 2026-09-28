@@ -1,13 +1,42 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import {
   loadStory,
   toManifest,
   nodeResponse,
   premiumNodeIds,
+  listCards,
 } from "@/lib/stories/registry";
+import { absoluteUrl, pageMetadata } from "@/lib/seo";
+import JsonLd from "@/components/JsonLd";
 import { isPremium } from "@/lib/dal";
 import StructuredReader from "./StructuredReader";
 import type { StoryNodeResponse } from "@/types/story";
+
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const card = listCards().find((story) => story.id === id);
+  if (!card) {
+    const story = await loadStory(id);
+    if (!story) notFound();
+    // Withdrawn demos retain working reading URLs without competing in Search.
+    return pageMetadata({
+      title: `${story.title_en} — Archived Story`,
+      description: "An archived InkQuest story. Browse the library for current reading material.",
+      path: `/stories/${id}`,
+      noindex: true,
+    });
+  }
+  return pageMetadata({
+    title: `${card.title_en} — ${card.level} ${card.target_lang === "zh" ? "Chinese" : "English"} Story`,
+    description: card.description_en,
+    path: `/stories/${id}`,
+    image: card.image,
+    noindex: card.locked,
+  });
+}
 
 /**
  * 阅读页：Server Component。
@@ -17,12 +46,12 @@ import type { StoryNodeResponse } from "@/types/story";
  */
 export default async function StoryReaderPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: Props) {
   const { id } = await params;
   const story = await loadStory(id);
   if (!story) notFound();
+  const cards = listCards();
+  const card = cards.find((entry) => entry.id === id) ?? null;
 
   const manifest = toManifest(story);
   const startId = manifest.start_node_id;
@@ -46,5 +75,38 @@ export default async function StoryReaderPage({
     };
   }
 
-  return <StructuredReader storyId={id} manifest={manifest} startNode={startNode} />;
+  const url = absoluteUrl(`/stories/${id}`);
+  const chineseStory = story.target_lang === "zh";
+  const name = chineseStory ? story.title_cn : story.title_en;
+  const structuredData = card ? {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CreativeWork",
+        "@id": `${url}#story`,
+        url,
+        name,
+        alternateName: chineseStory ? story.title_en : story.title_cn,
+        description: card.description_en,
+        image: absoluteUrl(card.image),
+        inLanguage: chineseStory ? "zh-Hans" : "en",
+        genre: card.genre,
+        educationalLevel: card.level,
+        learningResourceType: "Interactive story",
+        isAccessibleForFree: !card.locked && premiumNodeIds(story).size === 0,
+        ...(card.series ? {
+          isPartOf: {
+            "@type": "CreativeWorkSeries",
+            name: card.series.title_en,
+            alternateName: card.series.title_cn,
+          },
+        } : {}),
+      },
+    ],
+  } : null;
+
+  return <>
+    {structuredData && <JsonLd data={structuredData} />}
+    <StructuredReader storyId={id} manifest={manifest} startNode={startNode} />
+  </>;
 }
