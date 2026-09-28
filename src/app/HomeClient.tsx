@@ -7,10 +7,10 @@ import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import WordSegment from "@/components/WordSegment";
-import { useSpeak } from "@/hooks/useSpeak";
+import { useAudioSync } from "@/hooks/useAudioSync";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { DEFAULT_STORY_HREF, DEFAULT_STORY_ID } from "@/lib/stories/entry-points";
-import type { TextSegment } from "@/types/story";
+import type { TextSegment, Timestamp } from "@/types/story";
 
 const COVER_BASE = process.env.NODE_ENV === "development"
   ? ""
@@ -22,27 +22,37 @@ const featuredStories = [
   { id: "the-seven-oclock-lost-and-found", genre: "Mystery", level: "HSK 4", titleZh: "七点前的失物", titleEn: "Lost and Found Before Seven", descriptionZh: "失物处七点就要搬空。你能替老人找回装着妻子声音的蓝布包吗？", descriptionEn: "The lost and found closes at seven. Can you recover a blue bag holding a recording of an old man’s wife?", image: "/covers/the-seven-oclock-lost-and-found-v2.png", imagePosition: "center 20%" },
 ];
 
-const demoWord: TextSegment = {
-  word: "发现",
-  reading: "fā xiàn",
-  meaning: "to notice; to discover",
-  level: "HSK 3",
-  tier: "key",
-};
-
 const demoChoices = [
   { zh: "去找借山的旧账", en: "Look through the old accounts", result: "旧账写着：门派借山建院，村民和门派共用山泉。", resultEn: "The old accounts say the sect borrowed this land. The village and the sect share its spring." },
-  { zh: "跟阿禾查看河道", en: "Follow A He to the water channel", result: "河道旁的水轮没有坏，槽口却被一块新木板堵住。", resultEn: "The waterwheel is working, but a new wooden board blocks the channel." },
+  { zh: "跟阿禾检查水轮", en: "Inspect the waterwheel with A He", result: "阿禾轻推轮边的小柄，空轮转了半圈。水轮没坏，堵住的只是水槽。", resultEn: "A He nudges the wheel and it turns. The wheel works; the channel is blocked." },
 ];
 
-export default function Home() {
+interface HomeProps {
+  demoAudioUrl: string;
+  demoSegments: TextSegment[];
+  demoTimestamps: Timestamp[];
+}
+
+export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: HomeProps) {
   const [demoChoice, setDemoChoice] = useState<number | null>(null);
   const [languageIndex, setLanguageIndex] = useState(0);
-  const { speak, speaking, supported } = useSpeak();
+  const { play, stop, isPlaying, activeSegmentIndex } = useAudioSync();
   const { lang } = useTranslations();
   const isZh = lang === "zh";
   const rotatingLanguages = isZh ? ["中文", "英文"] : ["Chinese", "English"];
-  const localizedDemoWord = isZh ? { ...demoWord, meaning: "注意到；找到原来不知道的事" } : demoWord;
+  const demoEndMs = demoTimestamps[demoTimestamps.length - 1]?.end;
+
+  const toggleDemoAudio = () => {
+    if (isPlaying) { stop(); return; }
+    play({
+      audioUrl: demoAudioUrl,
+      text: "",
+      timestamps: demoTimestamps,
+      voices: [],
+      lang: "zh",
+      endMs: demoEndMs,
+    });
+  };
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -87,10 +97,16 @@ export default function Home() {
             </header>
 
             <div className="py-7">
-              <p className="font-reading text-[clamp(1.35rem,3vw,1.9rem)] leading-[2] tracking-[0.05em]">山上的水池满了，山下的水沟却干了。阿禾带你来到红色水门前，你<WordSegment segment={localizedDemoWord} index={0} isAudioActive={speaking} lang="zh" isSaved={false} onToggleSave={() => undefined} />门上贴着一张告示：“春试以前不得开门。”</p>
-              <button type="button" disabled={!supported} onClick={() => speak("山上的水池满了，山下的水沟却干了。阿禾带你来到红色水门前，你发现门上贴着一张告示：春试以前不得开门。", "zh")} className="mt-5 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-50">
+              <p className="font-reading text-[clamp(1.35rem,3vw,1.9rem)] leading-[2] tracking-[0.05em]">{demoSegments.map((segment, index) => (
+                segment.word === "发现" ? (
+                  <WordSegment key={index} segment={{ ...segment, tier: "key", meaning: isZh ? "注意到；找到原来不知道的事" : "to notice; to discover" }} index={index} isAudioActive={activeSegmentIndex === index} lang="zh" isSaved={false} onToggleSave={() => undefined} />
+                ) : (
+                  <span key={index} className={activeSegmentIndex === index ? "word-audio-active" : undefined}>{segment.word}</span>
+                )
+              ))}</p>
+              <button type="button" onClick={toggleDemoAudio} className="mt-5 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap hover:bg-accent-soft">
                 <Volume2 className="size-4" aria-hidden="true" />
-                {speaking ? (isZh ? "正在播放" : "Playing") : (isZh ? "听这一句" : "Listen to this line")}
+                {isPlaying ? (isZh ? "停止播放" : "Stop") : (isZh ? "听这一句" : "Listen to this line")}
               </button>
             </div>
 
