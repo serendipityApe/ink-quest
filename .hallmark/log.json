@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-09-28",
+    "scope": "page",
+    "macrostructure": "Workbench",
+    "theme": "custom",
+    "theme_axes": "light / rounded-sans / chromatic-teal",
+    "enrichment": "existing story artwork",
+    "brief": "Simplify story library around reading; compact tools, inline activity, uniform covers and full-height card bodies"
+  },
+  {
     "date": "2026-08-21",
     "scope": "app",
     "macrostructure": "Marquee Hero / Ecosystem Index / Long Document",
