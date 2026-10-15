@@ -9,7 +9,7 @@ import http from "node:http";
  *   node scripts/check-mcp.mjs
  *
  * MCP_BASE_URL defaults to http://127.0.0.1:3000.
- * Set EXPECT_REGISTRY_AUTH=1 when the dev server was started with MCP_REGISTRY_AUTH.
+ * EXPECT_REGISTRY_AUTH=1 when the server was started with an MCP_REGISTRY_AUTH override.
  */
 
 const base = (process.env.MCP_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");
@@ -262,18 +262,17 @@ async function main() {
 
   const auth = await fetch(`${base}/.well-known/mcp-registry-auth`);
   const authBody = (await auth.text()).trim();
+  const defaultRecord = "v=MCPv1; k=ed25519; p=+8OxSXGv5QhPV557c8T71jJIYeNIpjFbGCZMjq0oUbY=";
   if (process.env.EXPECT_REGISTRY_AUTH === "1") {
     if (auth.status !== 200 || !authBody.startsWith("v=MCPv1;")) {
       fail(`registry auth status=${auth.status} body=${authBody}`);
     } else {
       ok("mcp-registry-auth serves the public record");
     }
-  } else if (auth.status === 404) {
-    ok("mcp-registry-auth 404 until MCP_REGISTRY_AUTH is set");
-  } else if (auth.status === 200 && authBody.startsWith("v=MCPv1;")) {
-    ok("mcp-registry-auth already configured");
+  } else if (auth.status !== 200 || authBody !== defaultRecord) {
+    fail(`registry auth status=${auth.status} body=${authBody}`);
   } else {
-    fail(`registry auth unexpected status=${auth.status} body=${authBody.slice(0, 120)}`);
+    ok("mcp-registry-auth serves the committed public record");
   }
 
   if (failed > 0) {
