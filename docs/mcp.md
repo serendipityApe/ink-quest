@@ -52,14 +52,11 @@ npx @modelcontextprotocol/inspector
 
 传输选 Streamable HTTP，URL 填 `http://127.0.0.1:3000/api/mcp`。本服务是无状态的：不要依赖 `Mcp-Session-Id`，GET 会返回 405（不提供单独的 SSE 流）。
 
-要顺手验证域名证明文件，启动前加上公开记录（这不是私钥）：
+域名证明是公开记录，默认就已经由 `/.well-known/mcp-registry-auth` 返回。可选：用环境变量 `MCP_REGISTRY_AUTH` 覆盖这一行（仍然只放公钥记录，不放私钥）。
 
 ```bash
-MCP_REGISTRY_AUTH='v=MCPv1; k=ed25519; p=你的公钥base64' pnpm dev:web
-EXPECT_REGISTRY_AUTH=1 pnpm check:mcp
+curl -sS http://127.0.0.1:3000/.well-known/mcp-registry-auth
 ```
-
-未设置时 `GET /.well-known/mcp-registry-auth` 返回 404。
 
 ## 部署
 
@@ -90,37 +87,29 @@ macOS 也可用 `brew install mcp-publisher`。
 
 ### 2. 域名 HTTP 验证（推荐，命名空间 `dev.inkquest/inkquest`）
 
-在自己的机器上生成密钥。**不要把私钥提交到 git。** `*.pem` 和仓库根目录的 `mcp-registry-auth` 已被忽略。Ed25519 需要 OpenSSL 3；macOS 自带的 LibreSSL 不行，请用 Homebrew 的 `openssl@3`。
+公钥记录已经提交在路由里，生产环境默认返回：
 
-```bash
-openssl genpkey -algorithm Ed25519 -out key.pem
-
-PUBLIC_KEY="$(openssl pkey -in key.pem -pubout -outform DER | tail -c 32 | base64)"
-echo "v=MCPv1; k=ed25519; p=${PUBLIC_KEY}"
+```text
+v=MCPv1; k=ed25519; p=+8OxSXGv5QhPV557c8T71jJIYeNIpjFbGCZMjq0oUbY=
 ```
 
-把这一整行（只有公钥）设到 Cloudflare Worker，不要设进 `NEXT_PUBLIC_` 变量，也不要把 `key.pem` 放进仓库或 CI 日志：
-
-```bash
-npx wrangler secret put MCP_REGISTRY_AUTH
-```
-
-提示时粘贴 `v=MCPv1; k=ed25519; p=...`。路由 `/.well-known/mcp-registry-auth` 在请求时读取这个变量。确认：
+确认：
 
 ```bash
 curl -sS https://inkquest.dev/.well-known/mcp-registry-auth
 ```
 
-输出应与上面那一行一致（末尾可以有一个换行）。然后在仓库根目录登录并发布。`--domain` 是 `inkquest.dev`，不是反向域名：
+输出就是这一行（末尾有一个换行）。不需要 Cloudflare secret。若设置了环境变量 `MCP_REGISTRY_AUTH`，且内容是合法的 `v=MCPv1; ...` 公钥记录，则用它覆盖默认行。
+
+配对的私钥在发布用的 bot 手里，不在仓库、不在 CI、也不要写进文档。`*.pem` 仍被 gitignore。登录时由持有私钥的 bot 执行（`--domain` 是 `inkquest.dev`，不是反向域名）：
 
 ```bash
-PRIVATE_KEY="$(openssl pkey -in key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n')"
 mcp-publisher login http --domain inkquest.dev --private-key "${PRIVATE_KEY}"
 mcp-publisher validate
 mcp-publisher publish
 ```
 
-`login` 成功后私钥只留在本机。发布完成后可以删掉 shell 历史里的 `PRIVATE_KEY`。校验发布结果：
+校验发布结果：
 
 ```bash
 curl -sS "https://registry.modelcontextprotocol.io/v0.1/servers?search=dev.inkquest/inkquest"
