@@ -102,6 +102,10 @@ The Next.js development server dispatches new jobs to `http://127.0.0.1:8080` by
 
 Call `POST /api/internal/generation/outbox` every minute with `Authorization: Bearer <GENERATION_DISPATCH_SECRET>` to recover failed queue publications and expired Worker leases.
 
+## MCP
+
+A read-only [Model Context Protocol](https://modelcontextprotocol.io) server for the public story catalog is served at `/api/mcp` (Streamable HTTP). It lists free stories, returns the opening scene, and recommends matches, each with an `https://inkquest.dev/stories/{id}` link. It does not expose generated stories or premium scenes. Setup, local checks, and registry publishing are in [docs/mcp.md](docs/mcp.md).
+
 ## Validation
 
 ```bash

@@ -19,6 +19,7 @@ import { getSupabaseBrowserEnv, isSupabaseConfigured } from "./lib/supabase/env"
  *
  * 注意：除了刷新会话之外什么都不做（不做鉴权重定向、不读业务数据），
  * 让 Server Component / Route Handler 各自做权限决策。
+ * 公开只读 MCP 与 registry 校验文件不读登录态，避免每次发现请求都打到 Supabase。
  */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -54,6 +55,6 @@ export const config = {
   // 跳过静态资源 / 图片优化 / favicon —— 这些请求不需要走会话刷新，
   // 每次都跑 supabase 客户端会白白增加冷启动开销和请求数。
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/mcp|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)",
   ],
 };

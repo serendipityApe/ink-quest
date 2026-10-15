@@ -24,6 +24,9 @@
 # misc
 .DS_Store
 *.pem
+# MCP registry Ed25519/ECDSA signing key and the local proof file.
+# Serve only the public record via MCP_REGISTRY_AUTH. Never commit the private key.
+/mcp-registry-auth
 
 # debug
 npm-debug.log*
