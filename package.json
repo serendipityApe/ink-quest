@@ -8,6 +8,7 @@
     "dev:worker": "PORT=8080 pnpm --filter @inkquest/story-pipeline worker:start",
     "build": "next build",
     "check:seo": "node scripts/check-seo.mjs",
+    "check:mcp": "node scripts/check-mcp.mjs",
     "start": "next start",
     "lint": "eslint",
     "upload-assets": "node scripts/upload-assets.mjs",
@@ -16,6 +17,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@opennextjs/cloudflare": "^1.20.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1",
@@ -23,7 +25,8 @@
     "lucide-react": "^1.17.0",
     "next": "16.2.9",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

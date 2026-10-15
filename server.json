@@ -1,0 +1,19 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "dev.inkquest/inkquest",
+  "title": "InkQuest",
+  "description": "Browse free InkQuest stories, openings, and HSK recommendations.",
+  "websiteUrl": "https://inkquest.dev",
+  "repository": {
+    "url": "https://github.com/serendipityApe/ink-quest",
+    "source": "github",
+    "id": "1266172646"
+  },
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://inkquest.dev/api/mcp"
+    }
+  ]
+}
