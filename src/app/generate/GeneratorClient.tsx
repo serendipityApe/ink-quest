@@ -101,6 +101,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const [phase, setPhase] = useState<Phase>(initialStoryId ? "generating" : "intro");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
+  const [balanceState, setBalanceState] = useState<"loading" | "ready" | "unavailable" | "unauthorized">("loading");
   const [pricingError, setPricingError] = useState(false);
   const [error, setError] = useState("");
   const [activeJob, setActiveJob] = useState<{ jobId: string; storyId: string; branch: boolean } | null>(null);
@@ -130,10 +131,24 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const premise = customPrompt.trim() || `${selections.identity.name}在${selections.genre.name}的世界里，必须${selections.motive.name}。`;
 
   const refreshBalance = useCallback(async () => {
-    const response = await fetch("/api/billing/status", { cache: "no-store" });
-    if (!response.ok) return;
-    const body = await response.json() as { credits?: { available?: number } };
-    setCredits(body.credits?.available ?? 0);
+    setBalanceState("loading");
+    try {
+      const response = await fetch("/api/billing/status", { cache: "no-store" });
+      if (!response.ok) {
+        setCredits(null);
+        setBalanceState(response.status === 401 ? "unauthorized" : "unavailable");
+        return;
+      }
+      const body = await response.json() as { credits?: { available?: number } };
+      if (typeof body.credits?.available !== "number" || !Number.isFinite(body.credits.available)) {
+        throw new Error("invalid_balance");
+      }
+      setCredits(body.credits.available);
+      setBalanceState("ready");
+    } catch {
+      setCredits(null);
+      setBalanceState("unavailable");
+    }
   }, []);
 
   const loadStory = useCallback(async (storyId: string, options?: { animateLatest?: boolean }) => {
@@ -620,7 +635,11 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
 
         <aside className="hidden min-w-0 border-l border-rule-2 bg-paper-3 p-6 xl:block"><div className="sticky top-[calc(var(--nav-height)+1.5rem)]"><span className="inline-flex min-h-8 items-center rounded-full border border-ink bg-accent-soft px-3 font-outlier text-[10px] font-semibold">DIRECTOR MODE · PRO</span><h2 className="mt-5 text-2xl font-bold tracking-[-0.04em]">{isZh ? "剧情操控室" : "Story control room"}</h2><p className="mt-3 text-sm leading-relaxed text-ink-2">{isZh ? "暂停一下，告诉故事接下来应当倾向哪里。高级功能上线后可编辑关系、世界规则与回溯分支。" : "Pause the story and steer what comes next. Edit relationships, world rules, and branches with the premium control room."}</p><div className="mt-6 grid gap-3">{[isZh ? "增加张力" : "Raise tension", isZh ? "改变关系" : "Shift a relationship", isZh ? "降低难度" : "Lower difficulty"].map((label) => <button key={label} type="button" disabled className="min-h-11 rounded-full border border-rule-2 bg-paper px-4 text-left text-sm font-semibold opacity-60">{label}</button>)}</div><div className="mt-8 rounded-card border border-rule-2 bg-paper p-5"><LockKeyhole className="size-5" /><p className="mt-4 text-sm font-bold">{isZh ? "付费功能，稍后开放" : "Premium controls coming later"}</p></div></div></aside>
       </main>
-      <div className="fixed right-4 bottom-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink bg-accent-soft px-4 font-outlier text-xs shadow-[0_3px_0_var(--color-ink)]"><Coins className="size-4" /><span>{isZh ? "积分" : "Credits"}</span><strong>{credits ?? "—"}</strong></div>
+      <div className="fixed right-4 bottom-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink bg-accent-soft px-4 font-outlier text-xs shadow-[0_3px_0_var(--color-ink)]">
+        <Coins className="size-4" /><span>{isZh ? "积分" : "Credits"}</span><strong aria-live="polite">{credits ?? "—"}</strong>
+        {balanceState === "unavailable" && <button type="button" onClick={() => { void refreshBalance(); }} className="min-h-8 underline" aria-label={isZh ? "重新读取积分余额" : "Retry loading credits"}>{isZh ? "重试" : "Retry"}</button>}
+        {balanceState === "unauthorized" && <a className="min-h-8 content-center underline" href={`/login?next=${encodeURIComponent(initialStoryId ? `/generate?story=${initialStoryId}` : "/generate")}`}>{isZh ? "重新登录" : "Sign in"}</a>}
+      </div>
     </>
   );
 }

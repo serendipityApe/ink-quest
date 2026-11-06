@@ -11,6 +11,7 @@
     "check:mcp": "node scripts/check-mcp.mjs",
     "start": "next start",
     "lint": "eslint",
+    "test:billing": "node --experimental-strip-types --test tests/billing-status.test.mjs",
     "upload-assets": "node scripts/upload-assets.mjs",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",

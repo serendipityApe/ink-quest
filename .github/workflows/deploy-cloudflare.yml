@@ -56,6 +56,10 @@ jobs:
         if: steps.cloudflare-token.outputs.configured == 'true'
         run: npm ci
 
+      - name: Test billing session recovery
+        if: steps.cloudflare-token.outputs.configured == 'true'
+        run: npm run test:billing
+
       - name: Deploy
         if: steps.cloudflare-token.outputs.configured == 'true'
         run: npm run deploy
