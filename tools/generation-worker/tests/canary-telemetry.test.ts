@@ -28,7 +28,7 @@ test("continuation verifies existing version and first CPU, sends only remaining
       assert.ok(!/subscriptions|secrets|tokens|entitlements/.test(path));
       assert.equal(options?.method,body?"POST":"GET");
       let result:any;
-      const consumer={script_name:WORKER,settings:{batch_size:1,max_concurrency:1,max_retries:0}};
+      const consumer={script:WORKER,type:"worker",settings:{batch_size:1,max_concurrency:1,max_retries:0}};
       if(path.endsWith("/consumers"))result=[consumer];
       else if(path.endsWith("/subdomain"))result={enabled:false,previews_enabled:false};
       else if(path.endsWith("/settings"))result={bindings:[]};

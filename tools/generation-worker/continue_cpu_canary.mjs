@@ -33,7 +33,10 @@ try{
   if(q.queue_name!==QUEUE||(q.consumers_total_count??q.consumers?.length)!==1)stop("verify_isolated_queue","unexpected_queue_or_consumer_count");
   const consumers=await api("verify_isolated_consumer",`/queues/${ID}/consumers`);
   const c=Array.isArray(consumers)?consumers[0]:null;
-  if(consumers?.length!==1||c.script_name!==WORKER||c.settings?.batch_size!==1||c.settings?.max_concurrency!==1||c.settings?.max_retries!==0)
+  // The list API uses `script` (also used by Wrangler); create returns script_name.
+  const scriptName=c?.script_name??c?.script;
+  report.verifiedConsumer={scriptName,type:c?.type,batchSize:c?.settings?.batch_size,maxConcurrency:c?.settings?.max_concurrency,maxRetries:c?.settings?.max_retries};
+  if(consumers?.length!==1||scriptName!==WORKER||c.type!=="worker"||c.settings?.batch_size!==1||c.settings?.max_concurrency!==1||c.settings?.max_retries!==0)
     stop("verify_isolated_consumer","unexpected_consumer_configuration");
   const urls=await api("verify_no_public_urls",`/workers/scripts/${WORKER}/subdomain`);
   if(urls.enabled!==false||urls.previews_enabled!==false)stop("verify_no_public_urls","public_url_enabled");
