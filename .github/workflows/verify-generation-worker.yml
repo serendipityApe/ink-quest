@@ -1,0 +1,35 @@
+name: Verify generation Worker offline
+on:
+  push:
+    branches: [feat/generation-edge-worker-20261106]
+  pull_request:
+    paths:
+      - tools/generation-worker/**
+      - tools/story-pipeline/src/providers/llm/**
+      - supabase/migrations/**
+      - pnpm-lock.yaml
+      - .github/workflows/verify-generation-worker.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm --filter @inkquest/generation-worker typecheck
+      - run: pnpm --filter @inkquest/generation-worker test
+      - run: pnpm --filter @inkquest/generation-worker build
+      - run: pnpm --filter @inkquest/generation-worker test:runtime
+      - run: pnpm --filter @inkquest/generation-worker test:queue
+      - run: pnpm --filter @inkquest/story-pipeline test:llm
+      - run: pnpm --filter @inkquest/story-pipeline test:tts
+      # No Cloudflare account/token, deploy, secrets, production Queue or model I/O.

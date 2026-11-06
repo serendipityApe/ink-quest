@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "inkquest-generation-worker",
+  "main": "dist/worker.js",
+  "no_bundle": true,
+  "find_additional_modules": true,
+  "compatibility_date": "2026-07-21",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": { "GENERATION_ENABLED": "false" },
+  "observability": { "enabled": true }
+  // Deliberately no consumers, producers, Cron, secrets or account identifier.
+  // Production activation requires the separate backlog/credentials decision.
+}

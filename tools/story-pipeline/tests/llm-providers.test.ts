@@ -72,7 +72,7 @@ test("OpenAI uses Responses, isolated credentials, configured model, organizatio
   mockFetch(t, (url, request) => {
     assert.equal(url, "https://api.openai.com/v1/responses");
     assert.equal(request.method, "POST");
-    assert.equal(request.redirect, "error");
+    assert.equal(request.redirect, "manual");
     assert.ok(request.signal instanceof AbortSignal);
     const headers = new Headers(request.headers);
     assert.equal(headers.get("Authorization"), `Bearer ${openai.OPENAI_API_KEY}`);

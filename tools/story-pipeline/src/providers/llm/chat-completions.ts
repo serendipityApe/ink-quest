@@ -1,11 +1,12 @@
 import { StructuredFictionProvider } from "./structured-fiction.js";
 import { LlmProviderError } from "./errors.js";
-import { requestLlmJson } from "./request.js";
+import { requestLlmJson, requestPolicyFromEnv, type LlmRequestPolicy } from "./request.js";
 
 // Keep the old export available to existing callers.
 export { LlmProviderError } from "./errors.js";
 
 interface ChatProviderConfig {
+  requestPolicy?: LlmRequestPolicy;
   url: string;
   apiKey: string;
   model: string;
@@ -33,6 +34,7 @@ export class ChatCompletionsProvider extends StructuredFictionProvider {
       throw new LlmProviderError("LLM provider is not configured. Set LLM_CHAT_COMPLETIONS_URL, LLM_API_KEY and LLM_MODEL.", false);
     }
     return new ChatCompletionsProvider({
+      requestPolicy: requestPolicyFromEnv(env),
       url, apiKey, model, provider,
       promptVersion: env.LLM_PROMPT_VERSION ?? "opening-v1",
     });
@@ -58,6 +60,6 @@ export class ChatCompletionsProvider extends StructuredFictionProvider {
       const content = result?.choices?.[0]?.message?.content;
       if (typeof content !== "string") throw new LlmProviderError("LLM response content was missing.", true);
       return JSON.parse(content.replace(/^```json\s*|\s*```$/g, ""));
-    });
+    }, this.config.requestPolicy);
   }
 }

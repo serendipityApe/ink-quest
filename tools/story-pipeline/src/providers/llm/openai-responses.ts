@@ -1,8 +1,9 @@
 import { StructuredFictionProvider } from "./structured-fiction.js";
 import { LlmProviderError } from "./errors.js";
-import { requestLlmJson } from "./request.js";
+import { requestLlmJson, requestPolicyFromEnv, type LlmRequestPolicy } from "./request.js";
 
 interface OpenAIProviderConfig {
+  requestPolicy?: LlmRequestPolicy;
   apiKey: string;
   model: string;
   promptVersion: string;
@@ -39,6 +40,7 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
       throw new LlmProviderError("OPENAI_REASONING_EFFORT must be none, low, medium, high, xhigh or max.", false);
     }
     return new OpenAIResponsesProvider({
+      requestPolicy: requestPolicyFromEnv(env),
       apiKey, model, maxOutputTokens,
       promptVersion: env.LLM_PROMPT_VERSION ?? "opening-v1",
       organizationId: env.OPENAI_ORG_ID?.trim() || undefined,
@@ -67,7 +69,7 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
         ...(this.config.reasoningEffort ? { reasoning: { effort: this.config.reasoningEffort } } : {}),
         store: false,
       }),
-    }, parseOpenAIResponse);
+    }, parseOpenAIResponse, this.config.requestPolicy);
   }
 }
 
