@@ -1,0 +1,26 @@
+name: Inspect existing isolated CPU canary read-only
+on:
+  push:
+    branches: [feat/generation-edge-worker-20261106]
+    paths:
+      - .github/workflows/inspect-generation-cpu-canary.yml
+      - tools/generation-worker/inspect_cpu_canary.mjs
+permissions:
+  contents: read
+jobs:
+  inspect-existing-canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Read only the existing isolated canary and its telemetry
+        env:
+          CLOUDFLARE_ACCOUNT_ID: fdfece8b5c135c21fa630440b8dbf2e4
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || vars.CLOUDFLARE_API_TOKEN }}
+        run: node tools/generation-worker/inspect_cpu_canary.mjs
+      # No deploy, queue sends/pulls, secrets, billing, token inspection or login.
