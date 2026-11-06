@@ -3,6 +3,7 @@ import worker from "../src/index.js";
 import { segmentChinese,segmenterMemoryBytes } from "../src/segment.js";
 import { enrichSceneEdge } from "../src/enrich.js";
 import { synthesizeAzure } from "../src/audio.js";
+import canary from "../src/canary.js";
 
 const entries={en:[{word:"library",reading:"/laɪbrəri/",candidates:["n. 图书馆"],level:"B1"}],
   zh:[{word:"图书馆",reading:null,candidates:["library"],level:"HSK 3"}]};
@@ -12,7 +13,18 @@ const testHarness = {async fetch(request:Request){
     if(input.mode==="disabled"){
       let acks=0,retries=0;
       await worker.queue({messages:[{body:{jobId:crypto.randomUUID()},ack(){acks++;},retry(){retries++;}}]},{});
+      await worker.scheduled({},{});
       return Response.json({acks,retries});
+    }
+    if(input.mode==="heartbeat"){
+      await worker.scheduled({},{GENERATION_ENABLED:"true",GENERATION_QUEUE:{async send(){throw new Error("Unexpected canary dispatch");}},
+        SUPABASE_URL:"https://database.invalid",SUPABASE_SERVICE_ROLE_KEY:"fixture-key",GENERATION_DICTIONARY_VERSION:"fixture-v1",
+        LLM_PROVIDER:"openai",OPENAI_API_KEY:"fixture-key",OPENAI_MODEL:"fixture-model"});
+      return await fetch("https://fixture.invalid/readiness");
+    }
+    if(input.mode==="canary"){
+      let acks=0;await canary.queue({messages:["zh-short","zh-paragraph","zh-long","en-short","en-paragraph","en-long"].map(caseId=>({body:{caseId},ack(){acks++;}}))});
+      return Response.json({acks});
     }
     if(input.mode==="segment"){
       const started=performance.now();const words=segmentChinese(input.text??"");

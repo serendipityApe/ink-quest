@@ -4,7 +4,7 @@ import type { CommitGeneratedTextInput, CommitGeneratedAudioInput } from "../../
 
 export class StoreUnavailable extends Error {}
 const VOID_RPCS = new Set(["edge_begin_generation_stage", "edge_recover_generation_jobs",
-  "edge_mark_generation_published", "edge_commit_generated_audio"]);
+  "edge_mark_generation_published", "edge_commit_generated_audio", "edge_report_generation_readiness"]);
 export class SupabaseEdgeStore implements EdgeStore {
   constructor(private readonly url: string, private readonly key: string) {
     if (!url || !key || !url.startsWith("https://")) throw new Error("Generation storage is not configured.");
@@ -29,6 +29,9 @@ export class SupabaseEdgeStore implements EdgeStore {
   pending() { return this.rpc<OutboxItem[]>("edge_pending_generation_jobs", {}); }
   published(item: OutboxItem) { return this.rpc<void>("edge_mark_generation_published", { p_job_id: item.jobId, p_revision: item.revision }); }
   recover() { return this.rpc<void>("edge_recover_generation_jobs", {}); }
+  reportReadiness(version: string, capabilities: Record<string, boolean>) {
+    return this.rpc<void>("edge_report_generation_readiness", { p_dictionary_version: version, p_capabilities: capabilities });
+  }
   lookup(language: "zh" | "en", words: string[], version: string) {
     return this.rpc<DictionaryBatch>("lookup_generation_dictionary", { p_language: language, p_words: words, p_version: version });
   }

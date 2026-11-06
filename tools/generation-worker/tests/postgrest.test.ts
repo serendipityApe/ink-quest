@@ -8,6 +8,7 @@ test("SQL void RPCs accept real PostgREST 204 empty responses",async t=>{
   const store=new SupabaseEdgeStore("https://database.invalid","fixture-key");
   await store.begin(lease);await store.recover();await store.published({jobId:"fixture-job",revision:1});
   await store.commitAudio(lease,{} as never);
+  await store.reportReadiness("fixture-v1",{text_en:true});
 });
 for(const status of [200,204])test(`nonvoid RPCs reject an empty HTTP ${status} result`,async t=>{
   t.mock.method(globalThis,"fetch",async()=>new Response(null,{status}));

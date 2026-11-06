@@ -10,7 +10,8 @@ export async function isolatedDatabase(){
     -- Only fixture snapshot hashing substitutes pgcrypto, unavailable in PGlite.
     create function extensions.digest(text,text) returns bytea language sql as 'select decode(md5($1),''hex'')';`);
   for(const file of ["202608220001_generated_story_billing.sql","202608220002_generation_worker_rpc.sql",
-    "202608230001_generated_story_tts.sql","202608230002_fix_generation_digest_search_path.sql","202611060001_edge_generation_worker.sql"]){
+    "202608230001_generated_story_tts.sql","202608230002_fix_generation_digest_search_path.sql","202611060001_edge_generation_worker.sql",
+    "202611060002_generation_readiness.sql"]){
     const sql=await readFile(new URL(`../../../supabase/migrations/${file}`,import.meta.url),"utf8");
     await db.exec(sql.replace("create extension if not exists pgcrypto;",""));
   }

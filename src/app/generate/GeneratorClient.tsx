@@ -114,6 +114,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const [typingNodeId, setTypingNodeId] = useState<string | null>(null);
   const [revealedUnits, setRevealedUnits] = useState(0);
   const requestKey = useRef<string | null>(null);
+  const branchRequestKeys = useRef(new Map<string, string>());
   const previewedJob = useRef<string | null>(null);
   const knownNodeIds = useRef(new Set<string>());
   const animatedNodeIds = useRef(new Set<string>());
@@ -315,7 +316,8 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
       const body = await response.json() as { error?: string; story_id?: string; job_id?: string };
       if (!response.ok || !body.story_id || !body.job_id) {
         setPhase("intro");
-        if (body.error === "insufficient_credits") setError(isZh ? "积分不足，请先补充积分。" : "You need more credits to generate this story.");
+        if (body.error === "generation_backend_unavailable") setError(isZh ? "生成服务暂未就绪，未预留积分，请稍后再试。" : "Generation is temporarily unavailable. No credits were reserved. Please try again later.");
+        else if (body.error === "insufficient_credits") setError(isZh ? "积分不足，请先补充积分。" : "You need more credits to generate this story.");
         else setError(isZh ? "暂时无法开始生成，请稍后重试。" : "Generation could not start. Please try again.");
         return;
       }
@@ -333,7 +335,12 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     setPlayingNodeId(null);
     setPlayingSentence(null);
     setError("");
-    const idempotencyKey = crypto.randomUUID();
+    const branchKey = `${storyData.story.id}:${choiceId}`;
+    let idempotencyKey = branchRequestKeys.current.get(branchKey);
+    if (!idempotencyKey) {
+      idempotencyKey = crypto.randomUUID();
+      branchRequestKeys.current.set(branchKey, idempotencyKey);
+    }
     try {
       const response = await fetch(`/api/generated-stories/${storyData.story.id}/choices/${choiceId}`, {
         method: "POST",
@@ -341,7 +348,8 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
       });
       const body = await response.json() as { error?: string; story_id?: string; job_id?: string };
       if (!response.ok || !body.job_id) {
-        if (body.error === "insufficient_credits") setError(isZh ? "积分不足，暂时无法继续这个分支。" : "You need more credits to continue this branch.");
+        if (body.error === "generation_backend_unavailable") setError(isZh ? "生成服务暂未就绪，未预留积分，请稍后再试。" : "Generation is temporarily unavailable. No credits were reserved. Please try again later.");
+        else if (body.error === "insufficient_credits") setError(isZh ? "积分不足，暂时无法继续这个分支。" : "You need more credits to continue this branch.");
         else setError(isZh ? "这个选择暂时无法生成，请刷新后重试。" : "This branch could not be generated. Please refresh and try again.");
         return;
       }

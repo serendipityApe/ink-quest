@@ -2,6 +2,7 @@ import { getUser } from "@/lib/dal";
 import { quoteOpening, type TtsMode } from "@/lib/generation/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enqueueGenerationJob } from "@/lib/generation/queue";
+import { isGenerationBackendUnavailable } from "@/lib/generation/readiness";
 
 interface CreateStoryBody {
   targetLanguage?: unknown;
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
 
   try {
     const admin = createAdminClient();
-    const { data, error } = await admin.rpc("create_generated_story_job", {
+    const { data, error } = await admin.rpc("create_ready_generated_story_job", {
       p_user_id: user.id,
       p_target_language: targetLanguage as "zh" | "en",
       p_learner_level: learnerLevel,
@@ -67,19 +68,23 @@ export async function POST(request: Request) {
     });
 
     if (error) {
+      if (error.message.includes("idempotency_conflict")) return Response.json({ error: "idempotency_conflict" }, { status: 409 });
+      if (isGenerationBackendUnavailable(error)) {
+        return Response.json({ error: "generation_backend_unavailable" }, { status: 503, headers: { "Cache-Control": "private, no-store" } });
+      }
       if (error.message.includes("insufficient_credits")) {
         return Response.json({ error: "insufficient_credits" }, { status: 402 });
       }
-      console.error("Story job creation failed", error);
+      console.error("Story job creation failed", { code: error.code });
       return Response.json({ error: "story_creation_failed" }, { status: 500 });
     }
 
     const result = Array.isArray(data) ? data[0] : data;
     const jobId = result?.job_id;
-    const dispatchQueued = typeof jobId === "string" ? await enqueueGenerationJob(jobId) : false;
+    const dispatchQueued = !result?.reused && typeof jobId === "string" ? await enqueueGenerationJob(jobId) : false;
     return Response.json({ ...result, quote, dispatchQueued }, { status: result?.reused ? 200 : 202 });
   } catch (error) {
-    console.error("Story job creation unavailable", error);
+    console.error("Story job creation unavailable", { errorType: error instanceof Error ? error.name : "unknown" });
     return Response.json({ error: "story_creation_unavailable" }, { status: 503 });
   }
 }

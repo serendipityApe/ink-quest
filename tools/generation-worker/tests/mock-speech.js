@@ -1,8 +1,18 @@
 // Completely local Speech protocol fixture. No actual Azure service is called.
 const stats={plan:0,write:0,gloss:0,audio:0};
+let readiness=null;
 const speechFixture = {async fetch(request,env){
   const url=new URL(request.url);
-  if(url.hostname==="database.invalid")return env.DATABASE.fetch(request);
+  if(url.hostname==="database.invalid"){
+    if(env.DATABASE)return env.DATABASE.fetch(request);
+    const name=url.pathname.split("/").at(-1);
+    if(name==="lookup_generation_dictionary")return Response.json({version:"fixture-v1",ready:true,entries:[]});
+    if(name==="edge_report_generation_readiness"){readiness=await request.json();return new Response(null,{status:204});}
+    if(name==="edge_recover_generation_jobs")return new Response(null,{status:204});
+    if(name==="edge_pending_generation_jobs")return Response.json([]);
+    return new Response("Unexpected fixture RPC",{status:503});
+  }
+  if(url.pathname==="/readiness")return Response.json(readiness);
   if(url.pathname==="/stats")return Response.json(stats);
   if(url.hostname==="api.openai.com"){
     const body=await request.json();const payload=JSON.parse(body.input);let result;

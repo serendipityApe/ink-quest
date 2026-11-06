@@ -6,6 +6,16 @@ upgrade. The supplied Wrangler configuration has generation disabled, no Queue
 bindings, no Cron, no routes, workers.dev disabled, preview URLs disabled, and
 no HTTP `fetch` export. The separate HTTP test harness is never deployed.
 
+The main opening/branch APIs call readiness-gated creation RPCs. For a new
+request, the same transaction checks manual activation/consumer verification,
+a heartbeat newer than three minutes, dictionary readiness and the requested
+language/narration capabilities before reserving credits. Existing owned
+idempotent requests replay their original IDs even when paused, without another
+reservation or immediate enqueue. A missing readiness migration fails closed;
+there is no fallback to legacy creation RPCs. The heartbeat function cannot
+activate the backend, although the privileged service-role credential can update
+the status table and must be treated accordingly.
+
 ## Execution and recovery
 
 An opening advances through plan → write → enrich → gloss → commit → optional
@@ -81,6 +91,9 @@ linear memory was 61,734,912 bytes (58.9 MiB); JS heap, SDK and concurrent work
 also consume the 128 MB isolate allowance. Production consumer batch size and
 concurrency should start at 1. Keep the current Free plan; do not increase CPU
 limits to Paid settings or claim Free suitability without measured evidence.
+The separate [CPU validation procedure](CPU-VALIDATION.md) and inactive canary
+configuration specify an actual isolated Queue measurement, pending resource
+approval. No remote CPU or total-heap measurements have been obtained.
 
 ## Dictionary preparation and capacity
 
@@ -116,9 +129,8 @@ verify the complete row count and both languages, then activate the version.
 
 ## Production gates — none executed
 
-1. Read only the current metadata for job
-   `3b683706-8c33-47ba-adf6-7db726ebf697` and reservation
-   `be192768-2435-417e-ac95-20108c92c51d`. Obtain the parent's explicit decision
+1. Read only the current metadata for the pre-existing queued job and its
+   reservation identified in the deployment review. Obtain the operator's explicit decision
    to retain execution or cancel/release. The previous reservation was expired;
    keeping it requires a reviewed deadline-repair plan before enabling recovery.
    **Do not attach a production consumer or Cron while this decision is pending.**
@@ -131,8 +143,8 @@ verify the complete row count and both languages, then activate the version.
    | Source | Exact destination | Scope/risk |
    |---|---|---|
    | Existing GitHub Repository Secret `SUPABASE_SERVICE_ROLE_KEY` | Worker `inkquest-generation-worker`, secret `SUPABASE_SERVICE_ROLE_KEY` | Bypasses database RLS; reads job/story data and writes credits/audio through backend RPCs. Prior approval covered only main-site `inkquest`. |
-   | Existing user OpenAI credential; location not yet verified | Worker `inkquest-generation-worker`, secret `OPENAI_API_KEY` | Can incur model usage. Any intermediate GitHub secret creation is a separate persistent credential action. |
-   | Existing user Azure Speech credential; source not yet verified | Worker `inkquest-generation-worker`, secret `AZURE_SPEECH_KEY` | Can incur speech usage. Only needed if narration is enabled; do not silently accept narration jobs without it. |
+   | Existing root `.env` definition `OPENAI_KEY` | Worker `inkquest-generation-worker`, secret `OPENAI_API_KEY` | Source is present, nonempty and not an obvious placeholder; value not displayed or supplier-validated. Can incur model usage. Any intermediate GitHub secret creation is a separate persistent credential action. |
+   | Existing `tools/story-pipeline/.env.local` definition `AZURE_SPEECH_KEY` | Worker `inkquest-generation-worker`, secret `AZURE_SPEECH_KEY` | Source is present, nonempty and not an obvious placeholder; value not displayed or supplier-validated. Can incur speech usage. Optional for a text-only launch; narration requests remain gated off without it. |
 
 4. Configure nonsecret Supabase URL, explicit model/provider, dictionary version,
    Speech region/voices and validated provider selection. Do not reuse the
@@ -144,6 +156,10 @@ verify the complete row count and both languages, then activate the version.
    and consumer (batch/concurrency 1), a recovery Cron such as once per minute,
    and `GENERATION_ENABLED=true`. Review retries/retention and retain outbox
    recovery; Queue retention expiry does not release application reservations.
+   Verify bindings, set the backend status activation/consumer-verification flags
+   only after approval, and confirm a fresh capability heartbeat. Deactivate the
+   status row before intentionally stopping consumers. Apply both prepared
+   migrations; heartbeat alone does not authorize activation.
 
 The main site's Wrangler config and automatic deployment workflow are unchanged.
 Only the feature-branch offline-verification workflow is added. No credentials

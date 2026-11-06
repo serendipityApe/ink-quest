@@ -24,6 +24,9 @@ const mf=new Miniflare({workers:[
 const request=async body=>{const response=await mf.dispatchFetch("http://isolated.invalid",{method:"POST",body:JSON.stringify(body)});return {status:response.status,body:await response.json()};};
 try{
   assert.deepEqual((await request({mode:"disabled"})).body,{acks:0,retries:1});
+  const heartbeat=await request({mode:"heartbeat"});assert.equal(heartbeat.status,200);
+  assert.deepEqual(heartbeat.body,{p_dictionary_version:"fixture-v1",p_capabilities:{text_zh:true,text_en:true,audio_zh:false,audio_en:false}});
+  assert.deepEqual((await request({mode:"canary"})).body,{acks:6});
   const text="小明今天来到图书馆，认真寻找一本关于宇宙的书。管理员微笑着告诉他，探索未知需要勇气和耐心。";
   const segmented=await request({mode:"segment",text});assert.equal(segmented.status,200);
   assert.equal(segmented.body.words.join(""),text);assert.ok(segmented.body.words.includes("图书馆"));
@@ -46,7 +49,7 @@ try{
   const audio=await request({mode:"audio"});assert.equal(audio.status,200,JSON.stringify(audio.body));
   assert.ok(audio.body.bytes>0);assert.equal(audio.body.timings.length,3);assert.equal(audio.body.durationMs,300);
   const missing=await request({mode:"audio",missing:true});assert.equal(missing.status,422);assert.match(missing.body.error,/no word boundary/);
-  console.log(JSON.stringify({runtime:"local workerd",checks:["disabled queue","WASM segmentation","Chinese reading/meaning/HSK","English reading/meaning/CEFR","missing dictionary fails","real Speech SDK with local WebSocket protocol","missing boundary fails"],
+  console.log(JSON.stringify({runtime:"local workerd",checks:["disabled queue/scheduler","readiness heartbeat with 204","isolated canary","WASM segmentation","Chinese reading/meaning/HSK","English reading/meaning/CEFR","missing dictionary fails","real Speech SDK with local WebSocket protocol","missing boundary fails"],
     nativeParityCases:parityCases.length,wasmMemoryBytes:segmented.body.wasmMemoryBytes,
     localElapsedMs:elapsed,externalCalls:0,productionQueueMessages:0}));
 }finally{await mf.dispose();await rm(out,{recursive:true,force:true});}

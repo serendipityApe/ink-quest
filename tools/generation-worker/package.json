@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
+    "build:canary": "node build.mjs --canary",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:runtime": "node tests/workerd.mjs",
     "test:queue": "node tests/queue-workerd.mjs",

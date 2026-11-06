@@ -7,6 +7,9 @@ on:
       - tools/generation-worker/**
       - tools/story-pipeline/src/providers/llm/**
       - supabase/migrations/**
+      - src/lib/generation/**
+      - src/app/api/generated-stories/**
+      - src/app/generate/GeneratorClient.tsx
       - pnpm-lock.yaml
       - .github/workflows/verify-generation-worker.yml
   workflow_dispatch:
@@ -26,8 +29,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm --filter @inkquest/generation-worker typecheck
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm test:billing
       - run: pnpm --filter @inkquest/generation-worker test
       - run: pnpm --filter @inkquest/generation-worker build
+      - run: pnpm --filter @inkquest/generation-worker build:canary
       - run: pnpm --filter @inkquest/generation-worker test:runtime
       - run: pnpm --filter @inkquest/generation-worker test:queue
       - run: pnpm --filter @inkquest/story-pipeline test:llm

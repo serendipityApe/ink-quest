@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "tools/generation-worker/vendor/**",
     "tools/generation-worker/dist/**",
+    "tools/generation-worker/dist-canary/**",
   ]),
 ]);
 

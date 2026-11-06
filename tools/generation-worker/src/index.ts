@@ -7,7 +7,7 @@ import { EdgeConfigurationError } from "./enrich.js";
 import type { Delivery, QueueBinding } from "./contracts.js";
 
 interface Env { GENERATION_QUEUE?: QueueBinding; GENERATION_ENABLED?: string; [key: string]: unknown; }
-function services(env:Env):Services{
+function services(env:Env):Services & { reportReadiness(): Promise<void> }{
   if(!env.GENERATION_QUEUE)throw new EdgeConfigurationError("Generation queue binding is unavailable.");
   const config=Object.fromEntries(Object.entries(env).filter((entry):entry is [string,string]=>typeof entry[1]==="string")) as StringEnv;
   const store=new SupabaseEdgeStore(config.SUPABASE_URL??"",config.SUPABASE_SERVICE_ROLE_KEY??"");
@@ -21,7 +21,18 @@ function services(env:Env):Services{
         await store.ready(lease.job.targetLanguage,dictionaryVersion);
       }
       if(lease.job.ttsMode==="every_scene")checkSpeechConfiguration(config,lease.job.targetLanguage);
-    },audio:lease=>generateAudio(lease,config)};
+    },audio:lease=>generateAudio(lease,config),
+    async reportReadiness(){
+      const capabilities={text_zh:false,text_en:false,audio_zh:false,audio_en:false};
+      for(const lang of ["zh","en"] as const){
+        try{
+          provider();if(!dictionaryVersion)throw new EdgeConfigurationError("Dictionary version is required.");
+          await store.ready(lang,dictionaryVersion);capabilities[`text_${lang}`]=true;
+          try{checkSpeechConfiguration(config,lang);capabilities[`audio_${lang}`]=true;}catch{}
+        }catch{}
+      }
+      await store.reportReadiness(dictionaryVersion,capabilities);
+    }};
 }
 const generationWorker = {
   async queue(batch:{messages:Delivery[]},env:Env){
@@ -33,7 +44,11 @@ const generationWorker = {
   },
   async scheduled(_event:unknown,env:Env){
     if(env.GENERATION_ENABLED!=="true")return;
-    await tick(services(env));
+    const s=services(env);
+    // An unhealthy dictionary/provider closes creation, while recovery must
+    // still release expired work. No credentials are included in the report.
+    try{await s.reportReadiness();}catch{}
+    await tick(s);
   },
 };
 export default generationWorker;
