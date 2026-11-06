@@ -16,6 +16,6 @@
     "max_retries": 0,
     "max_concurrency": 1
   }] }
-  // NOT ACTIVATED. Creating this isolated queue/worker needs its own decision.
+  // NOT ACTIVATED. Verify current Free plan, existing rights and isolation first.
   // No production queue, credentials, model, database or plan/CPU-limit change.
 }

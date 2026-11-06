@@ -4,7 +4,8 @@ Local workerd tests verify compatibility, not Cloudflare CPU enforcement. This
 canary makes the next measurement concrete without production data or paid
 model/speech calls. Its configuration and source are separate from production.
 
-Proposed isolated resources, requiring approval before creation:
+The existing task authorization covers these isolated resources after the
+Free-plan, existing-permission and production-isolation checks below succeed:
 
 - Worker: `inkquest-generation-cpu-canary`.
 - Queue: `inkquest-generation-cpu-canary-20261106` (never `inkquest-generation`).
