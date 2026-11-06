@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import StoryPolicyNotice from "@/components/StoryPolicyNotice";
 import { useEffect, useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
@@ -185,7 +186,7 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
               <h2 className="hallmark-display max-w-[16ch] text-[clamp(2.5rem,5vw,4.5rem)]">{isZh ? "读过一次，再定制属于你的故事。" : "Read one first. Then make the next story yours."}</h2>
               <p className="mt-5 max-w-[58ch] text-ink-2">{isZh ? "选择题材、身份和目标，让 InkQuest 按你的中文水平生成可以继续选择的剧情。" : "Choose a genre, identity, and motive. InkQuest builds an interactive story around your language level."}</p>
             </div>
-            <Link href="/generate" className="hallmark-btn w-fit">{isZh ? "定制故事" : "Customize a story"}<span aria-hidden="true">→</span></Link>
+            <div><StoryPolicyNotice /><Link href="/generate" className="hallmark-btn mt-4 w-fit">{isZh ? "定制故事" : "Customize a story"}<span aria-hidden="true">→</span></Link></div>
           </div>
         </section>
       </main>

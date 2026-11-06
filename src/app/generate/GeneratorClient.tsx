@@ -4,6 +4,7 @@
  * pre-emit critique: P5 H5 E5 S5 R5 V4 · mobile: single-column workbench
  */
 import Link from "next/link";
+import StoryPolicyNotice from "@/components/StoryPolicyNotice";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Coins, LockKeyhole, RefreshCw, Sparkles, Square, Volume2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -510,6 +511,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
               {customOpen && <div className="pt-4"><label className="sr-only" htmlFor="custom-story-prompt">{isZh ? "自定义故事想法" : "Custom story direction"}</label><textarea id="custom-story-prompt" value={customPrompt} onChange={(event) => setCustomPrompt(event.target.value)} maxLength={3000} placeholder={isZh ? "例如：故事发生在一座每天会遗忘一小时的城市。" : "For example: the city forgets one hour every day."} className="min-h-32 w-full resize-y rounded-input border border-ink bg-paper p-4 outline-2 outline-transparent outline-offset-1 placeholder:text-muted focus:outline-focus" /><p className="mt-2 text-xs text-muted">{isZh ? "可输入主题、大纲或提示；留空也能生成。" : "Theme, outline, or prompt. Leaving it blank also works."}</p></div>}
             </section>
           </div>
+            <StoryPolicyNotice />
         </aside>
 
         <section className="min-w-0 bg-paper p-4 sm:p-8 lg:p-10">
