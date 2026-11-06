@@ -1,0 +1,36 @@
+name: Deploy disabled generation Worker with approved Supabase secret
+on:
+  push:
+    branches: [feat/generation-edge-worker-20261106]
+    paths:
+      - .github/workflows/deploy-inactive-generation-worker.yml
+      - tools/generation-worker/deploy_inactive.mjs
+permissions:
+  contents: read
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+jobs:
+  disabled-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm --filter @inkquest/generation-worker build
+      - name: Deploy disabled Worker and set only the approved existing Supabase secret
+        env:
+          CLOUDFLARE_ACCOUNT_ID: fdfece8b5c135c21fa630440b8dbf2e4
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || vars.CLOUDFLARE_API_TOKEN }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node tools/generation-worker/deploy_inactive.mjs
+      # No OpenAI key relay/storage, Azure key, consumer, Cron, migration or model call.
