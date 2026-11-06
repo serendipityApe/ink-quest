@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import StoryPolicyNotice from "@/components/StoryPolicyNotice";
+import FoundingReaderPrice from "@/components/FoundingReaderPrice";
 import { useEffect, useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
@@ -177,6 +178,17 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
               <h3 className="hallmark-display max-w-[18ch] text-3xl">{isZh ? "仙侠、科幻、悬疑，下一条支线正在等你。" : "Xianxia, science fiction, mystery—the next branch is waiting."}</h3>
               <span className="font-bold whitespace-nowrap">{isZh ? "浏览全部故事" : "Browse all stories"} <span aria-hidden="true">→</span></span>
             </Link>
+          </div>
+        </section>
+
+        <section className="hallmark-shell py-16 md:py-20" aria-labelledby="founding-reader-heading">
+          <div className="grid gap-6 rounded-card border-2 border-ink bg-paper-2 p-6 shadow-card md:grid-cols-[1fr_auto] md:items-center md:p-10">
+            <div>
+              <h2 id="founding-reader-heading" className="hallmark-display text-3xl">Founding Reader</h2>
+              <p className="mt-4 text-4xl font-bold"><FoundingReaderPrice /></p>
+              <p className="mt-4 max-w-[60ch] text-ink-2">{isZh ? "解锁会员阅读内容。按月自动续订，可随时取消；适用税费及最终金额在结账时显示。故事生成使用积分，提交前会显示所需积分。" : "Unlock premium reading content. Renews monthly; cancel anytime. Applicable taxes and the final total are shown at checkout. Story generation uses credits, quoted before submission."}</p>
+            </div>
+            <Link href="/subscribe" className="hallmark-btn w-fit">{isZh ? "查看订阅详情" : "View subscription details"}<span aria-hidden="true">→</span></Link>
           </div>
         </section>
 

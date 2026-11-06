@@ -5,6 +5,7 @@ import { Lock, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import FoundingReaderPrice from "@/components/FoundingReaderPrice";
 import Link from "next/link";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -107,7 +108,7 @@ function SubscribeContent() {
               <h1 className="font-story-title-lg text-3xl text-on-surface mb-4">Founding Reader</h1>
               <p className="font-ui-body text-ui-body text-secondary mb-8 leading-relaxed">
                 {isZh ? "继续阅读会员剧情分支，解锁互动故事库的付费阅读内容。" : "Continue premium story branches and unlock paid reading content in the interactive story library."}
-                <span className="font-semibold text-on-surface-variant mt-3 block text-xl">{isZh ? "按月订阅" : "Monthly membership"}</span>
+                <span className="font-semibold text-on-surface-variant mt-3 block text-3xl"><FoundingReaderPrice /></span>
               </p>
               <ul className="text-left font-ui-body text-sm text-on-surface-variant/80 flex flex-col gap-3 mb-8 w-full border-t border-b border-surface-container-high/30 py-6 px-2">
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /><span>{isZh ? "解锁故事库的会员阅读内容" : "Access to premium reading content in the library"}</span></li>
