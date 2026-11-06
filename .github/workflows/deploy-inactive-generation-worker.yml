@@ -1,10 +1,7 @@
 name: Deploy disabled generation Worker with approved Supabase secret
 on:
-  push:
-    branches: [feat/generation-edge-worker-20261106]
-    paths:
-      - .github/workflows/deploy-inactive-generation-worker.yml
-      - tools/generation-worker/deploy_inactive.mjs
+  # Completed once under per-secret approval; no automatic secret reconfiguration.
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:

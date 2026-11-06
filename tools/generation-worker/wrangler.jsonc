@@ -8,8 +8,13 @@
   "workers_dev": false,
   "preview_urls": false,
   "routes": [],
-  "vars": { "GENERATION_ENABLED": "false" },
+  "vars": {
+    "GENERATION_ENABLED": "false",
+    "SUPABASE_URL": "https://irzfnntlixbtccdfjcpm.supabase.co",
+    "LLM_PROVIDER": "openai"
+  },
   "observability": { "enabled": true }
-  // Deliberately no consumers, producers, Cron, secrets or account identifier.
+  // No consumers, producers, Cron or secret values. Existing Supabase secret was
+  // separately approved and configured; OpenAI direct transfer remains pending.
   // Production activation requires the separate backlog/credentials decision.
 }
