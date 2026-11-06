@@ -1,4 +1,4 @@
-// Isolated, fixed-public-fixture Queue canary. Never deployed automatically.
+// Isolated, fixed-public-fixture Queue canary. Only the dedicated CI can deploy it.
 // It has no secrets, database binding, producer, Cron, public route or fetch.
 import productionWorker from "./index.js";
 import {enrichSceneEdge} from "./enrich.js";

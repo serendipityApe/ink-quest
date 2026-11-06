@@ -1,4 +1,4 @@
-# Prepared Free-plan canary — not run on Cloudflare
+# Isolated Free-plan canary
 
 Local workerd tests verify compatibility, not Cloudflare CPU enforcement. This
 canary makes the next measurement concrete without production data or paid
@@ -12,19 +12,32 @@ Free-plan, existing-permission and production-isolation checks below succeed:
 - Existing Cloudflare account and existing deployment authorization only. No
   Worker secrets or new authentication. The current local Wrangler token is
   expired; do not run login or introduce a replacement token automatically.
-  An approved manual CI action can use the existing repository deployment token.
-  Verify that token already has the required Queue permission; do not expand
+  The isolated feature-branch CI action uses the existing repository deployment token.
+  Queue create accepts Workers Scripts Write or Queues Write. Test the existing
+  authorization with the legitimate create request; do not expand
   permissions or replace the token automatically if an API returns denial.
 - No routes, workers.dev, preview URLs, HTTP handler, Cron or producer. Consumer
   concurrency/batch size 1, retries 0. No database or application credit access.
 
-After read-only verification that the account remains on Workers Free, build
+The user supplied a screenshot showing Free as the current plan ($0, 100,000
+requests/day, 10 ms CPU/request), and confirmed it belongs to the target account.
+This establishes plan evidence, not remaining daily quota. The billing endpoint
+previously returned 403; never repeat it or require additional billing permission.
+
+After confirming Free-plan evidence and reading resource inventories, build
 with `pnpm --filter @inkquest/generation-worker build:canary`. Review
 `wrangler.canary.jsonc` before any real deployment. Do not raise `cpu_ms` or change
-the plan. There is deliberately no workflow that creates these resources.
+the plan. `.github/workflows/run-generation-cpu-canary.yml` runs only for its own
+or `run_cpu_canary.mjs` changes on the isolated feature branch. It installs/builds
+before exposing the existing token to the final control-plane step. It fails
+closed if either canary resource already exists, and stops at any API denial.
 
-Send only these six fixed cases, at most five copies each (30 messages, roughly
-90 Queue operations absent failures), through the isolated queue:
+The current one-shot script sends these six fixed cases once each (6 messages,
+roughly 18 Queue operations absent duplicates), through the isolated queue.
+It sends only `zh-short` first, and requires provider CPU joined by request ID to
+that fixture's completion log before sending another case. It stops if CPU is
+unavailable or an invocation fails. The absolute authorization ceiling remains
+30 messages, with no automatic reruns or message retries:
 
 ```json
 {"caseId":"zh-short"}
@@ -63,5 +76,8 @@ Do not upgrade or turn on another platform. Possible next work is smaller
 durable enrichment batches after verifying token-boundary equivalence. Never
 infer Free success merely from a successful local run or bundle size.
 
-This document is a pending validation procedure. No remote canary resources,
-messages, authentication, fees or measurements have been created by it.
+The script reports exact completed actions, resource identity, upload startup
+time, message count, provider CPU/outcomes and the first blocker in the GitHub
+step summary and a sanitized annotation. Deployment/execution and CPU validation
+remain separate claims until the actual CI result is observed. It never calls
+the refused subscription endpoint or any token-management endpoint.
