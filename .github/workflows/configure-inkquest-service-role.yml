@@ -1,0 +1,42 @@
+# Manual-only configuration of the existing production server secret.
+# Its value stays in the Actions step environment and standard input.
+name: Configure InkQuest production service role
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production_secret:
+        description: Configure the existing service-role secret on production inkquest
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  configure:
+    if: github.ref == 'refs/heads/main' && inputs.confirm_production_secret
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Set the existing production server secret
+        env:
+          CLOUDFLARE_ACCOUNT_ID: fdfece8b5c135c21fa630440b8dbf2e4
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$SUPABASE_SERVICE_ROLE_KEY"
+          printf '%s' "$SUPABASE_SERVICE_ROLE_KEY" | ./node_modules/.bin/wrangler secret put SUPABASE_SERVICE_ROLE_KEY --name inkquest
