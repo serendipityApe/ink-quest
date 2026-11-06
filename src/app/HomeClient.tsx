@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import StoryPolicyNotice from "@/components/StoryPolicyNotice";
+import FoundingReaderPrice from "@/components/FoundingReaderPrice";
 import { useEffect, useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
@@ -179,13 +181,24 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
           </div>
         </section>
 
+        <section className="hallmark-shell py-16 md:py-20" aria-labelledby="founding-reader-heading">
+          <div className="grid gap-6 rounded-card border-2 border-ink bg-paper-2 p-6 shadow-card md:grid-cols-[1fr_auto] md:items-center md:p-10">
+            <div>
+              <h2 id="founding-reader-heading" className="hallmark-display text-3xl">Founding Reader</h2>
+              <p className="mt-4 text-4xl font-bold"><FoundingReaderPrice /></p>
+              <p className="mt-4 max-w-[60ch] text-ink-2">{isZh ? "解锁会员阅读内容。按月自动续订，可随时取消；适用税费及最终金额在结账时显示。故事生成使用积分，提交前会显示所需积分。" : "Unlock premium reading content. Renews monthly; cancel anytime. Applicable taxes and the final total are shown at checkout. Story generation uses credits, quoted before submission."}</p>
+            </div>
+            <Link href="/subscribe" className="hallmark-btn w-fit">{isZh ? "查看订阅详情" : "View subscription details"}<span aria-hidden="true">→</span></Link>
+          </div>
+        </section>
+
         <section className="border-y-2 border-accent-deep bg-accent-soft py-16 md:py-20">
           <div className="hallmark-shell grid gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             <div>
               <h2 className="hallmark-display max-w-[16ch] text-[clamp(2.5rem,5vw,4.5rem)]">{isZh ? "读过一次，再定制属于你的故事。" : "Read one first. Then make the next story yours."}</h2>
               <p className="mt-5 max-w-[58ch] text-ink-2">{isZh ? "选择题材、身份和目标，让 InkQuest 按你的中文水平生成可以继续选择的剧情。" : "Choose a genre, identity, and motive. InkQuest builds an interactive story around your language level."}</p>
             </div>
-            <Link href="/generate" className="hallmark-btn w-fit">{isZh ? "定制故事" : "Customize a story"}<span aria-hidden="true">→</span></Link>
+            <div><StoryPolicyNotice /><Link href="/generate" className="hallmark-btn mt-4 w-fit">{isZh ? "定制故事" : "Customize a story"}<span aria-hidden="true">→</span></Link></div>
           </div>
         </section>
       </main>

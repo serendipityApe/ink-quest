@@ -7,9 +7,10 @@ interface LegalPageProps {
   title: string;
   summary: string;
   children: ReactNode;
+  effectiveDate?: string;
 }
 
-export default function LegalPage({ eyebrow, title, summary, children }: LegalPageProps) {
+export default function LegalPage({ eyebrow, title, summary, children, effectiveDate = "September 14, 2026" }: LegalPageProps) {
   return (
     <>
       <Navbar />
@@ -19,7 +20,7 @@ export default function LegalPage({ eyebrow, title, summary, children }: LegalPa
             <p className="hallmark-eyebrow text-accent-deep">{eyebrow}</p>
             <h1 className="hallmark-display mt-4 text-[clamp(2.75rem,7vw,5rem)]">{title}</h1>
             <p className="mt-6 max-w-[62ch] text-lg leading-relaxed text-ink-2">{summary}</p>
-            <p className="mt-5 font-outlier text-xs text-muted">Effective September 14, 2026</p>
+            <p className="mt-5 font-outlier text-xs text-muted">Effective {effectiveDate}</p>
           </header>
           <div className="legal-copy py-10">{children}</div>
         </article>

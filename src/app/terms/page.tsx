@@ -14,6 +14,7 @@ export default function TermsPage() {
       eyebrow="Legal · InkQuest"
       title="Terms of Service"
       summary="These terms govern access to InkQuest, including its interactive Chinese-learning stories and Founding Reader subscription."
+      effectiveDate="November 6, 2026"
     >
       <section>
         <h2>1. About InkQuest</h2>
@@ -40,6 +41,7 @@ export default function TermsPage() {
 
       <section>
         <h2>5. License and acceptable use</h2>
+        <p>Our <Link href="/acceptable-use">Acceptable Use Policy / 可接受使用政策</Link> applies to your prompts and generated stories. Pornographic, sexually explicit, adult and NSFW story generation is prohibited, including fictional content involving consenting adults. 提示词与生成故事均须遵守使用规则；禁止色情、性露骨、成人及 NSFW 故事生成，包括涉及自愿成年人的虚构内容。</p>
         <p>We grant you a limited, personal, non-exclusive, non-transferable, revocable license to use InkQuest for lawful personal learning. You may not copy or commercially redistribute the service or its stories, bypass access controls, interfere with service operation, scrape at unreasonable scale, reverse engineer protected components, or use InkQuest to violate another person’s rights or applicable law.</p>
       </section>
 

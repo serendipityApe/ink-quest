@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 interface FooterProps {
   variant?: "default" | "reader";
@@ -8,6 +9,7 @@ interface FooterProps {
 }
 
 export default function Footer({ variant = "default", backLabel = "Back to library" }: FooterProps) {
+  const { lang } = useTranslations();
   if (variant === "reader") {
     return (
       <footer className="bg-paper pb-8">
@@ -18,6 +20,7 @@ export default function Footer({ variant = "default", backLabel = "Back to libra
               {backLabel}
             </Link>
             <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-xs text-muted" aria-label="Legal">
+              <Link href="/acceptable-use" className="hover:text-primary">{lang === "zh" ? "使用规则" : "Acceptable use"}</Link>
               <Link href="/terms" className="hover:text-primary">Terms</Link>
               <Link href="/privacy" className="hover:text-primary">Privacy</Link>
               <Link href="/refund" className="hover:text-primary">Refunds</Link>
@@ -36,6 +39,8 @@ export default function Footer({ variant = "default", backLabel = "Back to libra
           <p className="mt-1 text-xs text-paper-3">Interactive Chinese stories for language learners.</p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-3 text-sm" aria-label="Legal and support">
+          <Link href="/subscribe" className="hover:text-accent">{lang === "zh" ? "订阅价格" : "Pricing"}</Link>
+          <Link href="/acceptable-use" className="hover:text-accent">{lang === "zh" ? "使用规则" : "Acceptable use"}</Link>
           <Link href="/terms" className="hover:text-accent">Terms</Link>
           <Link href="/privacy" className="hover:text-accent">Privacy</Link>
           <Link href="/refund" className="hover:text-accent">Refunds</Link>
