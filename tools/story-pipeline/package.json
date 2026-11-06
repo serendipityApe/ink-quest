@@ -12,6 +12,7 @@
     "worker:build": "tsc -p tsconfig.worker.json",
     "worker:dev": "tsx src/worker/server.ts",
     "worker:start": "node dist/worker/server.js",
+    "test:llm": "node --import tsx --test tests/llm-*.test.ts",
     "test:tts": "node --import tsx --test tests/azure-align.test.ts",
     "typecheck": "tsc --noEmit"
   },

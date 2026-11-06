@@ -2,7 +2,7 @@ import { hostname } from "node:os";
 import { randomUUID } from "node:crypto";
 import { enrichScene } from "../core/enrich-scene.js";
 import type { JsonValue, StoryPlanInput, StoryState } from "../core/contracts.js";
-import { ChatCompletionsProvider, LlmProviderError } from "../providers/llm/chat-completions.js";
+import { createLlmProvider, LlmProviderError } from "../providers/llm/index.js";
 import { SupabaseAudioStorage } from "../providers/storage/supabase.js";
 import { getTtsProvider } from "../tts/index.js";
 import { GenerationJobStore } from "./store.js";
@@ -23,7 +23,7 @@ export async function runGenerationJob(jobId: string): Promise<RunJobResult> {
       return await synthesizeAndCommit(store, job, leaseOwner);
     }
 
-    const provider = ChatCompletionsProvider.fromEnv();
+    const provider = createLlmProvider();
     const setup = isRecord(job.input.setup) ? toJsonRecord(job.input.setup) : {};
     const plan = job.jobType === "opening"
       ? await provider.planStory({ premise: job.premise, targetLang: job.targetLanguage, learnerLevel: job.learnerLevel, setup } satisfies StoryPlanInput)
@@ -41,6 +41,8 @@ export async function runGenerationJob(jobId: string): Promise<RunJobResult> {
     };
     const scene = await provider.writeScene({
       storyId: job.storyId,
+      targetLang: job.targetLanguage,
+      learnerLevel: job.learnerLevel,
       plan,
       state: currentState,
       selectedChoice: toJsonValue(job.input.selectedChoice),
@@ -90,7 +92,7 @@ export async function runGenerationJob(jobId: string): Promise<RunJobResult> {
         stateDelta: scene.stateDelta,
       },
       promptVersion: provider.promptVersion,
-      modelMetadata: { model: provider.model, attempt: job.attempt },
+      modelMetadata: { provider: provider.provider, model: provider.model, attempt: job.attempt },
       ttsDeferred: job.ttsMode === "every_scene",
     });
     if (job.ttsMode === "every_scene") {

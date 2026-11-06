@@ -19,6 +19,8 @@ export interface StoryPlan {
 
 export interface SceneGenerationInput {
   storyId: string;
+  targetLang?: TargetLang;
+  learnerLevel?: string;
   plan: StoryPlan;
   state: StoryState;
   selectedChoice?: JsonValue;

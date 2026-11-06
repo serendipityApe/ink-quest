@@ -71,6 +71,14 @@ Cloud Run Worker variables:
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 GENERATION_WORKER_TOKEN
+LLM_PROVIDER
+OPENAI_API_KEY
+OPENAI_KEY
+OPENAI_MODEL
+OPENAI_ORG_ID
+OPENAI_PROJECT_ID
+OPENAI_MAX_OUTPUT_TOKENS
+OPENAI_REASONING_EFFORT
 LLM_CHAT_COMPLETIONS_URL
 LLM_API_KEY
 LLM_MODEL
@@ -87,6 +95,8 @@ STORY_TTS_ZH_PROVIDER
 STORY_TTS_EN_PROVIDER
 GENERATED_AUDIO_BUCKET
 ```
+
+Choose `LLM_PROVIDER=openai` with a privately configured `OPENAI_API_KEY` (or `OPENAI_KEY`, with nonempty `OPENAI_API_KEY` taking precedence) and explicit `OPENAI_MODEL` on the Worker; retain the existing Gemini variables for manual rollback with `LLM_PROVIDER=gemini`. Leaving `LLM_PROVIDER` unset preserves the existing chat-completions endpoint. OpenAI promotion eligibility depends on the key’s organization/project and grant terms; it has not been verified. See [provider configuration and credit verification](tools/story-pipeline/README.md#llm-提供方与-openai-额度) and the secret-free [configuration example](tools/story-pipeline/llm.env.example).
 
 `GENERATED_AUDIO_BUCKET` defaults to `generated-audio`. Configure the Azure Speech key and region on the Cloud Run Worker; the verified evaluation resource uses `eastasia`. Azure is preferred for both Chinese and English when configured, with `zh-CN-Xiaoxiao:DragonHDFlashLatestNeural` and `en-US-JennyNeural` as defaults. Set `STORY_TTS_ZH_PROVIDER` or `STORY_TTS_EN_PROVIDER` to `azure` or `tencent` to override selection. The Worker image also installs FFmpeg to normalize multi-part Tencent audio into one seekable MP3 before upload.
 

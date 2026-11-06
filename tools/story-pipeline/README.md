@@ -17,7 +17,7 @@ pnpm --filter @inkquest/story-pipeline worker:build
 pnpm --filter @inkquest/story-pipeline worker:start
 ```
 
-Worker 暴露 `GET /health` 和受 Bearer token 保护的 `POST /jobs/:jobId`。它通过 Supabase RPC claim 任务，调用 OpenAI-compatible chat-completions 接口生成结构化规划与正文，复用本包富化层。正文先独立提交；开启 TTS 时再合成、用 FFmpeg 规范化多段 MP3、上传 Supabase Storage，并单独结算语音积分。语音最终失败只退还 TTS 积分，不回滚正文。
+Worker 暴露 `GET /health` 和受 Bearer token 保护的 `POST /jobs/:jobId`。它通过 Supabase RPC claim 任务，按 `LLM_PROVIDER` 选择 OpenAI Responses API 或原有 OpenAI-compatible chat-completions 接口，生成结构化规划与正文，复用本包富化层。正文先独立提交；开启 TTS 时再合成、用 FFmpeg 规范化多段 MP3、上传 Supabase Storage，并单独结算语音积分。语音最终失败只退还 TTS 积分，不回滚正文。
 
 环境变量：
 
@@ -25,6 +25,14 @@ Worker 暴露 `GET /health` 和受 Bearer token 保护的 `POST /jobs/:jobId`。
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 GENERATION_WORKER_TOKEN
+LLM_PROVIDER
+OPENAI_API_KEY
+OPENAI_KEY
+OPENAI_MODEL
+OPENAI_ORG_ID
+OPENAI_PROJECT_ID
+OPENAI_MAX_OUTPUT_TOKENS
+OPENAI_REASONING_EFFORT
 LLM_CHAT_COMPLETIONS_URL
 LLM_API_KEY
 LLM_MODEL
@@ -44,6 +52,37 @@ PORT
 ```
 
 容器入口见 `Dockerfile`。`data/` 中的词典仍是可选部署资产；缺失时会降级为分词和读音能力，释义由模型补齐。
+
+## LLM 提供方与 OpenAI 额度
+
+切换的是 **story-pipeline Worker**，不是 Next.js 浏览器端或本地 agent 创作流。配置示例见 [`llm.env.example`](llm.env.example)；示例不会被自动加载，不含凭据。
+
+| 变量 | 含义 |
+| --- | --- |
+| `LLM_PROVIDER` | `openai`、`gemini` 或 `chat-completions`；未设置时保留原 Chat Completions 行为，即使存在 OpenAI key 也不自动切换 |
+| `OPENAI_API_KEY` / `OPENAI_KEY` | OpenAI 模式二者至少配置一个；非空 `OPENAI_API_KEY` 优先，否则使用 `OPENAI_KEY`。通过本机私有环境文件或部署平台的 secret 安全配置 |
+| `OPENAI_MODEL` | OpenAI 模式必填；选择 interview 组织／项目有权限使用且支持 Responses 和 JSON mode 的模型，无隐式默认型号 |
+| `OPENAI_ORG_ID` / `OPENAI_PROJECT_ID` | 可选的实际组织／项目 ID，发送为 `OpenAI-Organization` / `OpenAI-Project` 请求头；不能填写显示名称 `interview` |
+| `OPENAI_MAX_OUTPUT_TOKENS` | 正整数，默认 6000，包含模型推理与文本输出预算；截断会报错，需评估后调高 |
+| `OPENAI_REASONING_EFFORT` | 可选 `none`、`low`、`medium`、`high`、`xhigh`、`max`；仅向 OpenAI 发送，须与所选模型兼容；未设置则使用模型默认值 |
+| `LLM_PROMPT_VERSION` | 两种提供方共用，默认 `opening-v1` |
+| `LLM_CHAT_COMPLETIONS_URL` / `LLM_API_KEY` / `LLM_MODEL` | 原 Gemini／兼容接口配置，仅用于 `gemini` 和 `chat-completions` 模式 |
+
+OpenAI 固定调用官方 `https://api.openai.com/v1/responses`，不会把 OpenAI key 发往旧 Gemini endpoint。规划、正文及释义复用同一套提示和运行时字段校验；开放式世界设定／剧情状态沿用 JSON mode，并未宣称 JSON Schema 严格约束。当前流程是后台任务，仍一次性返回结果，没有新增浏览器流式协议。请求设 `store: false`，不创建服务端对话状态；这不代表零数据保留。结果元数据记录提供方与模型。限流／服务故障最多请求三次；认证、额度耗尽、拒绝及输出截断不会盲目重试，也不会自动向另一家发送内容。
+
+**额度归属需单独核实**：用户收到的邮件称 interview 组织于 2026-10-29 获赠 $46、于 2026-11-12 到期；本次未核实当前余额、资格或模型适用范围。必须在 OpenAI Platform 切到 **interview**，核对 Billing/Credit grants 的余额、有效期和条款，并安全使用该组织下对应项目可用的 API key。任意 OpenAI key 或仅填写组织请求头都不保证能抵扣该额度。
+
+安全配置后，将 Worker 的 `LLM_PROVIDER=openai`；保留 Gemini 的三个 `LLM_*` 变量。需要回退时改为 `LLM_PROVIDER=gemini` 并重启本地 Worker（云端需另行授权部署）。不要把 key 放到 `NEXT_PUBLIC_*`、代码、聊天或示例文件中。代码不修改真实凭据，也不自动切换已运行的 Worker。`.env` 中的 `OPENAI_KEY` 会由现有加载器读入内存，无需重命名或复制；仍需显式设置提供方、模型和所需推理强度。
+
+本地离线验证（mock fetch，不消耗额度）：
+
+```bash
+pnpm --filter @inkquest/story-pipeline test:llm
+pnpm --filter @inkquest/story-pipeline typecheck
+pnpm --filter @inkquest/story-pipeline worker:build
+```
+
+API 用法依据：[Responses 迁移指南](https://developers.openai.com/api/docs/guides/migrate-to-responses)、[JSON mode](https://developers.openai.com/api/docs/guides/structured-outputs)、[组织／项目鉴权](https://developers.openai.com/api/reference/overview)。
 
 ## 安装
 
