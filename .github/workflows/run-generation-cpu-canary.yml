@@ -1,10 +1,7 @@
 name: Run isolated generation CPU canary
 on:
-  push:
-    branches: [feat/generation-edge-worker-20261106]
-    paths:
-      - .github/workflows/run-generation-cpu-canary.yml
-      - tools/generation-worker/run_cpu_canary.mjs
+  # The authorized six-message experiment is complete. No automatic reruns.
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:

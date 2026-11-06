@@ -4,6 +4,10 @@ Local workerd tests verify compatibility, not Cloudflare CPU enforcement. This
 canary makes the next measurement concrete without production data or paid
 model/speech calls. Its configuration and source are separate from production.
 
+**Completed 2026-11-06:** six messages, all `ok`, provider CPU 0–21 ms,
+startup 366 ms, backlog 0. See [actual results and limits](CPU-RESULTS.md).
+The three experiment workflows are now manual-only, with no automatic reruns.
+
 The existing task authorization covers these isolated resources after the
 Free-plan, existing-permission and production-isolation checks below succeed:
 
@@ -27,9 +31,9 @@ previously returned 403; never repeat it or require additional billing permissio
 After confirming Free-plan evidence and reading resource inventories, build
 with `pnpm --filter @inkquest/generation-worker build:canary`. Review
 `wrangler.canary.jsonc` before any real deployment. Do not raise `cpu_ms` or change
-the plan. `.github/workflows/run-generation-cpu-canary.yml` runs only for its own
-or `run_cpu_canary.mjs` changes on the isolated feature branch. It installs/builds
-before exposing the existing token to the final control-plane step. It fails
+the plan. `.github/workflows/run-generation-cpu-canary.yml` was triggered once on
+the isolated feature branch and is now manual-only. It installs/builds before
+exposing the existing token to the final control-plane step. It fails
 closed if either canary resource already exists, and stops at any API denial.
 
 The current one-shot script sends these six fixed cases once each (6 messages,

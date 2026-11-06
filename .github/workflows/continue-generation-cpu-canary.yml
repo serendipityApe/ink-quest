@@ -1,10 +1,7 @@
 name: Measure five remaining isolated CPU fixtures
 on:
-  push:
-    branches: [feat/generation-edge-worker-20261106]
-    paths:
-      - .github/workflows/continue-generation-cpu-canary.yml
-      - tools/generation-worker/continue_cpu_canary.mjs
+  # Completed once; the script also refuses any already-continued experiment.
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:

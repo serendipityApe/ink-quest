@@ -91,9 +91,11 @@ linear memory was 61,734,912 bytes (58.9 MiB); JS heap, SDK and concurrent work
 also consume the 128 MB isolate allowance. Production consumer batch size and
 concurrency should start at 1. Keep the current Free plan; do not increase CPU
 limits to Paid settings or claim Free suitability without measured evidence.
-The separate [CPU validation procedure](CPU-VALIDATION.md) and inactive canary
-configuration specify an actual isolated Queue measurement, pending verification
-of the current Free plan and existing rights. No remote CPU or total-heap
+The [isolated Cloudflare results](CPU-RESULTS.md) now record six successful fixed
+fixtures on the user-confirmed Free account, with provider CPU 0–21 ms and
+366 ms upload startup. This is bounded Queue evidence, not a 10 ms HTTP guarantee
+or a measurement of total peak heap. The [CPU procedure](CPU-VALIDATION.md) and
+manual-only experiment workflows preserve the isolation checks. No total-heap
 measurements have been obtained.
 
 ## Dictionary preparation and capacity

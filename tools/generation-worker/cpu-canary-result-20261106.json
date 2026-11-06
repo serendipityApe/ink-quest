@@ -1,0 +1,168 @@
+{
+  "deployedSourceCommit": "5a942e9060e7bb158f51b36145aa6beae821cc1e",
+  "startupTimeMs": 366,
+  "startupSourceRun": "https://github.com/serendipityApe/ink-quest/actions/runs/42266553382",
+  "finalSourceRun": "https://github.com/serendipityApe/ink-quest/actions/runs/42267980479",
+  "finalReport": {
+    "startedAt": "2026-11-06T18:08:38.452Z",
+    "worker": "inkquest-generation-cpu-canary",
+    "queue": "inkquest-generation-cpu-canary-20261106",
+    "queueId": "f5408177e3c3462fac2746874902f80d",
+    "version": "15257c85-76e5-46a8-8029-2ad7d3e0be84",
+    "completed": [
+      "verify_isolated_queue",
+      "verify_isolated_consumer",
+      "verify_no_public_urls",
+      "verify_no_bindings",
+      "verify_deployed_version",
+      "read_existing_canary_cpu",
+      "send_zh-paragraph",
+      "read_existing_canary_cpu",
+      "read_existing_canary_cpu",
+      "send_zh-long",
+      "read_existing_canary_cpu",
+      "read_existing_canary_cpu",
+      "send_en-short",
+      "read_existing_canary_cpu",
+      "read_existing_canary_cpu",
+      "read_existing_canary_cpu",
+      "send_en-paragraph",
+      "read_existing_canary_cpu",
+      "read_existing_canary_cpu",
+      "send_en-long",
+      "read_existing_canary_cpu",
+      "read_existing_canary_cpu",
+      "canary_queue_metrics"
+    ],
+    "additionalMessagesAccepted": 5,
+    "totalExperimentMessagesAccepted": 6,
+    "samples": [
+      {
+        "requestId": "96bc96a93ca3a7dfc2d082a102306d5e",
+        "cpuTimeMs": 3,
+        "wallTimeMs": 4,
+        "outcome": "ok",
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84",
+        "caseId": "zh-short",
+        "tokens": 26,
+        "wasmMemoryBytes": 61734912,
+        "networkCalls": 0
+      },
+      {
+        "requestId": "660f0f98f118d6b0416161c950a4e78a",
+        "cpuTimeMs": 8,
+        "wallTimeMs": 8,
+        "outcome": "ok",
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84",
+        "caseId": "zh-paragraph",
+        "tokens": 260,
+        "wasmMemoryBytes": 61734912,
+        "networkCalls": 0
+      },
+      {
+        "requestId": "667f7a6099503a5a6b5f922ed5c79837",
+        "cpuTimeMs": 21,
+        "wallTimeMs": 21,
+        "outcome": "ok",
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84",
+        "caseId": "zh-long",
+        "tokens": 1820,
+        "wasmMemoryBytes": 61734912,
+        "networkCalls": 0
+      },
+      {
+        "requestId": "f7bef1b156c563c25e19928399842ecc",
+        "cpuTimeMs": 1,
+        "wallTimeMs": 2,
+        "outcome": "ok",
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84",
+        "caseId": "en-short",
+        "tokens": 15,
+        "wasmMemoryBytes": 61734912,
+        "networkCalls": 0
+      },
+      {
+        "requestId": "a7398f265435fd464a45e2c98964322b",
+        "cpuTimeMs": 0,
+        "wallTimeMs": 1,
+        "outcome": "ok",
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84",
+        "caseId": "en-paragraph",
+        "tokens": 150,
+        "wasmMemoryBytes": 61734912,
+        "networkCalls": 0
+      },
+      {
+        "requestId": "73024cb908b2e47269acfea6600561bc",
+        "cpuTimeMs": 7,
+        "wallTimeMs": 8,
+        "outcome": "ok",
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84",
+        "caseId": "en-long",
+        "tokens": 1500,
+        "wasmMemoryBytes": 61734912,
+        "networkCalls": 0
+      }
+    ],
+    "stopped": {
+      "action": "six_sample_experiment_complete",
+      "denied": false
+    },
+    "verifiedConsumer": {
+      "scriptName": "inkquest-generation-cpu-canary",
+      "type": "worker",
+      "batchSize": 1,
+      "maxConcurrency": 1,
+      "maxRetries": 0
+    },
+    "observedInvocationOutcomes": [
+      {
+        "requestId": "73024cb908b2e47269acfea6600561bc",
+        "outcome": "ok",
+        "cpuTimeMs": 7,
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84"
+      },
+      {
+        "requestId": "a7398f265435fd464a45e2c98964322b",
+        "outcome": "ok",
+        "cpuTimeMs": 0,
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84"
+      },
+      {
+        "requestId": "f7bef1b156c563c25e19928399842ecc",
+        "outcome": "ok",
+        "cpuTimeMs": 1,
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84"
+      },
+      {
+        "requestId": "667f7a6099503a5a6b5f922ed5c79837",
+        "outcome": "ok",
+        "cpuTimeMs": 21,
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84"
+      },
+      {
+        "requestId": "660f0f98f118d6b0416161c950a4e78a",
+        "outcome": "ok",
+        "cpuTimeMs": 8,
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84"
+      },
+      {
+        "requestId": "96bc96a93ca3a7dfc2d082a102306d5e",
+        "outcome": "ok",
+        "cpuTimeMs": 3,
+        "scriptVersion": "15257c85-76e5-46a8-8029-2ad7d3e0be84"
+      }
+    ],
+    "finalMetrics": {
+      "backlog_count": 0,
+      "backlog_bytes": 0,
+      "oldest_message_timestamp_ms": 0
+    },
+    "cpuSummaryMs": {
+      "count": 6,
+      "median": 5,
+      "p95": 21,
+      "max": 21
+    }
+  }
+}

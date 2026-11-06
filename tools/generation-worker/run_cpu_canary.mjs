@@ -1,6 +1,7 @@
 // One-shot, isolated Cloudflare control-plane experiment. Never loads app keys.
 import {appendFile,readFile} from "node:fs/promises";
 import {fileURLToPath} from "node:url";
+import {extractCanaryTelemetry} from "./canary_telemetry.mjs";
 
 export const ACCOUNT="fdfece8b5c135c21fa630440b8dbf2e4";
 export const WORKER="inkquest-generation-cpu-canary";
@@ -80,28 +81,12 @@ export async function runCanary({token,account=ACCOUNT,request=fetch,read=readFi
         await wait(10_000);
         const logs=await api("read_canary_cpu","/workers/observability/telemetry/query","POST",{
           queryId:"inkquest-generation-cpu-canary-once",dry:true,view:"events",limit:100,
-          timeframe:{from,to:now()},parameters:{datasets:["cloudflare-workers"],
-            filters:[{key:"$workers.scriptName",type:"string",operation:"eq",value:WORKER}]}});
-        const invocations=[],completedRequests=new Set();
-        function findFixture(value){
-          if(typeof value==="string"){try{return findFixture(JSON.parse(value));}catch{return false;}}
-          if(!value||typeof value!=="object")return false;
-          if(value.event==="generation_cpu_canary"&&value.caseId===caseId&&value.networkCalls===0)return true;
-          return Object.values(value).some(findFixture);
-        }
-        function visit(value){
-          if(!value||typeof value!=="object")return;
-          const w=value.$workers;
-          if(w?.scriptName===WORKER&&w.eventType==="queue"&&w.requestId){
-            if(findFixture(value.source)||findFixture(value.$metadata?.message))completedRequests.add(w.requestId);
-            if(typeof w.cpuTimeMs==="number")invocations.push(w);
-          }
-          for(const item of Object.values(value))visit(item);
-        }
-        visit(logs.result);
-        const w=invocations.find(w=>completedRequests.has(w.requestId)&&!seen.has(w.requestId));
-        if(w){seen.add(w.requestId);sample={caseId,cpuTimeMs:w.cpuTimeMs,wallTimeMs:w.wallTimeMs??null,
-          outcome:w.outcome,requestId:w.requestId,scriptVersion:w.scriptVersion?.id??null};}
+          timeframe:{from,to:now()},parameters:{
+            filters:[{key:"$metadata.service",type:"string",operation:"eq",value:WORKER}]}});
+        const data=extractCanaryTelemetry(logs.result,WORKER);
+        report.observedInvocationOutcomes=data.invocations;
+        sample=data.samples.find(s=>s.caseId===caseId&&!seen.has(s.requestId))??null;
+        if(sample)seen.add(sample.requestId);
       }
       if(!sample)stop("read_canary_cpu","provider_cpu_not_observed_no_more_messages",{denied:false});
       report.samples.push(sample);progress();

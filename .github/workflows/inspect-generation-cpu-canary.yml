@@ -1,10 +1,6 @@
 name: Inspect existing isolated CPU canary read-only
 on:
-  push:
-    branches: [feat/generation-edge-worker-20261106]
-    paths:
-      - .github/workflows/inspect-generation-cpu-canary.yml
-      - tools/generation-worker/inspect_cpu_canary.mjs
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
