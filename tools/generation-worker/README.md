@@ -137,17 +137,28 @@ Supabase service-role secret and local OpenAI key to `inkquest-generation-worker
 only, without configuring speech. The [disabled deployment](https://github.com/serendipityApe/ink-quest/actions/runs/42273373946)
 created that Worker, set its Supabase secret and verified `GENERATION_ENABLED=false`,
 no Queue binding, no Cron and disabled public/preview URLs. Upload startup was
-364 ms. OpenAI has not been transferred: local Cloudflare OAuth is expired and
-the current valid Cloudflare token is available only inside existing GitHub CI.
-The local OpenAI key must not be persisted to GitHub as an intermediate step.
-No new authentication has been created or renewed.
+364 ms. After separate explicit approval to restore local OAuth, Wrangler 4.112.0
+was authenticated with only `workers_scripts:write` plus its automatically added
+`offline_access`. The existing local OpenAI key was then transferred directly to
+this Worker's `OPENAI_API_KEY`; it was not persisted in GitHub or another relay.
+The resulting active version is `2ad0dee3-41bd-472f-9831-b45c02c27663` (100%).
+Post-write metadata verified both secret names/types, disabled generation, no
+Queue binding, no Cron and disabled public/preview URLs. No model request was
+made. No speech credential was configured. `OPENAI_MODEL` remains unset until the
+intended model configuration is established; readiness must remain closed.
 
 The prepared SQL tables/RPCs were confirmed absent by a read-only schema check.
 Database size, migration and dictionary import still need an authorized SQL
 management connection; no SQL credential is currently configured locally.
 The old task remains queued with attempt 0, 20 reserved/0 settled and an expired
 reservation, so production consumer/recovery activation remains prohibited until
-the operator chooses its treatment. No old task or accounting row was changed.
+the approved cancellation is safely executed. The operator has now chosen to
+cancel that exact unprocessed task and release its 20-credit reservation, but no
+atomic cancellation RPC or authenticated SQL management channel is available.
+The reviewed one-off SQL and regression fixtures stay outside this public
+repository because they contain private account/job identifiers. No old task or
+accounting row was changed. Restoring Cloudflare OAuth did not establish a
+Supabase SQL connection, and no Supabase PAT has been created.
 
 1. Read only the current metadata for the pre-existing queued job and its
    reservation identified in the deployment review. Obtain the operator's explicit decision
@@ -163,7 +174,7 @@ the operator chooses its treatment. No old task or accounting row was changed.
    | Source | Exact destination | Scope/risk |
    |---|---|---|
    | Existing GitHub Repository Secret `SUPABASE_SERVICE_ROLE_KEY` | Worker `inkquest-generation-worker`, secret `SUPABASE_SERVICE_ROLE_KEY` | Explicitly approved and configured; secret name/type verified without displaying its value. Bypasses RLS; backend remains disabled. |
-   | Existing root `.env` definition `OPENAI_KEY` | Worker `inkquest-generation-worker`, secret `OPENAI_API_KEY` | Explicitly approved for direct transfer; pending a valid authorized local Cloudflare path. No value displayed or intermediate GitHub storage. Can incur model usage once activated. |
+   | Existing root `.env` definition `OPENAI_KEY` | Worker `inkquest-generation-worker`, secret `OPENAI_API_KEY` | Explicitly approved and directly configured after separately approved local OAuth restoration; name/type verified. No value displayed or intermediate GitHub storage. Can incur model usage once activated. |
    | Existing `tools/story-pipeline/.env.local` definition `AZURE_SPEECH_KEY` | Worker `inkquest-generation-worker`, secret `AZURE_SPEECH_KEY` | Source is present, nonempty and not an obvious placeholder; value not displayed or supplier-validated. Can incur speech usage. Optional for a text-only launch; narration requests remain gated off without it. |
 
 4. Configure nonsecret Supabase URL, explicit model/provider, dictionary version,
@@ -183,7 +194,7 @@ the operator chooses its treatment. No old task or accounting row was changed.
 
 The main site's Wrangler config and automatic deployment workflow are unchanged.
 The new backend deployment is disabled and its configuration workflow is now
-manual-only. Only the approved Supabase secret has been uploaded to that backend;
+manual-only. Both approved Supabase/OpenAI secrets have been configured on that backend;
 no production job, reservation or consumer has changed. Keep main's readiness gate
 closed until the SQL, dictionary, OpenAI configuration and old-task decision are
 complete, then perform the separately authorized minimal text-only end-to-end test.

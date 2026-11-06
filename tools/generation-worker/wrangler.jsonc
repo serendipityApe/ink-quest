@@ -14,7 +14,7 @@
     "LLM_PROVIDER": "openai"
   },
   "observability": { "enabled": true }
-  // No consumers, producers, Cron or secret values. Existing Supabase secret was
-  // separately approved and configured; OpenAI direct transfer remains pending.
+  // No consumers, producers, Cron or secret values. Both approved secrets are
+  // configured remotely; SQL/dictionary/model setup and atomic cancellation remain pending.
   // Production activation requires the separate backlog/credentials decision.
 }
