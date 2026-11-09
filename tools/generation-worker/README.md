@@ -126,8 +126,8 @@ For the existing files measured on 2026-11-06:
 
 This is a local size measurement, not the current project's usage or a promise
 that its free capacity is sufficient. Check live database size and allow import,
-index, checkpoint/history and maintenance margin before any real import. No
-dictionary has been imported into Supabase. Import into an unready version,
+index, checkpoint/history and maintenance margin before any real import. The first 50,000 Chinese rows were imported on 2026-11-09 into an unready version.
+The remaining 842,057 rows are pending a post-batch capacity observation. Import into an unready version,
 verify the complete row count and both languages, then activate the version.
 
 ## Production gates — backend deployed disabled
@@ -141,13 +141,12 @@ no Queue binding, no Cron and disabled public/preview URLs. Upload startup was
 was authenticated with only `workers_scripts:write` plus its automatically added
 `offline_access`. The existing local OpenAI key was then transferred directly to
 this Worker's `OPENAI_API_KEY`; it was not persisted in GitHub or another relay.
-The resulting active version is `2ad0dee3-41bd-472f-9831-b45c02c27663` (100%).
+The resulting version at that time was `2ad0dee3-41bd-472f-9831-b45c02c27663` (100%).
 Post-write metadata verified both secret names/types, disabled generation, no
 Queue binding, no Cron and disabled public/preview URLs. No model request was
-made. No speech credential was configured. `OPENAI_MODEL` remains unset until the
-intended model configuration is established; readiness must remain closed.
+made. No speech credential was configured. Readiness remains closed until the data and consumer checks are complete.
 
-The prepared SQL tables/RPCs remain absent. On 2026-11-09 the operator
+On 2026-11-09 the operator
 executed the reviewed one-off cancellation in the existing SQL Editor. An
 independent REST read confirmed the old task is canceled, its unspent 20 credits
 are released exactly once, one cancellation event exists, and there are no active
@@ -158,16 +157,26 @@ this public repository.
 Production function fingerprints and privileges were checked before cancellation.
 The prepared claim/recovery functions now acquire the shared reservation advisory
 lock before the reservation row, matching billing settlement/release order.
-Database migrations and dictionary import still need the existing SQL Editor and
-actual project database/disk capacity confirmation; no Supabase PAT or new database
-credential has been created. The schema bundle records both migration versions
-and their exact source SQL in the same transaction, leaving generation inactive.
+The operator then applied the schema bundle in the existing SQL Editor. REST
+verification found all four tables and 14 required RPCs, and inactive backend
+status. The SQL result reports two migration-history records; that private schema
+is not exposed through the existing REST connection and was not independently
+read there. No Supabase PAT or new database credential has been created.
+
+The Dashboard capacity check showed Free with 0.5 GB database quota per project,
+27.93 MB reported database usage, and 259.11 MB disk usage on a 2 GB disk. Database
+quota and disk capacity are different limits. The first serial 50,000-row import
+completed with 51 source-matching sample reads; ready remains false and active
+jobs remain empty. Observe current database/disk usage before importing the rest.
+The importer and private checkpoint are outside this repository.
 
 The existing OpenAI key can read model metadata for `gpt-6-luna` (HTTP 200).
 [Official model documentation](https://developers.openai.com/api/docs/models/gpt-6-luna)
-confirms Responses API support and low reasoning effort. This is a candidate for
-the bounded text-only launch; metadata access does not establish remaining API
-credit, successful inference or story quality. No live model call has been made.
+confirms Responses API support and low reasoning effort. The disabled Worker now pins this model, low reasoning, 6,000 output tokens and
+dictionary version `lex-244056cfff1d40670ec63f7b`. The 2026-11-09 configuration
+deployment produced version `5754608b-0c16-44ec-bb01-7460922a46ee`, startup 361 ms.
+Metadata access does not establish remaining API credit, successful inference or
+story quality. No live model call has been made.
 
 1. Read only the current metadata for the pre-existing queued job and its
    reservation identified in the deployment review. Obtain the operator's explicit decision

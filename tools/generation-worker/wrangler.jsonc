@@ -11,10 +11,14 @@
   "vars": {
     "GENERATION_ENABLED": "false",
     "SUPABASE_URL": "https://irzfnntlixbtccdfjcpm.supabase.co",
-    "LLM_PROVIDER": "openai"
+    "LLM_PROVIDER": "openai",
+    "OPENAI_MODEL": "gpt-6-luna",
+    "OPENAI_REASONING_EFFORT": "low",
+    "OPENAI_MAX_OUTPUT_TOKENS": "6000",
+    "GENERATION_DICTIONARY_VERSION": "lex-244056cfff1d40670ec63f7b"
   },
   "observability": { "enabled": true }
   // No consumers, producers, Cron or secret values. Both approved secrets are
-  // configured remotely; SQL/dictionary/model setup and atomic cancellation remain pending.
-  // Production activation requires the separate backlog/credentials decision.
+  // configured remotely. Cancellation and schema installation are verified.
+  // Dictionary import/verification must finish before consumer/Cron activation.
 }
