@@ -114,6 +114,9 @@ begin
   select * into v_job from public.generation_jobs where id=p_job_id for update;
   if not found then return jsonb_build_object('kind','missing'); end if;
   if v_job.status in ('completed','partial_success','failed','canceled') then return jsonb_build_object('kind','terminal'); end if;
+  -- Billing release/settlement lock the reservation advisory key before its row.
+  -- Preserve that order even when claim must abort an expired reservation.
+  perform pg_advisory_xact_lock(hashtextextended(v_job.reservation_id::text,0));
   select * into v_reservation from public.credit_reservations where id=v_job.reservation_id for update;
   if v_reservation.status not in ('reserved','partially_settled') or v_reservation.expires_at<=now() then
     perform public.edge_abort_generation_job(p_job_id,'generation_deadline_expired');
@@ -250,6 +253,8 @@ begin
        (j.status='queued' and j.updated_at<now()-interval '5 minutes'))
     order by j.updated_at limit 25 for update of j skip locked
   loop
+    -- Keep recovery compatible with concurrent release/settlement transactions.
+    perform pg_advisory_xact_lock(hashtextextended(v_job.reservation_id::text,0));
     select * into v_res from public.credit_reservations where id=v_job.reservation_id for update;
     select * into v_state from public.generation_edge_state where job_id=v_job.id for update;
     if v_res.expires_at<=now() or v_res.status not in ('reserved','partially_settled') then

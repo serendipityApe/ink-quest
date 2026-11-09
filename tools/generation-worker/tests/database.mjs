@@ -1,5 +1,5 @@
 import {readFile} from "node:fs/promises";
-export async function isolatedDatabase(){
+export async function isolatedDatabase({includeEdge=true}={}){
   const {PGlite}=await import(process.env.PGLITE_MODULE??"@electric-sql/pglite");
   const db=new PGlite();
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
@@ -12,6 +12,7 @@ export async function isolatedDatabase(){
   for(const file of ["202608220001_generated_story_billing.sql","202608220002_generation_worker_rpc.sql",
     "202608230001_generated_story_tts.sql","202608230002_fix_generation_digest_search_path.sql","202611060001_edge_generation_worker.sql",
     "202611060002_generation_readiness.sql"]){
+    if(!includeEdge && file.startsWith("20261106"))continue;
     const sql=await readFile(new URL(`../../../supabase/migrations/${file}`,import.meta.url),"utf8");
     await db.exec(sql.replace("create extension if not exists pgcrypto;",""));
   }

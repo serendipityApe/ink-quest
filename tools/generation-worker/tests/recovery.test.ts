@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { before, after, test } from "node:test";
 import { isolatedDatabase } from "./database.mjs";
 import { postgrestResponse } from "./postgrest.mjs";
@@ -8,6 +9,15 @@ import type { Lease } from "../src/contracts.js";
 import { LlmProviderError } from "../../story-pipeline/src/providers/llm/errors.js";
 
 let db: Awaited<ReturnType<typeof isolatedDatabase>>;
+test("claim and recovery take the billing advisory lock before the reservation row",async()=>{
+  const sql=await readFile(new URL("../../../supabase/migrations/202611060001_edge_generation_worker.sql",import.meta.url),"utf8");
+  for(const name of ["edge_claim_generation_job","edge_recover_generation_jobs"]){
+    const body=sql.split(`create function public.${name}(`)[1].split("end $$;")[0];
+    const advisory=body.indexOf("perform pg_advisory_xact_lock(hashtextextended(v_job.reservation_id::text,0))");
+    const reservation=body.search(/select \* into v_res(?:ervation)? from public\.credit_reservations/);
+    assert.ok(advisory>=0&&reservation>advisory,`${name}: preserve the shared billing lock order`);
+  }
+});
 const originalFetch = globalThis.fetch;
 async function rpc(name: string, args: Record<string, unknown> = {}) {
   const entries = Object.entries(args);

@@ -147,18 +147,27 @@ Queue binding, no Cron and disabled public/preview URLs. No model request was
 made. No speech credential was configured. `OPENAI_MODEL` remains unset until the
 intended model configuration is established; readiness must remain closed.
 
-The prepared SQL tables/RPCs were confirmed absent by a read-only schema check.
-Database size, migration and dictionary import still need an authorized SQL
-management connection; no SQL credential is currently configured locally.
-The old task remains queued with attempt 0, 20 reserved/0 settled and an expired
-reservation, so production consumer/recovery activation remains prohibited until
-the approved cancellation is safely executed. The operator has now chosen to
-cancel that exact unprocessed task and release its 20-credit reservation, but no
-atomic cancellation RPC or authenticated SQL management channel is available.
-The reviewed one-off SQL and regression fixtures stay outside this public
-repository because they contain private account/job identifiers. No old task or
-accounting row was changed. Restoring Cloudflare OAuth did not establish a
-Supabase SQL connection, and no Supabase PAT has been created.
+The prepared SQL tables/RPCs remain absent. On 2026-11-09 the operator
+executed the reviewed one-off cancellation in the existing SQL Editor. An
+independent REST read confirmed the old task is canceled, its unspent 20 credits
+are released exactly once, one cancellation event exists, and there are no active
+generation jobs. Queue metrics are separate evidence and were not used to infer
+cancellation or credit release. The private backup, SQL and reports remain outside
+this public repository.
+
+Production function fingerprints and privileges were checked before cancellation.
+The prepared claim/recovery functions now acquire the shared reservation advisory
+lock before the reservation row, matching billing settlement/release order.
+Database migrations and dictionary import still need the existing SQL Editor and
+actual project database/disk capacity confirmation; no Supabase PAT or new database
+credential has been created. The schema bundle records both migration versions
+and their exact source SQL in the same transaction, leaving generation inactive.
+
+The existing OpenAI key can read model metadata for `gpt-6-luna` (HTTP 200).
+[Official model documentation](https://developers.openai.com/api/docs/models/gpt-6-luna)
+confirms Responses API support and low reasoning effort. This is a candidate for
+the bounded text-only launch; metadata access does not establish remaining API
+credit, successful inference or story quality. No live model call has been made.
 
 1. Read only the current metadata for the pre-existing queued job and its
    reservation identified in the deployment review. Obtain the operator's explicit decision
@@ -195,6 +204,6 @@ Supabase SQL connection, and no Supabase PAT has been created.
 The main site's Wrangler config and automatic deployment workflow are unchanged.
 The new backend deployment is disabled and its configuration workflow is now
 manual-only. Both approved Supabase/OpenAI secrets have been configured on that backend;
-no production job, reservation or consumer has changed. Keep main's readiness gate
+the separately approved old-job cancellation has been verified; consumers remain detached. Keep main's readiness gate
 closed until the SQL, dictionary, OpenAI configuration and old-task decision are
 complete, then perform the separately authorized minimal text-only end-to-end test.
