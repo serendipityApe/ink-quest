@@ -126,8 +126,11 @@ For the existing files measured on 2026-11-06:
 
 This is a local size measurement, not the current project's usage or a promise
 that its free capacity is sufficient. Check live database size and allow import,
-index, checkpoint/history and maintenance margin before any real import. The first 50,000 Chinese rows were imported on 2026-11-09 into an unready version.
-The remaining 842,057 rows are pending a post-batch capacity observation. Import into an unready version,
+index, checkpoint/history and maintenance margin before any real import. On
+2026-11-09, the guarded import reached 484,500 confirmed rows, then paused after
+repeated memory-commitment threshold breaches. The remaining 407,557 rows and
+full verification are pending stable database resources. The version remains unready.
+Import into an unready version,
 verify the complete row count and both languages, then activate the version.
 
 ## Production gates — backend deployed disabled
@@ -168,7 +171,29 @@ The Dashboard capacity check showed Free with 0.5 GB database quota per project,
 quota and disk capacity are different limits. The first serial 50,000-row import
 completed with 51 source-matching sample reads; ready remains false and active
 jobs remain empty. Observe current database/disk usage before importing the rest.
-The importer and private checkpoint are outside this repository.
+The importer and private checkpoint are outside this repository. Subsequent
+imports use the official Supabase Metrics API with the existing service-role
+credential, without creating a monitoring service or additional access. The
+serial importer checkpoints each successful transaction and reconciles uncertain
+writes by exact readback before resuming. Limits stop import at database size
+350 MB, data disk usage 1.4 GB, memory commitment 92%, available memory below
+128 MiB, swap usage 50%, unhealthy PostgreSQL or a changed boot timestamp.
+At 2026-11-09 13:22 UTC, import stopped at 475,000 rows with no pending write:
+memory commitment reached 114.5%. Two subsequent minute-spaced readings recovered
+below the guard, and exact count plus 98 dispersed source samples matched.
+Resuming at 500 rows per batch with a one-second delay triggered another stop
+at 13:26 UTC: 484,500 confirmed rows, no pending write, memory commitment 98.2%.
+Import is stopped; resource stability is an unresolved activation prerequisite.
+No readiness flag, queue consumer, Cron or live model test was activated. Never
+weaken these limits to force completion.
+
+The manual-only `activate-generation-worker.yml` workflow and
+`activation_checks.mjs` prepare deployment through the existing GitHub
+Cloudflare credential, whose queue permissions were already exercised by the
+isolated canary. They require the complete verified dictionary, no active jobs,
+closed backend status and existing Worker secrets before deployment, then check
+private URLs, queue binding, one consumer with concurrency one and the minute
+Cron afterward. They do not copy secrets or open the database readiness gate.
 
 The existing OpenAI key can read model metadata for `gpt-6-luna` (HTTP 200).
 [Official model documentation](https://developers.openai.com/api/docs/models/gpt-6-luna)
