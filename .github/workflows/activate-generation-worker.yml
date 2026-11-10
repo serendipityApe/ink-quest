@@ -1,4 +1,4 @@
-name: Activate verified text generation Worker
+name: Update verified text generation Worker
 on:
   workflow_dispatch:
   push:
@@ -27,14 +27,14 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node --test tools/generation-worker/tests/activation-checks.test.mjs
       - run: pnpm --filter @inkquest/generation-worker build
-      - name: Verify dictionary and closed entry, deploy, then verify consumer and Cron
+      - name: Verify existing consumer and closed entry, deploy diagnostics, then verify again
         env:
           CLOUDFLARE_ACCOUNT_ID: fdfece8b5c135c21fa630440b8dbf2e4
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || vars.CLOUDFLARE_API_TOKEN }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           WRANGLER_SEND_METRICS: 'false'
         run: |
-          node tools/generation-worker/activation_checks.mjs before
+          node tools/generation-worker/activation_checks.mjs after
           pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc
           node tools/generation-worker/activation_checks.mjs after
       # Existing credentials only. No secret relay, database writes, model call,

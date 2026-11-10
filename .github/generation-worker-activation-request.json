@@ -1,5 +1,5 @@
 {
-  "purpose": "Activate verified OpenAI text generation with private lexical assets",
+  "purpose": "Explicitly approved diagnostic update on existing production Worker; one new authorized text test follows separately",
   "dictionaryVersion": "assets-lex-244056cfff1d40670ec63f7b-6b262d70369a",
   "readerVersion": "47b49ee7-7858-47d6-9373-504fd330f11a",
   "cpuCanaryRun": 42767197994,
@@ -12,5 +12,8 @@
   "frontendDeployment": false,
   "tts": false,
   "status": "explicitly_user_approved",
-  "singleRetryAfterApproval": true
+  "singleRetryAfterApproval": true,
+  "mode": "diagnostics_update",
+  "diagnosticCommit": "6a8a42a",
+  "singleNewTestKey": "inkquest-openai-text-diagnostics-20261110-once"
 }
