@@ -3,7 +3,7 @@ import type { CommitGeneratedAudioInput } from "../../story-pipeline/src/worker/
 import { EdgeConfigurationError, enrichSceneEdge, type ChineseSegmenter } from "./enrich.js";
 import type { Delivery, EdgeStore, Lease, OutboxItem, QueueBinding, Phase } from "./contracts.js";
 import { StoreUnavailable } from "./store.js";
-import { LlmProviderError } from "../../story-pipeline/src/providers/llm/errors.js";
+import { GlossValidationError, LlmProviderError, type GlossValidationDiagnostics } from "../../story-pipeline/src/providers/llm/errors.js";
 import {advanceEnrichment} from './enrich-step.js';
 
 export interface Services {
@@ -29,6 +29,7 @@ export async function deliver(message: Delivery, services: Services): Promise<vo
   if (!body || typeof body.jobId !== "string" || !UUID.test(body.jobId)) { message.ack(); return; }
   let lease: Lease | undefined;
   let stageStarted:number|undefined;let outcome="interrupted";
+  let glossDiagnostics: GlossValidationDiagnostics | undefined;
   try {
     const claim = await services.store.claim(body.jobId, crypto.randomUUID());
     if (claim.kind === "terminal" || claim.kind === "missing") { message.ack(); return; }
@@ -47,6 +48,7 @@ export async function deliver(message: Delivery, services: Services): Promise<vo
     message.ack();outcome="checkpointed";
   } catch (error) {
     outcome="retry_or_failure";
+    if (error instanceof GlossValidationError) glossDiagnostics = error.diagnostics;
     if (!lease || error instanceof StoreUnavailable) {
       message.retry({ delaySeconds: 30 }); return;
     }
@@ -54,13 +56,14 @@ export async function deliver(message: Delivery, services: Services): Promise<vo
     // A client timeout does not prove the upstream did not accept or charge it.
     try {
       const next = await services.store.fail(lease,
-        error instanceof EdgeConfigurationError ? error.code : "generation_stage_failed",
+        error instanceof EdgeConfigurationError ? error.code :
+          error instanceof GlossValidationError ? "generation_gloss_response_invalid" : "generation_stage_failed",
         error instanceof LlmProviderError && error.safeToRetry);
       if (next) await publish(next, services);
       message.ack();
     } catch { message.retry({ delaySeconds: 30 }); }
   }finally{
-    if(lease&&stageStarted!==undefined)console.log(JSON.stringify({event:"generation_stage_timing",jobId:lease.job.jobId,phase:lease.phase,epoch:lease.epoch,startedAt:new Date(stageStarted).toISOString(),endedAt:new Date().toISOString(),durationMs:Date.now()-stageStarted,outcome}));
+    if(lease&&stageStarted!==undefined)console.log(JSON.stringify({event:"generation_stage_timing",jobId:lease.job.jobId,phase:lease.phase,epoch:lease.epoch,startedAt:new Date(stageStarted).toISOString(),endedAt:new Date().toISOString(),durationMs:Date.now()-stageStarted,outcome,...(glossDiagnostics ? {glossDiagnostics} : {})}));
   }
 }
 
@@ -121,7 +124,7 @@ async function execute(lease: Lease, s: Services): Promise<OutboxItem | null> {
           if (token && token.tier !== "base") token.meaning = resolution.meaning.trim();
         }
       }
-      if (enriched.tokens.some(t => t.tier !== "base" && !t.meaning?.trim())) throw new EdgeConfigurationError("Learner glosses are incomplete.");
+      if (enriched.tokens.some(t => t.tier !== "base" && !t.meaning?.trim())) throw new EdgeConfigurationError("Learner glosses are incomplete.", "generation_gloss_incomplete");
       return checkpoint("commit", { enriched });
     }
     case "commit": {

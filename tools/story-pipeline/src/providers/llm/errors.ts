@@ -53,3 +53,33 @@ export class LlmProviderError extends Error {
     this.name = "LlmProviderError";
   }
 }
+
+export interface GlossValidationDiagnostics {
+  readonly reason: "invalid_input" | "invalid_shape" | "invalid_items" | "incomplete_coverage";
+  readonly requestedCount: number;
+  readonly receivedCount: number;
+  readonly acceptedCount: number;
+  readonly missingCount: number;
+  readonly duplicateCount: number;
+  readonly unexpectedCount: number;
+  readonly emptyMeaningCount: number;
+  readonly malformedCount: number;
+}
+
+// Only fixed reasons and counts may enter logs. Never retain model output or token text.
+export class GlossValidationError extends LlmProviderError {
+  readonly diagnostics: GlossValidationDiagnostics;
+  constructor(diagnostics: GlossValidationDiagnostics) {
+    super("Gloss response did not cover the requested tokens.", false, false);
+    this.name = "GlossValidationError";
+    const count = (value: number) => Number.isSafeInteger(value) && value >= 0 ? value : 0;
+    this.diagnostics = Object.freeze({
+      reason: ["invalid_input", "invalid_shape", "invalid_items", "incomplete_coverage"].includes(diagnostics.reason)
+        ? diagnostics.reason : "invalid_shape",
+      requestedCount: count(diagnostics.requestedCount), receivedCount: count(diagnostics.receivedCount),
+      acceptedCount: count(diagnostics.acceptedCount), missingCount: count(diagnostics.missingCount),
+      duplicateCount: count(diagnostics.duplicateCount), unexpectedCount: count(diagnostics.unexpectedCount),
+      emptyMeaningCount: count(diagnostics.emptyMeaningCount), malformedCount: count(diagnostics.malformedCount),
+    });
+  }
+}

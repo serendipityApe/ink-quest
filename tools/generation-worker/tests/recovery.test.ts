@@ -8,6 +8,8 @@ import { deliver, tick, type Services } from "../src/runner.js";
 import type { Lease } from "../src/contracts.js";
 import { LlmProviderError } from "../../story-pipeline/src/providers/llm/errors.js";
 
+import { StructuredFictionProvider } from "../../story-pipeline/src/providers/llm/structured-fiction.js";
+
 let db: Awaited<ReturnType<typeof isolatedDatabase>>;
 test("claim and recovery take the billing advisory lock before the reservation row",async()=>{
   const sql=await readFile(new URL("../../../supabase/migrations/202611060001_edge_generation_worker.sql",import.meta.url),"utf8");
@@ -285,4 +287,41 @@ test('preparation cursor and token prefix stay fenced across redelivery',async()
  const stale=args({...partial,prepareCursor:16,spans:[...partial.spans,{word:'library',base:false}]});await assert.rejects(rpc('edge_checkpoint_enrichment_step',stale),/fenced/);
  lease=await f.lease();await assert.rejects(rpc('edge_checkpoint_enrichment_step',args({...partial,prepareCursor:16,spans:[{word:'rewritten',base:false}]})),/prefix_changed/);
  await f.store.fail(lease,'fixture_cleanup',false);assert.equal((await f.state()).releases,1);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
+});
+
+
+test("partial gloss responses fail once, refund once, log counts, and never commit or regenerate", async t => {
+  class PartialGlossProvider extends StructuredFictionProvider {
+    readonly provider = "fixture"; readonly model = "fixture"; readonly promptVersion = "fixture";
+    protected async completeJson(payload: unknown) {
+      const request = payload as { input: { requestedTokens: Array<{ tokenIndex: number }> } };
+      return { resolutions: request.input.requestedTokens.slice(1).map(({ tokenIndex }) => ({ tokenIndex, meaning: "private model response" })) };
+    }
+  }
+  const logs: unknown[][] = [];
+  t.mock.method(console, "log", (...args: unknown[]) => { logs.push(args); });
+  const f = await fixture(); const provider = f.s.provider; const resolver = new PartialGlossProvider();
+  f.s.provider = () => ({ ...provider(), async resolveGlosses(input) { f.calls.gloss++; return resolver.resolveGlosses(input); } });
+  await f.run(); await f.drain(); await f.run(); await f.run();
+  const state = await f.state();
+  assert.equal(state.status, "failed"); assert.equal(state.attempt, 1); assert.equal(state.nodes, 0);
+  assert.equal(state.settles, 0); assert.equal(state.releases, 1); assert.equal(state.reserved, 0); assert.equal(state.available, 1000);
+  assert.deepEqual(f.calls, { plan: 1, write: 1, gloss: 1, audio: 0 });
+  const row = (await db.query("select error_code from public.generation_jobs where id=$1", [f.row.job_id])).rows[0];
+  assert.equal(row.error_code, "generation_gloss_response_invalid");
+  const diagnostics = logs.map(args => JSON.parse(String(args[0]))).filter(row => row.glossDiagnostics);
+  assert.equal(diagnostics.length, 1); assert.equal(diagnostics[0].phase, "gloss");
+  assert.equal(diagnostics[0].glossDiagnostics.reason, "incomplete_coverage");
+  assert.equal(diagnostics[0].glossDiagnostics.missingCount, 1);
+  assert.doesNotMatch(JSON.stringify(logs), /private model response|Alice|mysterious/);
+});
+
+test("incomplete custom provider glosses use a specific invariant code instead of a configuration error", async () => {
+  const f = await fixture(); const provider = f.s.provider;
+  f.s.provider = () => ({ ...provider(), async resolveGlosses() { f.calls.gloss++; return []; } });
+  await f.run(); await f.drain(); await f.run();
+  const state = await f.state();
+  assert.equal(state.status, "failed"); assert.equal(state.nodes, 0); assert.equal(state.releases, 1); assert.equal(f.calls.gloss, 1);
+  const row = (await db.query("select error_code from public.generation_jobs where id=$1", [f.row.job_id])).rows[0];
+  assert.equal(row.error_code, "generation_gloss_incomplete");
 });

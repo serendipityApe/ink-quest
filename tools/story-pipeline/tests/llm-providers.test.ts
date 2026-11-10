@@ -112,7 +112,7 @@ test("OpenAI assembles typed message text after reasoning items and validates a 
 
 test("OpenAI resolves only requested gloss indexes and skips empty requests", async (t) => {
   const fetch = mockFetch(t, () => responses({ resolutions: [
-    { tokenIndex: 0, meaning: "信" }, { tokenIndex: 3, meaning: "outside request" }, { tokenIndex: 0, meaning: 42 },
+    { tokenIndex: 0, meaning: "信" },
   ] }));
   const provider = createLlmProvider(openai);
   assert.deepEqual(await provider.resolveGlosses(glossInput), [{ tokenIndex: 0, meaning: "信" }]);

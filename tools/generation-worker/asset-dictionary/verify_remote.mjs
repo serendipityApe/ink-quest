@@ -29,7 +29,7 @@ try{
    if(w?.scriptName==='inkquest-generation-worker'&&id){
     if(Number.isFinite(w.cpuTimeMs))inv.set(id,{cpuMs:w.cpuTimeMs,outcome:w.outcome,eventType:w.eventType,version:w.scriptVersion?.id});
     const a=audit(x.source)??audit(m?.message);
-    if(a?.event==='generation_stage_timing'&&expectedHash&&createHash('sha256').update(String(a.jobId)).digest('hex')===expectedHash)phases.set(id,{phase:a.phase,epoch:a.epoch,startedAt:a.startedAt,endedAt:a.endedAt,durationMs:a.durationMs,outcome:a.outcome});
+    if(a?.event==='generation_stage_timing'&&expectedHash&&createHash('sha256').update(String(a.jobId)).digest('hex')===expectedHash)phases.set(id,{phase:a.phase,epoch:a.epoch,startedAt:a.startedAt,endedAt:a.endedAt,durationMs:a.durationMs,outcome:a.outcome,...(safeGlossDiagnostics(a.glossDiagnostics)?{glossDiagnostics:safeGlossDiagnostics(a.glossDiagnostics)}:{})});
     if(a?.event==='generation_llm_usage')usage.set(id,Object.fromEntries(['stage','model','startedAt','endedAt','durationMs','outcome','httpStatus','failureKind','httpDiagnostics','responseStatus','inputTokens','cachedInputTokens','cacheWriteTokens','serviceTier','outputTokens','reasoningTokens','totalTokens'].map(k=>[k,a[k]])));
    }
    for(const v of Object.values(x))visit(v);
@@ -77,3 +77,10 @@ const compact={version:report.version,completed:report.completed,stopped:report.
 console.log(`::${report.completed?'notice':'error'} title=Static dictionary isolated canary::${JSON.stringify(compact)}`);
 if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,safe+'\n');
 if(!report.completed)process.exitCode=1;
+
+function safeGlossDiagnostics(value){
+ if(!value||typeof value!=="object"||!["invalid_input","invalid_shape","invalid_items","incomplete_coverage"].includes(value.reason))return null;
+ const keys=["requestedCount","receivedCount","acceptedCount","missingCount","duplicateCount","unexpectedCount","emptyMeaningCount","malformedCount"];
+ if(keys.some(k=>!Number.isSafeInteger(value[k])||value[k]<0))return null;
+ return {reason:value.reason,...Object.fromEntries(keys.map(k=>[k,value[k]]))};
+}
