@@ -27,15 +27,23 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node --test tools/generation-worker/tests/activation-checks.test.mjs
       - run: pnpm --filter @inkquest/generation-worker build
-      - name: Verify existing consumer and closed entry, deploy diagnostics, then verify again
+      - name: Verify requested gate mode, deploy compatible Worker, then verify again
         env:
           CLOUDFLARE_ACCOUNT_ID: fdfece8b5c135c21fa630440b8dbf2e4
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || vars.CLOUDFLARE_API_TOKEN }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           WRANGLER_SEND_METRICS: 'false'
         run: |
-          node tools/generation-worker/activation_checks.mjs after
-          pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc
-          node tools/generation-worker/activation_checks.mjs after
+          # Only this exact marker mode opts into preserving already-active flags.
+          MODE=$(node --input-type=module -e 'import {readFileSync} from "node:fs"; import {gateArgsForRequest} from "./tools/generation-worker/activation_checks.mjs"; console.log(gateArgsForRequest(JSON.parse(readFileSync(".github/generation-worker-activation-request.json","utf8"))).join(" "));')
+          if [ "$MODE" = "--keep-active" ]; then
+            node tools/generation-worker/activation_checks.mjs after --keep-active
+            pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc
+            node tools/generation-worker/activation_checks.mjs after --keep-active --post-deploy
+          else
+            node tools/generation-worker/activation_checks.mjs after
+            pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc
+            node tools/generation-worker/activation_checks.mjs after
+          fi
       # Existing credentials only. No secret relay, database writes, model call,
       # frontend deployment, paid plan change, or automatic backend activation.
