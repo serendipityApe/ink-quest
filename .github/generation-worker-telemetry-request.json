@@ -1,7 +1,7 @@
 {
-  "purpose": "Read only timing and usage for the single failed authorized test; never resubmit",
-  "from": "2026-11-10T06:54:43.168Z",
-  "jobHash": "3828b1782e99b5913ac93a842e7c114178978fcd6a09f8558eb41b6e7fe061e1",
-  "version": "1f2c81f1-eef7-4567-b49a-d4bf2d3c969a",
+  "purpose": "Read diagnostic HTTP status, timing and token usage for one terminated authorized test; no new requests",
+  "from": "2026-11-10T07:15:10.219Z",
+  "jobHash": "27eafe31447afb7028254607a73681be100c9beca2442f5f9bcfae0c885f19fd",
+  "version": "1e86bf34-31f8-4591-82bb-7926b1993ea3",
   "terminalStatus": "failed"
 }
