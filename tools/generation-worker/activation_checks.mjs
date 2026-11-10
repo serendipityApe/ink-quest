@@ -34,7 +34,7 @@ export function checkSnapshot(s,phase){
     assert.equal(b.DICTIONARY?.type,'service');assert.equal(b.DICTIONARY?.service,READER);assert.equal(b.DICTIONARY?.entrypoint,'Dictionary');
     assert.equal(b.GENERATION_DICTIONARY_SOURCE_VERSION?.text,SOURCE);assert.equal(b.GENERATION_DICTIONARY_MANIFEST_SHA256?.text,MANIFEST);
     assert.equal(b.GENERATION_QUEUE?.type,'queue');assert.equal(b.GENERATION_QUEUE?.queue_name,'inkquest-generation');
-    assert.equal(s.consumers.length,1);const c=s.consumers[0];assert.equal(c.script_name,WORKER);
+    assert.equal(s.consumers.length,1);const c=s.consumers[0];assert.equal(c.script_name??c.script,WORKER);if(c.script_name&&c.script)assert.equal(c.script_name,c.script);
     for(const [key,value] of Object.entries({batch_size:1,max_concurrency:1,max_retries:3,max_wait_time_ms:1000}))assert.equal(c.settings?.[key],value,'consumer_'+key);
     assert.equal(s.schedules.length,1);assert.equal(s.schedules[0].cron,'* * * * *');
   }

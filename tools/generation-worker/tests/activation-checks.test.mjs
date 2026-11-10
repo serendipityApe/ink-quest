@@ -20,3 +20,9 @@ test('activation refuses unexpected consumers, concurrency, schedules or queue',
     const s=fixture('after');mutate(s);assert.throws(()=>checkSnapshot(s,'after'));
   }
 });
+
+test('current API script field is accepted while conflicting consumer identities fail',()=>{
+ const s=fixture('after');s.consumers[0].script=s.consumers[0].script_name;delete s.consumers[0].script_name;assert.equal(checkSnapshot(s,'after').verified,true);
+ s.consumers[0].script='another-worker';assert.throws(()=>checkSnapshot(s,'after'));
+ s.consumers[0].script_name=WORKER;assert.throws(()=>checkSnapshot(s,'after'));
+});

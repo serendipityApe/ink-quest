@@ -1,0 +1,5 @@
+{
+  "purpose": "Read-only postdeployment scheduled heartbeat diagnosis; no model calls or queue messages",
+  "from": "2026-11-10T06:45:17Z",
+  "version": "1f2c81f1-eef7-4567-b49a-d4bf2d3c969a"
+}
