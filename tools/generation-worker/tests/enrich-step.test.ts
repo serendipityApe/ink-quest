@@ -30,7 +30,7 @@ test('preparation persists bounded chunks with exact word and whitespace parity'
 });
 
 
-test('lookup fanout is bounded and preserves sequential result for 2000 distinct keys',async()=>{
+test('large checkpoints retain single-RPC bounds and exact output for 2000 distinct keys',async()=>{
  const value={...input,text:Array.from({length:2000},(_,i)=>'w'+String(i).padStart(4,'0')).join(' ')};
  let active=0,maxActive=0,calls=0;const batches:string[][]=[];
  const dictionary:DictionaryReader={async lookup(_lang,words,version){
@@ -39,9 +39,9 @@ test('lookup fanout is bounded and preserves sequential result for 2000 distinct
   return {version,ready:true,entries:words.map(word=>({word,reading:'/fixture/',candidates:['meaning'],level:null}))};
  }};
  let progress;let result;let deliveries=0;
- do {const before=calls;result=await advanceEnrichment(value,dictionary,'v',()=>[],progress);assert.ok(calls-before<=LOOKUP_RPCS_PER_STEP);progress=result.progress?JSON.parse(JSON.stringify(result.progress)):undefined;deliveries++;}while(progress&&deliveries<250);
+ do {const before=calls;result=await advanceEnrichment(value,dictionary,'v',()=>[],progress);assert.ok(calls-before<=LOOKUP_RPCS_PER_STEP);progress=result.progress?JSON.parse(JSON.stringify(result.progress)):undefined;deliveries++;}while(progress&&deliveries<650);
  assert.ok(result.enriched);assert.equal(result.enriched.tokens.length,2000);
- assert.equal(maxActive,LOOKUP_RPCS_PER_STEP);assert.ok(batches.every(words=>words.length<=LOOKUP_WORDS_PER_RPC));
+ assert.equal(maxActive,1);assert.ok(batches.every(words=>words.length<=LOOKUP_WORDS_PER_RPC));
  const expected=await enrichSceneEdge(value,{async lookup(_lang,words,version){return {version,ready:true,entries:words.map(word=>({word,reading:'/fixture/',candidates:['meaning'],level:null}))};}},'v',()=>[]);
  assert.deepEqual(result.enriched,expected);
 });

@@ -11,11 +11,11 @@ if(typeof productionWorker.queue!=='function')throw Error('production_graph_miss
 interface Env {DICTIONARY:DictionaryServiceBinding;GENERATION_DICTIONARY_VERSION:string;GENERATION_DICTIONARY_SOURCE_VERSION:string;GENERATION_DICTIONARY_MANIFEST_SHA256:string;}
 const zh='小明今天来到图书馆，认真寻找一本关于宇宙的书。管理员微笑着告诉他，探索未知需要勇气和耐心。';
 const en='Alice enters the quiet library and discovers a mysterious letter beside a silver key. ';
-const IDs=['prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','lookup-distinct','invalid-version'];
+const IDs=['prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','lookup-distinct','lookup-parallel-en','lookup-parallel-zh','invalid-version'];
 const VERSION='assets-lex-244056cfff1d40670ec63f7b-6b262d70369a';
 function makeFixture(caseId:string){
  const language=caseId.endsWith('zh')?'zh':'en';
- const text=caseId==='lookup-distinct'?Array.from({length:2000},(_,i)=>'w'+String(i).padStart(4,'0')).join(' '):language==='zh'?zh.repeat(70):en.repeat(100);
+ const text=caseId.startsWith('lookup-parallel')?(language==='zh'?zh.repeat(3):en.repeat(2)):caseId==='lookup-distinct'?Array.from({length:2000},(_,i)=>'w'+String(i).padStart(4,'0')).join(' '):language==='zh'?zh.repeat(70):en.repeat(100);
  const input={text,plotWords:[],choices:[],targetLang:language as 'zh'|'en',glossLang:language==='zh'?'en' as const:'zh' as const};
  const spans=prepareEnrichmentSpans(input,segmentChinese),keys=[...new Set(spans.map(s=>language==='en'?s.word.toLowerCase():s.word))];
  const fingerprint={provider:'fixture',model:'fixture',promptVersion:'fixture',dictionaryVersion:VERSION};
@@ -58,7 +58,8 @@ async function run(caseId:string,env:Env){
  const services:Services={store,queue:{async send(){}},dictionaryVersion:env.GENERATION_DICTIONARY_VERSION,incrementalDictionary:true,segmentChinese,provider:()=>({...fingerprint,async planStory(){throw Error('model_prohibited');},async writeScene(){throw Error('model_prohibited');},async resolveGlosses(){throw Error('model_prohibited');}}),async preflight(){await dictionary.lookup(language,[],env.GENERATION_DICTIONARY_VERSION);},async audio(){throw Error('audio_prohibited');}};
  let acked=false;try{await deliver({body:{jobId:'11111111-1111-4111-8111-111111111111'},ack(){acked=true;},retry(){throw Error('unexpected_retry');}},services);}finally{globalThis.fetch=originalFetch;}
  if(!acked||!checkpointBytes||rpcCalls>(caseId.startsWith('lookup')?5:1)||checkpointBytes>1000000)throw Error('step_bound_failed');
- if(caseId==='lookup-distinct'&&(rpcCalls!==5||lookupWords!==16||maxConcurrentReads!==4))throw Error('parallel_lookup_bound_failed');
+ if(caseId==='lookup-distinct'&&(rpcCalls!==2||lookupWords!==4||maxConcurrentReads!==1))throw Error('parallel_lookup_bound_failed');
+ if(caseId.startsWith('lookup-parallel')&&(rpcCalls!==5||lookupWords!==16||maxConcurrentReads!==4))throw Error('short_parallel_lookup_bound_failed');
  if(caseId.startsWith('finish')?phase!=='gloss':phase!=='enrich')throw Error('step_transition_failed');
  return {caseId,verified:true,rpcCalls,lookupWords,maxConcurrentReads,modelCalls:0,databaseCalls:0,simulatedDatabaseCalls,wasmMemoryBytes:segmenterMemoryBytes(),checkpointBytes,tokens:spans.length,phase};
 }

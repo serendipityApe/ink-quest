@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {ACCOUNT,SOURCE,VERSION,MANIFEST,READER,READER_VERSION} from './activation_checks.mjs';
 export const WORKER='inkquest-generation-cpu-canary';
 export const QUEUE='f5408177e3c3462fac2746874902f80d';
-export const CASES=['lookup-distinct','prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','invalid-version'];
+export const CASES=['lookup-parallel-zh','lookup-parallel-en','lookup-distinct','prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','invalid-version'];
 export function checkBindings(bindings){
  assert.ok(Array.isArray(bindings));assert.equal(bindings.length,4);
  const b=Object.fromEntries(bindings.map(x=>[x.name,x]));assert.equal(Object.keys(b).length,4);
@@ -20,11 +20,11 @@ export function telemetry(data,script,version){
  function visit(x){if(!x||typeof x!=='object')return;const w=x.$workers,id=x.$metadata?.requestId??w?.requestId;if(w?.scriptName===script&&id){if(w.scriptVersion?.id===version&&Number.isFinite(w.cpuTimeMs))records.set(id,{requestId:id,cpuMs:w.cpuTimeMs,outcome:w.outcome});const f=fixture(x.source)??fixture(x.$metadata?.message);if(f)fixtures.set(id,f);}for(const v of Object.values(x))visit(v);}
  visit(data);return [...records.values()].map(row=>({...row,fixture:fixtures.get(row.requestId)}));
 }
-export function checkSample(sample,caseId){assert.equal(sample.outcome,'ok');assert.ok(sample.cpuMs<=10);const f=sample.fixture;assert.equal(f?.caseId,caseId);assert.equal(f.verified,true);assert.equal(f.modelCalls,0);assert.equal(f.databaseCalls,0);if(caseId==='lookup-distinct'){assert.equal(f.rpcCalls,5);assert.equal(f.lookupWords,16);assert.equal(f.maxConcurrentReads,4);}assert.ok(Number.isInteger(f.rpcCalls)&&f.rpcCalls>=1&&f.rpcCalls<=(caseId.startsWith('lookup')?5:1));if(caseId!=='invalid-version'){assert.ok(f.checkpointBytes>0&&f.checkpointBytes<=1000000);assert.ok(Number.isFinite(f.wasmMemoryBytes)&&f.wasmMemoryBytes<134217728);assert.equal(f.phase,caseId.startsWith('finish')?'gloss':'enrich');}}
+export function checkSample(sample,caseId){assert.equal(sample.outcome,'ok');assert.ok(sample.cpuMs<=10);const f=sample.fixture;assert.equal(f?.caseId,caseId);assert.equal(f.verified,true);assert.equal(f.modelCalls,0);assert.equal(f.databaseCalls,0);if(caseId.startsWith('lookup-parallel')){assert.equal(f.rpcCalls,5);assert.equal(f.lookupWords,16);assert.equal(f.maxConcurrentReads,4);}if(caseId==='lookup-distinct'){assert.equal(f.rpcCalls,2);assert.equal(f.lookupWords,4);assert.equal(f.maxConcurrentReads,1);}assert.ok(Number.isInteger(f.rpcCalls)&&f.rpcCalls>=1&&f.rpcCalls<=(caseId.startsWith('lookup')?5:1));if(caseId!=='invalid-version'){assert.ok(f.checkpointBytes>0&&f.checkpointBytes<=1000000);assert.ok(Number.isFinite(f.wasmMemoryBytes)&&f.wasmMemoryBytes<134217728);assert.equal(f.phase,caseId.startsWith('finish')?'gloss':'enrich');}}
 export async function run(){
  const report={startedAt:new Date().toISOString(),messagesAccepted:0,samples:[],completed:false};let action='ci_guard';
  async function api(path,body){const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}${path}`,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});if(!r.ok)throw Error('http_'+r.status);const d=await r.json();if(d.success!==true)throw Error('api_failed');return d.result;}
- async function observe(script,version,from){return telemetry(await api('/workers/observability/telemetry/query',{queryId:'inkquest-isolated-latency',dry:true,view:'events',limit:1000,timeframe:{from,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:script}]}}),script,version);}
+ async function observe(script,version,from){return telemetry(await api('/workers/observability/telemetry/query',{queryId:'inkquest-isolated-latency',dry:true,view:'events',limit:200,timeframe:{from,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:script}]}}),script,version);}
  async function isolation(){
   checkConsumer(await api(`/queues/${QUEUE}/consumers`));const q=await api(`/queues/${QUEUE}`);assert.equal(q.queue_name,'inkquest-generation-cpu-canary-20261106');
   for(const worker of [WORKER,READER]){const u=await api(`/workers/scripts/${worker}/subdomain`);assert.equal(u.enabled,false);assert.equal(u.previews_enabled,false);assert.deepEqual(await api(`/workers/services/${worker}/environments/production/routes?show_zonename=true`),[]);assert.deepEqual(await api(`/workers/domains/records?page=0&per_page=5&service=${worker}&environment=production`),[]);}
@@ -45,10 +45,10 @@ export async function run(){
   for(const caseId of CASES){
    const from=Date.now();action='send_'+caseId;await api(`/queues/${QUEUE}/messages`,{body:{caseId},content_type:'json'});report.messagesAccepted++;
    action='measure_'+caseId;let sample,readers=[];
-   for(let n=0;n<8;n++){await new Promise(resolve=>setTimeout(resolve,10000));const rows=await observe(WORKER,version,from);readers=await observe(READER,READER_VERSION,from);assert.ok([...rows,...readers].every(x=>x.outcome==='ok'&&x.cpuMs<=10),'cpu_or_execution_failed');sample=rows.find(x=>x.fixture?.caseId===caseId);if(sample&&readers.length>=sample.fixture.rpcCalls)break;}
+   for(let n=0;n<8;n++){await new Promise(resolve=>setTimeout(resolve,10000));const rows=await observe(WORKER,version,from);readers=await observe(READER,READER_VERSION,from);report.lastObservation={caseId,generator:rows,readers};assert.ok([...rows,...readers].every(x=>x.outcome==='ok'&&x.cpuMs<=10),'cpu_or_execution_failed');sample=rows.find(x=>x.fixture?.caseId===caseId);if(sample&&readers.length>=sample.fixture.rpcCalls)break;}
    assert.ok(sample,'matching_sample_missing');checkSample(sample,caseId);assert.ok(readers.length>=sample.fixture.rpcCalls,'reader_cpu_missing');report.samples.push({caseId,cpuMs:sample.cpuMs,readerMaxCpuMs:Math.max(...readers.map(x=>x.cpuMs)),rpcCalls:sample.fixture.rpcCalls,lookupWords:sample.fixture.lookupWords,maxConcurrentReads:sample.fixture.maxConcurrentReads,checkpointBytes:sample.fixture.checkpointBytes,wasmMemoryBytes:sample.fixture.wasmMemoryBytes});
   }
-  action='final_isolation';await isolation();report.completed=true;
+  action='final_isolation';await isolation();delete report.lastObservation;report.completed=true;
  }catch(error){report.stopped={action,reason:/^http_\d+$/.test(error.message)?error.message:'guard_or_transport_failed_no_retry'};process.exitCode=1;}
  const safe=JSON.stringify(report);console.log('::notice title=Isolated latency result::'+safe);if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,safe+'\n');return report;
 }

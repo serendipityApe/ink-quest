@@ -5,6 +5,7 @@ import type {EnrichSceneInput} from '../../story-pipeline/src/core/enrich-scene.
 // complete dictionary or changing segmentation/rendering/checkpoint bounds.
 export const LOOKUP_WORDS_PER_RPC = 4;
 export const LOOKUP_RPCS_PER_STEP = 4;
+export const PARALLEL_LOOKUP_MAX_SPANS = 256;
 export interface EnrichmentProgress {
   version:string; input:string; spans:EnrichmentSpan[]; resolved:string[]; entries:DictionaryEntry[]; rendered:Awaited<ReturnType<typeof enrichSceneEdge>>["tokens"]; renderCursor:number; prepareCursor:number;
 }
@@ -25,7 +26,9 @@ export async function advanceEnrichment(input:EnrichSceneInput,dictionary:Dictio
   if(!missing.length&&allKeys.size!==resolved.size)throw new EdgeConfigurationError('Invalid enrichment keys.');
   if(missing.length){
     // Lookup is independent of token rendering: do not replay all cached reads.
-    const requested=missing.slice(0,LOOKUP_WORDS_PER_RPC*LOOKUP_RPCS_PER_STEP);
+    // Large checkpoints keep the previously verified single-RPC path.
+    const rpcLimit=previous.spans.length<=PARALLEL_LOOKUP_MAX_SPANS?LOOKUP_RPCS_PER_STEP:1;
+    const requested=missing.slice(0,LOOKUP_WORDS_PER_RPC*rpcLimit);
     const groups=Array.from({length:Math.ceil(requested.length/LOOKUP_WORDS_PER_RPC)},(_,index)=>requested.slice(index*LOOKUP_WORDS_PER_RPC,(index+1)*LOOKUP_WORDS_PER_RPC));
     // Await all reads, including failures, before allowing a retry. A partial
     // batch is never checkpointed; only side-effect-free dictionary reads repeat.

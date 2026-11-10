@@ -66,11 +66,12 @@ Preparation processes at most 384 UTF-16 units, ending at whitespace or Chinese
 sentence punctuation, and preserves CRLF pairs. A lexical run longer than the
 bound without any safe separator fails explicitly instead of changing word
 boundaries. The existing 12,000-unit scene and 2,000-token bounds remain.
-Each lookup delivery resolves at most sixteen keys in at most four concurrent
+For scenes with up to 256 tokens, each lookup delivery resolves at most sixteen keys in at most four concurrent
 private RPC calls, each still capped at four words; rendering appends at most
 64 tokens. A sequential readiness preflight adds one RPC. Responses retain
 request order, each is validated against its own keys, and all reads settle
 before a failure can retry. Partial batches never change the durable checkpoint.
+Longer scenes retain the original one-RPC/four-key path to bound checkpoint CPU.
 The dictionary reader uses at most six cold asset fetches and four warm fetches
 per four-word call; generator storage uses claim, checkpoint and publication
 RPCs. All progress retains the original lease/epoch and reservation fences.
@@ -113,3 +114,11 @@ uploaded candidate version. Its unique experiment annotation prevents replay;
 it carries no model/database credentials and retains the conservative 10 ms
 CPU gate for both generator and private reader. A new paid end-to-end story is
 not part of this offline/canary verification and needs separate authorization.
+
+
+The first parallel candidate correctly processed the maximum 2,000-key fixture,
+but measured 13 ms generator CPU, above the retained 10 ms conservative gate.
+It was not released. The adaptive candidate limits parallel lookups to scenes
+with at most 256 spans; larger checkpoints retain the original single-RPC path.
+The isolated canary now explicitly checks short English/Chinese parallel cases
+and the large-checkpoint fallback. No CPU gate or paid plan is changed.
