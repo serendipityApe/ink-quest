@@ -1,0 +1,19 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "inkquest-generation-cpu-canary",
+  "main": "dist-rpc-canary/worker.js",
+  "no_bundle": true,
+  "find_additional_modules": true,
+  "compatibility_date": "2026-07-21",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": {
+    "GENERATION_DICTIONARY_VERSION": "assets-lex-244056cfff1d40670ec63f7b-6b262d70369a",
+    "GENERATION_DICTIONARY_SOURCE_VERSION": "lex-244056cfff1d40670ec63f7b",
+    "GENERATION_DICTIONARY_MANIFEST_SHA256": "6b262d70369aa45ced4c7150cf9bbf4759103884586ca14794422f9b59d54eeb"
+  },
+  "services": [{"binding":"DICTIONARY","service":"inkquest-dictionary-assets","entrypoint":"Dictionary"}],
+  "observability": {"enabled":true},
+  "queues": {"consumers":[{"queue":"inkquest-generation-cpu-canary-20261106","max_batch_size":1,"max_batch_timeout":1,"max_retries":0,"max_concurrency":1}]}
+}

@@ -1,0 +1,36 @@
+name: Verify isolated generation latency candidate
+on:
+  push:
+    branches: [feat/generation-edge-worker-20261106]
+    paths: [.github/generation-latency-request.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: isolated-generation-cpu-canary-20261106
+  cancel-in-progress: false
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node --test tools/generation-worker/tests/latency-canary.test.ts
+      - run: pnpm --filter @inkquest/generation-worker typecheck
+      - run: node tools/generation-worker/build.mjs --asset-rpc-canary
+      - name: Upload and measure only the isolated candidate once
+        env:
+          CLOUDFLARE_ACCOUNT_ID: fdfece8b5c135c21fa630440b8dbf2e4
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || vars.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: node tools/generation-worker/verify_latency_canary.mjs

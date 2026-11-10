@@ -66,8 +66,11 @@ Preparation processes at most 384 UTF-16 units, ending at whitespace or Chinese
 sentence punctuation, and preserves CRLF pairs. A lexical run longer than the
 bound without any safe separator fails explicitly instead of changing word
 boundaries. The existing 12,000-unit scene and 2,000-token bounds remain.
-Each lookup delivery resolves at most four keys in one private RPC call; each
-rendering delivery appends at most 64 tokens. A readiness preflight adds one RPC.
+Each lookup delivery resolves at most sixteen keys in at most four concurrent
+private RPC calls, each still capped at four words; rendering appends at most
+64 tokens. A sequential readiness preflight adds one RPC. Responses retain
+request order, each is validated against its own keys, and all reads settle
+before a failure can retry. Partial batches never change the durable checkpoint.
 The dictionary reader uses at most six cold asset fetches and four warm fetches
 per four-word call; generator storage uses claim, checkpoint and publication
 RPCs. All progress retains the original lease/epoch and reservation fences.
@@ -85,3 +88,28 @@ pins reader version `47b49ee7-7858-47d6-9373-504fd330f11a`. The original SQL
 lexical source remains unready. Production activation now has explicit user approval after the earlier automatic
 review rejection. The single approved deployment request keeps database entry
 closed until the consumer, Cron and fresh capability heartbeat are verified.
+
+
+## Bounded latency optimization (2026-11-10)
+
+The successful 160-character test took 105.832 seconds from direct database
+submission to completion. It bypassed the web API's immediate Queue send, so
+57.445 seconds was initial Cron dispatch wait. Worker execution took 48.388
+seconds, including 28.415 seconds across 25 enrichment deliveries. Planning,
+writing and gloss model calls alone took 12.071 seconds. These measurements do
+not establish a five-second completed-story target or actual browser latency.
+
+Offline replay of the exact successful snapshot preserves all 106 tokens,
+candidate meanings, readings, levels and unresolved-gloss results. Four bounded
+parallel RPCs reduce enrichment deliveries from 25 to 10 (60% fewer queue and
+database rounds), retaining the same 20 four-word dictionary RPCs for 77 unique
+keys. This is a delivery-count result, not a measured production wall-time claim.
+No dictionary rows are dropped, no model call is added, and no credit or SQL
+logic changes. Preparation/rendering and all lease, reservation, integrity and
+checkpoint-size bounds remain unchanged.
+
+Before release, the isolated latency canary must pass against the actual newly
+uploaded candidate version. Its unique experiment annotation prevents replay;
+it carries no model/database credentials and retains the conservative 10 ms
+CPU gate for both generator and private reader. A new paid end-to-end story is
+not part of this offline/canary verification and needs separate authorization.

@@ -325,3 +325,17 @@ test("incomplete custom provider glosses use a specific invariant code instead o
   const row = (await db.query("select error_code from public.generation_jobs where id=$1", [f.row.job_id])).rows[0];
   assert.equal(row.error_code, "generation_gloss_incomplete");
 });
+
+
+test('parallel lookup persists sixteen keys and reconciles lost commit with one settlement',async()=>{
+ const f=await fixture(false,true);
+ for(let i=0;i<4;i++){await f.run();f.queued.length=0;}
+ const transport=globalThis.fetch;let captured:Record<string,unknown>|undefined;let lost=true;
+ globalThis.fetch=async(url,request={})=>{const response=await transport(url,request);if(lost&&String(url).endsWith('/edge_checkpoint_enrichment_step')){lost=false;captured=JSON.parse(String(request.body));throw Error('lost sixteen-key checkpoint response');}return response;};
+ try{const first=await f.run();assert.deepEqual(first.status.retries,[30]);}finally{globalThis.fetch=transport;}
+ const progress=(await db.query("select outputs->'enrichmentProgress' progress from public.generation_edge_state where job_id=$1",[f.row.job_id])).rows[0].progress;
+ assert.equal(progress.resolved.length,16);assert.equal(progress.entries.length,16);
+ await assert.rejects(rpc('edge_checkpoint_enrichment_step',captured!),/fenced/);
+ await tick(f.s);await f.drain();await f.run();
+ const state=await f.state();assert.equal(state.status,'completed');assert.equal(state.settles,1);assert.equal(state.nodes,1);assert.equal(state.reserved,0);assert.equal(state.available,980);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
+});

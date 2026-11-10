@@ -33,7 +33,7 @@ return {language:language as 'zh'|'en',spans,leaseBytes:new TextEncoder().encode
 const FIXTURES=new Map(IDs.filter(x=>x!=='invalid-version').map(id=>[id,makeFixture(id)]));
 async function run(caseId:string,env:Env){
  if(!IDs.includes(caseId))throw Error('unknown_fixture');
- let rpcCalls=0;const dictionary=new AssetServiceReader({lookup(...args){rpcCalls++;return env.DICTIONARY.lookup(...args);}},env.GENERATION_DICTIONARY_VERSION,env.GENERATION_DICTIONARY_SOURCE_VERSION,env.GENERATION_DICTIONARY_MANIFEST_SHA256);
+ let rpcCalls=0,activeReads=0,maxConcurrentReads=0,lookupWords=0;const dictionary=new AssetServiceReader({async lookup(...args){rpcCalls++;lookupWords+=args[1].length;activeReads++;maxConcurrentReads=Math.max(maxConcurrentReads,activeReads);try{return await env.DICTIONARY.lookup(...args);}finally{activeReads--;}}},env.GENERATION_DICTIONARY_VERSION,env.GENERATION_DICTIONARY_SOURCE_VERSION,env.GENERATION_DICTIONARY_MANIFEST_SHA256);
  if(caseId==='invalid-version'){
   const result=await env.DICTIONARY.lookup('en',[],'wrong-version');if(result.ok||result.reason!=='integrity')throw Error('version_guard_missing');return {caseId,verified:true,rpcCalls:1,modelCalls:0,databaseCalls:0};
  }
@@ -57,9 +57,10 @@ async function run(caseId:string,env:Env){
  const fingerprint={provider:'fixture',model:'fixture',promptVersion:'fixture',dictionaryVersion:env.GENERATION_DICTIONARY_VERSION};
  const services:Services={store,queue:{async send(){}},dictionaryVersion:env.GENERATION_DICTIONARY_VERSION,incrementalDictionary:true,segmentChinese,provider:()=>({...fingerprint,async planStory(){throw Error('model_prohibited');},async writeScene(){throw Error('model_prohibited');},async resolveGlosses(){throw Error('model_prohibited');}}),async preflight(){await dictionary.lookup(language,[],env.GENERATION_DICTIONARY_VERSION);},async audio(){throw Error('audio_prohibited');}};
  let acked=false;try{await deliver({body:{jobId:'11111111-1111-4111-8111-111111111111'},ack(){acked=true;},retry(){throw Error('unexpected_retry');}},services);}finally{globalThis.fetch=originalFetch;}
- if(!acked||!checkpointBytes||rpcCalls>2||checkpointBytes>1000000)throw Error('step_bound_failed');
+ if(!acked||!checkpointBytes||rpcCalls>(caseId.startsWith('lookup')?5:1)||checkpointBytes>1000000)throw Error('step_bound_failed');
+ if(caseId==='lookup-distinct'&&(rpcCalls!==5||lookupWords!==16||maxConcurrentReads!==4))throw Error('parallel_lookup_bound_failed');
  if(caseId.startsWith('finish')?phase!=='gloss':phase!=='enrich')throw Error('step_transition_failed');
- return {caseId,verified:true,rpcCalls,modelCalls:0,databaseCalls:0,simulatedDatabaseCalls,wasmMemoryBytes:segmenterMemoryBytes(),checkpointBytes,tokens:spans.length,phase};
+ return {caseId,verified:true,rpcCalls,lookupWords,maxConcurrentReads,modelCalls:0,databaseCalls:0,simulatedDatabaseCalls,wasmMemoryBytes:segmenterMemoryBytes(),checkpointBytes,tokens:spans.length,phase};
 }
 export default {fetch(){return new Response('not_found',{status:404});},async queue(batch:{messages:Array<{body:{caseId?:string};ack():void}>},env:Env){
  for(const message of batch.messages){try{console.log(JSON.stringify({event:'dictionary_asset_canary',...await run(message.body.caseId??'',env)}));}catch{console.log(JSON.stringify({event:'dictionary_asset_canary',caseId:message.body.caseId,verified:false}));}message.ack();}
