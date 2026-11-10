@@ -1,8 +1,5 @@
 name: Verify isolated dictionary assets on Free
 on:
-  push:
-    branches: [feat/generation-edge-worker-20261106]
-    paths: [tools/generation-worker/asset-dictionary/remote-request.json]
   workflow_dispatch:
 permissions:
   contents: read
