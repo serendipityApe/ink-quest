@@ -11,10 +11,20 @@ test('persisted lexical steps preserve whole-scene result and bound each read',a
  assert.ok(result.enriched);assert.ok(max<=4);assert.ok(steps>3);assert.deepEqual(result.enriched,await enrichSceneEdge(input,dictionary,'fixture',()=>[]));
 });
 test('partial lookup failure leaves persisted progress unchanged for redelivery',async()=>{
- const initial=(await advanceEnrichment(input,{lookup:async()=>{throw Error();}},'v',()=>[])).progress!;
+ let initial=(await advanceEnrichment(input,{lookup:async()=>{throw Error();}},'v',()=>[])).progress!;
+ while(initial.prepareCursor<input.text.trim().length)initial=(await advanceEnrichment(input,{lookup:async()=>{throw Error();}},'v',()=>[],initial)).progress!;
  const saved=JSON.stringify(initial);let calls=0;
  await assert.rejects(()=>advanceEnrichment(input,{async lookup(_lang,words,version){if(++calls===2)throw Error('missing shard');return {version,ready:true,entries:[]};}},'v',()=>[],initial),/missing shard/);
  assert.equal(JSON.stringify(initial),saved);
  await assert.rejects(()=>advanceEnrichment(input,{async lookup(){return {version:'wrong',ready:true,entries:[]};}},'v',()=>[],initial),/Invalid asset/);
  await assert.rejects(()=>advanceEnrichment({...input,text:'changed'}, {lookup:async()=>{throw Error();}},'v',()=>[],initial),/Invalid enrichment/);
+});
+
+test('preparation persists bounded chunks with exact word and whitespace parity',async()=>{
+ const text=('The library is quiet. Alice finds a letter! '.repeat(70)).trim();
+ const value={...input,text};let progress=(await advanceEnrichment(value,{} as DictionaryReader,'v',()=>[])).progress!;let steps=0;
+ while(progress.prepareCursor<text.length){const saved=JSON.stringify(progress);const next=(await advanceEnrichment(value,{} as DictionaryReader,'v',()=>[],progress)).progress!;assert.equal(JSON.stringify(progress),saved);assert.ok(next.prepareCursor-progress.prepareCursor<=384);progress=JSON.parse(JSON.stringify(next));steps++;}
+ assert.ok(steps>2);
+ const {prepareEnrichmentSpans}=await import('../src/enrich.js');assert.deepEqual(progress.spans,prepareEnrichmentSpans(value,()=>[]));
+ await assert.rejects(()=>advanceEnrichment({...input,text:'中'.repeat(500),targetLang:'zh'},{} as DictionaryReader,'v',()=>[],{...progress,input:JSON.stringify({...input,text:'中'.repeat(500),targetLang:'zh'}),prepareCursor:0,spans:[]}),/unbounded lexical/);
 });

@@ -252,7 +252,7 @@ test("lost enrichment checkpoint response resumes its durable cursor without dup
  await tick(f.s);await f.drain();const state=await f.state();assert.equal(state.status,'completed');assert.equal(state.settles,1);assert.equal(state.releases,0);assert.equal(state.nodes,1);assert.equal(state.available,980);assert.equal(state.reserved,0);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);assert.equal(f.calls.gloss,0);
 });
 test("temporary missing asset retries a pure enrichment step and preserves the same reservation",async()=>{
- const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
  const lookup=f.store.lookup.bind(f.store);let unavailable=true;
  f.store.lookup=async(...args)=>{if(unavailable){unavailable=false;throw new StoreUnavailable('missing fixture shard');}return lookup(...args);};
  const failed=await f.run();assert.deepEqual(failed.status.retries,[30]);assert.equal((await f.state()).reserved,20);
@@ -260,13 +260,13 @@ test("temporary missing asset retries a pure enrichment step and preserves the s
  const state=await f.state();assert.equal(state.status,'completed');assert.equal(state.settles,1);assert.equal(state.releases,0);assert.equal(state.available,980);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
 });
 test("wrong dictionary version terminates enrichment and releases credit only once",async()=>{
- const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
  f.store.lookup=async()=>({version:'wrong',ready:true,entries:[]});await f.run();await f.run();
  const state=await f.state();assert.equal(state.status,'failed');assert.equal(state.releases,1);assert.equal(state.settles,0);assert.equal(state.available,1000);assert.equal(state.reserved,0);assert.equal(state.nodes,0);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
 });
 
 test("owned enrichment steps reject malformed, skipped and rewritten progress",async()=>{
- const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
  let lease=await f.lease();const original=lease.outputs.enrichmentProgress!;
  const args=(p_progress:unknown)=>({p_job_id:f.row.job_id,p_owner:lease.owner,p_epoch:lease.epoch,p_progress});
  for(const invalid of [null,{}, {...original,resolved:[]},{...original,resolved:['x'],version:'changed'},{...original,resolved:Array.from({length:17},(_,i)=>String(i))},{...original,resolved:['x','x']}])await assert.rejects(rpc('edge_checkpoint_enrichment_step',args(invalid)),/invalid_enrichment/);

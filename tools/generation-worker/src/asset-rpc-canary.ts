@@ -2,7 +2,7 @@
 import productionWorker from './index.js';
 import {AssetServiceReader,type DictionaryServiceBinding} from './asset-service.js';
 import {deliver,type Services} from './runner.js';
-import {prepareEnrichmentSpans} from './enrich.js';
+import {prepareEnrichmentSpans,prepareEnrichmentChunk} from './enrich.js';
 import {segmentChinese,segmenterMemoryBytes} from './segment.js';
 import {SupabaseEdgeStore} from './store.js';
 import type {Lease,Outputs} from './contracts.js';
@@ -20,9 +20,10 @@ function makeFixture(caseId:string){
  const spans=prepareEnrichmentSpans(input,segmentChinese),keys=[...new Set(spans.map(s=>language==='en'?s.word.toLowerCase():s.word))];
  const fingerprint={provider:'fixture',model:'fixture',promptVersion:'fixture',dictionaryVersion:VERSION};
  const outputs:Outputs={fingerprint,scene:{text,plotWords:[],choices:[],summary:'fixture',stateDelta:{}}};
- if(!caseId.startsWith('prepare')){
-  const resolved=caseId.startsWith('lookup')?(caseId==='lookup-distinct'?keys.slice(0,-16):[]):keys;
-  const progress:EnrichmentProgress={version:VERSION,input:JSON.stringify(input),spans,resolved,entries:resolved.map(word=>({word,reading:null,candidates:['fixture meaning'],level:null})),rendered:[],renderCursor:0};
+ {
+  const resolved=caseId.startsWith('prepare')?[]:caseId.startsWith('lookup')?(caseId==='lookup-distinct'?keys.slice(0,-16):[]):keys;
+  const progress:EnrichmentProgress={version:VERSION,input:JSON.stringify(input),spans,resolved,entries:resolved.map(word=>({word,reading:null,candidates:['fixture meaning'],level:null})),rendered:[],renderCursor:0,prepareCursor:input.text.trim().length};
+  if(caseId.startsWith('prepare')){progress.spans=[];progress.prepareCursor=0;while(progress.prepareCursor+384<input.text.trim().length){const next=prepareEnrichmentChunk(input,segmentChinese,progress.prepareCursor);progress.spans.push(...next.spans);progress.prepareCursor=next.prepareCursor;}}
   if(caseId.startsWith('finish')){progress.renderCursor=spans.length;progress.rendered=spans.map(s=>({word:s.word,tier:'base',reading:null,candidates:[],level:null,meaning:null}));}
   outputs.enrichmentProgress=progress;
  }

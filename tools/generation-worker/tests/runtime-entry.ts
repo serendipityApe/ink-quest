@@ -1,7 +1,7 @@
 // Test-only HTTP harness. Production index.ts intentionally exports no fetch.
 import worker from "../src/index.js";
 import { segmentChinese,segmenterMemoryBytes } from "../src/segment.js";
-import { enrichSceneEdge } from "../src/enrich.js";
+import { enrichSceneEdge,prepareEnrichmentSpans,prepareEnrichmentChunk } from "../src/enrich.js";
 import { synthesizeAzure } from "../src/audio.js";
 import canary from "../src/canary.js";
 
@@ -29,6 +29,11 @@ const testHarness = {async fetch(request:Request){
     if(input.mode==="segment"){
       const started=performance.now();const words=segmentChinese(input.text??"");
       return Response.json({words,elapsedMs:performance.now()-started,wasmMemoryBytes:segmenterMemoryBytes()});
+    }
+    if(input.mode==="preparation"){
+      const value={text:input.text??"",targetLang:input.lang??"zh",glossLang:"en" as const,choices:[]};
+      let cursor=0;const spans=[];while(cursor<value.text.trim().length){const next=prepareEnrichmentChunk(value,segmentChinese,cursor);spans.push(...next.spans);cursor=next.prepareCursor;}
+      return Response.json({spans,whole:prepareEnrichmentSpans(value,segmentChinese)});
     }
     if(input.mode==="enrich"){
       const lang=input.lang??"en";

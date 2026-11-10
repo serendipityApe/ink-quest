@@ -19,12 +19,22 @@ export type ChineseSegmenter = (text: string) => string[];
 export interface EnrichmentSpan { word: string; base: boolean; }
 export function prepareEnrichmentSpans(input: EnrichSceneInput, segmentChinese: ChineseSegmenter): EnrichmentSpan[] {
   if (input.text.length > 12_000) throw new EdgeConfigurationError("Scene exceeds the bounded enrichment size.");
-  const spans = input.targetLang === "zh"
-    ? segmentChinese(input.text.trim()).map(word => ({ word, base: PUNCT_RE.test(word) || ZH_BASE_WORDS.has(word) }))
-    : [...new Intl.Segmenter("en", { granularity: "word" }).segment(input.text.trim())]
-      .filter(s => s.segment.trim()).map(s => ({ word: s.segment, base: !s.isWordLike || PUNCT_RE.test(s.segment) || EN_BASE_WORDS.has(s.segment.toLowerCase()) }));
+  const spans = tokenizeSpans(input.text.trim(),input.targetLang,segmentChinese);
   if (spans.length > 2000) throw new EdgeConfigurationError("Scene exceeds the bounded token count.");
   return spans;
+}
+function tokenizeSpans(text:string,language:"zh"|"en",segmentChinese:ChineseSegmenter):EnrichmentSpan[]{
+  return language === "zh"
+    ? segmentChinese(text).map(word => ({ word, base: PUNCT_RE.test(word) || ZH_BASE_WORDS.has(word) }))
+    : [...new Intl.Segmenter("en", { granularity: "word" }).segment(text)]
+      .filter(s => s.segment.trim()).map(s => ({ word: s.segment, base: !s.isWordLike || PUNCT_RE.test(s.segment) || EN_BASE_WORDS.has(s.segment.toLowerCase()) }));
+}
+// Cut only at Jieba/Intl sentence or whitespace boundaries, preserving each word.
+export function prepareEnrichmentChunk(input:EnrichSceneInput,segment:ChineseSegmenter,cursor:number){
+ const text=input.text.trim();if(text.length>12000||cursor<0||cursor>text.length)throw new EdgeConfigurationError('Invalid preparation cursor.');
+ let end=Math.min(cursor+384,text.length);
+ if(end<text.length){let boundary=end;while(boundary>cursor&&!/[\s。！？；，、]/u.test(text[boundary-1]))boundary--;if(boundary===cursor)throw new EdgeConfigurationError('Scene contains an unbounded lexical run.');end=boundary;}
+ return {spans:tokenizeSpans(text.slice(cursor,end),input.targetLang,segment),prepareCursor:end};
 }
 
 export async function enrichSceneEdge(input: EnrichSceneInput, dictionary: DictionaryReader,
