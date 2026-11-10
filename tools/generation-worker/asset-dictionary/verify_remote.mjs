@@ -1,7 +1,7 @@
 // Fixed one-shot experiment on the existing isolated Queue. No app credentials.
 import {appendFile} from 'node:fs/promises';
 const ACCOUNT='fdfece8b5c135c21fa630440b8dbf2e4',WORKER='inkquest-generation-cpu-canary',QUEUE='f5408177e3c3462fac2746874902f80d';
-const VERSION='3937758a-9055-42fa-ab61-c783f20ca20c';
+const VERSION='bc4ae19c-8385-4263-a7b3-58618455262a';
 const report={startedAt:new Date().toISOString(),version:VERSION,samples:[],messagesAccepted:0,completed:false};
 async function api(path,body){
  const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}${path}`,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
@@ -41,6 +41,8 @@ try{
  }
  report.completed=true;
 }catch(e){if(e.message!=='inspection_complete')report.stopped=/^(api_\d+|existing_credentials_missing|isolation_mismatch|public_url_enabled|experiment_already_executed_no_more_messages|unexpected_binding|free_cpu_limit_not_met|correlated_successful_cpu_missing)$/.test(e.message)?e.message:'transport_or_unexpected_failure_no_retry';}
-const safe=JSON.stringify(report);console.log(safe);console.log(`::${report.completed?'notice':'error'} title=Static dictionary isolated canary::${safe}`);
+const safe=JSON.stringify(report);console.log(safe);const unique=new Map([...(report.samples??[]),...(report.observed??[])].map(x=>[x.requestId,x]));
+const compact={version:report.version,completed:report.completed,stopped:report.stopped,messagesAccepted:report.messagesAccepted,samples:[...unique.values()].map(x=>({caseId:x.fixture?.caseId,cpuMs:x.cpuMs,outcome:x.outcome,verified:x.fixture?.verified,rpcCalls:x.fixture?.rpcCalls,checkpointBytes:x.fixture?.checkpointBytes,wasmMemoryBytes:x.fixture?.wasmMemoryBytes}))};
+console.log(`::${report.completed?'notice':'error'} title=Static dictionary isolated canary::${JSON.stringify(compact)}`);
 if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,safe+'\n');
 if(!report.completed)process.exitCode=1;

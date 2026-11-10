@@ -9,10 +9,12 @@ export async function advanceEnrichment(input:EnrichSceneInput,dictionary:Dictio
   if(!previous)return {progress:{version,input:identity,spans:prepareEnrichmentSpans(input,segment),resolved:[],entries:[],rendered:[],renderCursor:0} as EnrichmentProgress};
   if(previous.version!==version||previous.input!==identity||!Array.isArray(previous.spans)||previous.spans.length>2000||!Array.isArray(previous.resolved)||previous.resolved.length>2000||!Array.isArray(previous.entries)||previous.entries.length>2000||!Array.isArray(previous.rendered)||previous.rendered.length!==previous.renderCursor||previous.renderCursor<0||previous.renderCursor>previous.spans.length)
     throw new EdgeConfigurationError('Invalid enrichment checkpoint.');
-  const progress=structuredClone(previous),resolved=new Set(progress.resolved),entries=new Map(progress.entries.map(e=>[e.word,e]));
+  // Entries and spans are immutable; only the progress arrays are appended.
+  const progress={...previous,resolved:[...previous.resolved],entries:[...previous.entries],rendered:[...previous.rendered]},resolved=new Set(progress.resolved);
   const allKeys=new Set(progress.spans.map(s=>input.targetLang==='en'?s.word.toLowerCase():s.word));
   const rendering=allKeys.size===resolved.size&&[...allKeys].every(k=>resolved.has(k));
   if(rendering&&progress.renderCursor===progress.spans.length)return {enriched:{tokens:progress.rendered,choices:input.choices,dictionaryVersion:version,unresolvedGlosses:progress.rendered.flatMap((t,tokenIndex)=>t.tier!=='base'&&!t.meaning?[{tokenIndex,word:t.word,candidates:t.candidates}]:[])}};
+  const entries=new Map(progress.entries.map(e=>[e.word,e]));
   try{
     const enriched=await enrichSceneEdge(input,{async lookup(language,words,requestedVersion){
       const missing=words.filter(w=>!resolved.has(w));
