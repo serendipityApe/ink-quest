@@ -1,6 +1,9 @@
-# Isolated lexical assets experiment
+# Private lexical assets integration
 
-This directory is an experiment. Production generation is not wired to it.
+The private `inkquest-dictionary-assets` Worker serves named `Dictionary.lookup`
+RPC calls. Default HTTP requests return 404, public and version-preview URLs
+are disabled, no routes or custom domains are assigned, and static assets use
+`run_worker_first=true`. The generator remains gated until operator verification.
 Do not mark the partially imported SQL dictionary ready to enable this reader.
 
 The existing verified CSV contains 121,446 Chinese and 770,611 English entries.
@@ -35,7 +38,8 @@ The canary has no database, model, credit, app secret or production Queue access
 It reuses the existing private CPU canary Worker and Queue. No plan change is
 performed. `verify_remote.mjs --inspect` reads existing correlated CPU events
 without deploying or publishing messages.
-The workflow is now manual and read-only; its one-shot push trigger is removed.
+The primitive workflow is manual. The phase workflow runs a fixed, one-shot
+version with a read-before-send replay guard; use `--inspect` for subsequent reads.
 
 Before production integration:
 
@@ -44,8 +48,9 @@ Before production integration:
 - Check the complete artifact and immutable Worker deployment. A manifest-only
   lookup is not by itself proof that the entire artifact was published.
 - Persist small enrichment steps behind the existing lease/epoch fence. The
-  current SQL transition function rejects `enrich:enrich`; it must not be
-  silently reused for repeated checkpoints. Test unknown transaction outcomes,
+  generic SQL transition function rejects `enrich:enrich`. Dedicated migration
+  `202611100001` adds a narrow fenced checkpoint, and `202611100002` adds a
+  bounded preparation cursor. Test unknown transaction outcomes,
   redelivery, phase completion and credit settlement before changing production.
 - Account for all caller and asset-service subrequests across the 2,000-token
   bound. A four-word reader cannot be used in a single whole-scene invocation.
@@ -55,3 +60,16 @@ Before production integration:
 - Exercise the full enrichment graph, including Chinese segmentation memory,
   then run the one previously authorized text-only creation test. No production
   activation follows automatically from this isolated canary.
+
+Incremental enrichment persists preparation, lookup and rendering separately.
+Preparation processes at most 384 UTF-16 units, ending at whitespace or Chinese
+sentence punctuation, and preserves CRLF pairs. A lexical run longer than the
+bound without any safe separator fails explicitly instead of changing word
+boundaries. The existing 12,000-unit scene and 2,000-token bounds remain.
+Each lookup delivery resolves at most four keys in one private RPC call; each
+rendering delivery appends at most 64 tokens. A readiness preflight adds one RPC.
+The dictionary reader uses at most six cold asset fetches and four warm fetches
+per four-word call; generator storage uses claim, checkpoint and publication
+RPCs. All progress retains the original lease/epoch and reservation fences.
+A lost checkpoint response is reconciled by redelivery rather than repeating
+paid planning/writing calls. The old partial SQL dictionary is never marked ready.

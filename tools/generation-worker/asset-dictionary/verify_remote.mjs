@@ -1,7 +1,7 @@
 // Fixed one-shot experiment on the existing isolated Queue. No app credentials.
 import {appendFile} from 'node:fs/promises';
 const ACCOUNT='fdfece8b5c135c21fa630440b8dbf2e4',WORKER='inkquest-generation-cpu-canary',QUEUE='f5408177e3c3462fac2746874902f80d';
-const VERSION='e4d4f577-ff85-478b-8a93-f6b66c25c1ee';
+const VERSION='80b9f60d-2067-4be0-8797-88b439dc27f9';
 const report={startedAt:new Date().toISOString(),version:VERSION,samples:[],messagesAccepted:0,completed:false};
 async function api(path,body){
  const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}${path}`,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});

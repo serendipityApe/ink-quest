@@ -2,3 +2,4 @@ dist/
 dist-canary/
 .wrangler/
 node_modules/
+dist-rpc-canary/

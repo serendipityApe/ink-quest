@@ -33,7 +33,7 @@ function tokenizeSpans(text:string,language:"zh"|"en",segmentChinese:ChineseSegm
 export function prepareEnrichmentChunk(input:EnrichSceneInput,segment:ChineseSegmenter,cursor:number){
  const text=input.text.trim();if(text.length>12000||cursor<0||cursor>text.length)throw new EdgeConfigurationError('Invalid preparation cursor.');
  let end=Math.min(cursor+384,text.length);
- if(end<text.length){let boundary=end;while(boundary>cursor&&!/[\s。！？；，、]/u.test(text[boundary-1]))boundary--;if(boundary===cursor)throw new EdgeConfigurationError('Scene contains an unbounded lexical run.');end=boundary;}
+ if(end<text.length){let boundary=end;while(boundary>cursor&&(!/[\s。！？；，、]/u.test(text[boundary-1])||(text[boundary-1]==='\r'&&text[boundary]==='\n')))boundary--;if(boundary===cursor)throw new EdgeConfigurationError('Scene contains an unbounded lexical run.');end=boundary;}
  return {spans:tokenizeSpans(text.slice(cursor,end),input.targetLang,segment),prepareCursor:end};
 }
 

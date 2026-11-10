@@ -7,14 +7,14 @@ test('persisted lexical steps preserve whole-scene result and bound each read',a
  let calls=0,max=0;
  const dictionary:DictionaryReader={async lookup(_lang,words,version){calls++;max=Math.max(max,words.length);return {version,ready:true,entries:words.map(word=>({word,reading:null,candidates:['meaning'],level:null}))};}};
  let progress;let result;let steps=0;
- do{const previous=calls;result=await advanceEnrichment(input,dictionary,'fixture',()=>[],progress);assert.ok(calls-previous<=4);progress=result.progress?JSON.parse(JSON.stringify(result.progress)):undefined;steps++;}while(progress&&steps<20);
+ do{const previous=calls;result=await advanceEnrichment(input,dictionary,'fixture',()=>[],progress);assert.ok(calls-previous<=1);progress=result.progress?JSON.parse(JSON.stringify(result.progress)):undefined;steps++;}while(progress&&steps<20);
  assert.ok(result.enriched);assert.ok(max<=4);assert.ok(steps>3);assert.deepEqual(result.enriched,await enrichSceneEdge(input,dictionary,'fixture',()=>[]));
 });
-test('partial lookup failure leaves persisted progress unchanged for redelivery',async()=>{
+test('failed lookup leaves persisted progress unchanged for redelivery',async()=>{
  let initial=(await advanceEnrichment(input,{lookup:async()=>{throw Error();}},'v',()=>[])).progress!;
  while(initial.prepareCursor<input.text.trim().length)initial=(await advanceEnrichment(input,{lookup:async()=>{throw Error();}},'v',()=>[],initial)).progress!;
- const saved=JSON.stringify(initial);let calls=0;
- await assert.rejects(()=>advanceEnrichment(input,{async lookup(_lang,words,version){if(++calls===2)throw Error('missing shard');return {version,ready:true,entries:[]};}},'v',()=>[],initial),/missing shard/);
+ const saved=JSON.stringify(initial);
+ await assert.rejects(()=>advanceEnrichment(input,{async lookup(){throw Error('missing shard');}},'v',()=>[],initial),/missing shard/);
  assert.equal(JSON.stringify(initial),saved);
  await assert.rejects(()=>advanceEnrichment(input,{async lookup(){return {version:'wrong',ready:true,entries:[]};}},'v',()=>[],initial),/Invalid asset/);
  await assert.rejects(()=>advanceEnrichment({...input,text:'changed'}, {lookup:async()=>{throw Error();}},'v',()=>[],initial),/Invalid enrichment/);

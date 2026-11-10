@@ -41,7 +41,7 @@ try{
     assert.deepEqual(result.body.words,native.cut(sentence,true),`Native/WASM segmentation: ${sentence.slice(0,40)}`);
     elapsed.push(result.body.elapsedMs);
   }
-  for(const text of [parityCases.join(' ').repeat(3),('你好！\r\n“图书馆”\tOpenAI 与 InkQuest，测试。').repeat(30),('数学3.14、比例50%、abc-def hello_world，南京市长江大桥。').repeat(30)]){
+  for(const text of ['中'.repeat(382)+' \r\n'+'文'.repeat(20),parityCases.join(' ').repeat(3),('你好！\r\n“图书馆”\tOpenAI 与 InkQuest，测试。').repeat(30),('数学3.14、比例50%、abc-def hello_world，南京市长江大桥。').repeat(30)]){
     const prepared=await request({mode:"preparation",text,lang:"zh"});assert.equal(prepared.status,200);assert.deepEqual(prepared.body.spans,prepared.body.whole,'Chunked Chinese segmentation preserves exact whole-text spans');
   }
   const zh=await request({mode:"enrich",lang:"zh",text:"图书馆"});assert.equal(zh.status,200);

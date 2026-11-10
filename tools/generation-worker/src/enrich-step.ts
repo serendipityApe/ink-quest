@@ -25,7 +25,7 @@ export async function advanceEnrichment(input:EnrichSceneInput,dictionary:Dictio
     const enriched=await enrichSceneEdge(input,{async lookup(language,words,requestedVersion){
       const missing=words.filter(w=>!resolved.has(w));
       if(missing.length){
-        const next=missing.slice(0,16);
+        const next=missing.slice(0,4);
         for(let i=0;i<next.length;i+=4){
           const requested=next.slice(i,i+4),batch=await dictionary.lookup(language,requested,requestedVersion);
           if(!batch.ready||batch.version!==version||batch.entries.some(e=>!requested.includes(e.word)||!Array.isArray(e.candidates)||e.candidates.some(x=>typeof x!=='string')))

@@ -57,7 +57,7 @@ async function run(caseId:string,env:Env){
  const fingerprint={provider:'fixture',model:'fixture',promptVersion:'fixture',dictionaryVersion:env.GENERATION_DICTIONARY_VERSION};
  const services:Services={store,queue:{async send(){}},dictionaryVersion:env.GENERATION_DICTIONARY_VERSION,incrementalDictionary:true,segmentChinese,provider:()=>({...fingerprint,async planStory(){throw Error('model_prohibited');},async writeScene(){throw Error('model_prohibited');},async resolveGlosses(){throw Error('model_prohibited');}}),async preflight(){await dictionary.lookup(language,[],env.GENERATION_DICTIONARY_VERSION);},async audio(){throw Error('audio_prohibited');}};
  let acked=false;try{await deliver({body:{jobId:'11111111-1111-4111-8111-111111111111'},ack(){acked=true;},retry(){throw Error('unexpected_retry');}},services);}finally{globalThis.fetch=originalFetch;}
- if(!acked||!checkpointBytes||rpcCalls>5||checkpointBytes>1000000)throw Error('step_bound_failed');
+ if(!acked||!checkpointBytes||rpcCalls>2||checkpointBytes>1000000)throw Error('step_bound_failed');
  if(caseId.startsWith('finish')?phase!=='gloss':phase!=='enrich')throw Error('step_transition_failed');
  return {caseId,verified:true,rpcCalls,modelCalls:0,databaseCalls:0,simulatedDatabaseCalls,wasmMemoryBytes:segmenterMemoryBytes(),checkpointBytes,tokens:spans.length,phase};
 }
