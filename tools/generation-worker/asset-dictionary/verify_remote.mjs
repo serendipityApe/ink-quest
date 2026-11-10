@@ -1,5 +1,6 @@
 // Fixed one-shot experiment on the existing isolated Queue. No app credentials.
-import {appendFile} from 'node:fs/promises';
+import {appendFile,readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 const ACCOUNT='fdfece8b5c135c21fa630440b8dbf2e4',WORKER='inkquest-generation-cpu-canary',QUEUE='f5408177e3c3462fac2746874902f80d';
 const VERSION='32403031-632e-440b-bb9a-9d8dec31e465';
 const report={startedAt:new Date().toISOString(),version:VERSION,samples:[],messagesAccepted:0,completed:false};
@@ -16,6 +17,29 @@ function telemetry(data){
 async function observe(){return telemetry(await api('/workers/observability/telemetry/query',{queryId:'inkquest-static-dictionary-canary-v3-rpc-phases',dry:true,view:'events',limit:200,timeframe:{from:Date.parse(report.startedAt)-86400000,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:WORKER}]}}));}
 try{
  if(process.env.CLOUDFLARE_ACCOUNT_ID!==ACCOUNT||!process.env.CLOUDFLARE_API_TOKEN)throw Error('existing_credentials_missing');
+ if(process.argv.includes('--production-inspect')){
+  report.mode='read_only_production_inspection';let marker={};
+  try{marker=JSON.parse(await readFile('.github/generation-worker-telemetry-request.json','utf8'));}catch{}
+  const expectedHash=/^[a-f0-9]{64}$/.test(marker.jobHash??'')?marker.jobHash:null;
+  const from=Number.isFinite(Date.parse(marker.from))?Date.parse(marker.from)-1000:Date.now()-1800000;
+  const data=await api('/workers/observability/telemetry/query',{queryId:'inkquest-production-pipeline-readonly-20261110',dry:true,view:'events',limit:200,timeframe:{from,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:'inkquest-generation-worker'}]}});
+  const inv=new Map(),phases=new Map(),usage=new Map();
+  function audit(x){if(typeof x==='string'){try{return audit(JSON.parse(x));}catch{return null;}}if(!x||typeof x!=='object')return null;if(['generation_stage_timing','generation_llm_usage'].includes(x.event))return x;for(const v of Object.values(x)){const a=audit(v);if(a)return a;}return null;}
+  function visit(x){if(!x||typeof x!=='object')return;const w=x.$workers,m=x.$metadata,id=m?.requestId??w?.requestId;
+   if(w?.scriptName==='inkquest-generation-worker'&&id){
+    if(Number.isFinite(w.cpuTimeMs))inv.set(id,{cpuMs:w.cpuTimeMs,outcome:w.outcome,eventType:w.eventType,version:w.scriptVersion?.id});
+    const a=audit(x.source)??audit(m?.message);
+    if(a?.event==='generation_stage_timing'&&expectedHash&&createHash('sha256').update(String(a.jobId)).digest('hex')===expectedHash)phases.set(id,{phase:a.phase,epoch:a.epoch,startedAt:a.startedAt,endedAt:a.endedAt,durationMs:a.durationMs,outcome:a.outcome});
+    if(a?.event==='generation_llm_usage')usage.set(id,Object.fromEntries(['stage','model','startedAt','endedAt','durationMs','outcome','inputTokens','cachedInputTokens','cacheWriteTokens','serviceTier','outputTokens','reasoningTokens','totalTokens'].map(k=>[k,a[k]])));
+   }
+   for(const v of Object.values(x))visit(v);
+  }visit(data);
+  report.productionSamples=[...inv.values()];report.testPhases=[...phases.values()].sort((a,b)=>a.epoch-b.epoch);report.testUsage=[...usage].filter(([id])=>phases.has(id)).map(([,v])=>v);
+  console.log('::notice title=Production pipeline CPU telemetry::'+JSON.stringify({versions:[...new Set(report.productionSamples.map(x=>x.version))],samples:report.productionSamples.map(({cpuMs,outcome,eventType})=>({cpuMs,outcome,eventType}))}));
+  for(let i=0;i<report.testPhases.length;i+=10)console.log('::notice title=Test stage timing '+(i/10+1)+'::'+JSON.stringify(report.testPhases.slice(i,i+10)));
+  console.log('::notice title=Test model usage::'+JSON.stringify(report.testUsage));
+  report.completed=true;throw Error('inspection_complete');
+ }
  if(process.argv.includes('--inspect')){report.mode='read_only_inspection';report.observed=await observe();report.completed=true;throw Error('inspection_complete');}
  const consumers=await api(`/queues/${QUEUE}/consumers`),c=consumers[0];
  if(consumers.length!==1||(c.script_name??c.script)!==WORKER||c.settings.batch_size!==1||c.settings.max_concurrency!==1||c.settings.max_retries!==0)throw Error('isolation_mismatch');

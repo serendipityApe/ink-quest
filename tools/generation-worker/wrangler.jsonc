@@ -9,16 +9,30 @@
   "preview_urls": false,
   "routes": [],
   "vars": {
-    "GENERATION_ENABLED": "false",
+    "GENERATION_ENABLED": "true",
     "SUPABASE_URL": "https://irzfnntlixbtccdfjcpm.supabase.co",
     "LLM_PROVIDER": "openai",
     "OPENAI_MODEL": "gpt-6-luna",
     "OPENAI_REASONING_EFFORT": "low",
     "OPENAI_MAX_OUTPUT_TOKENS": "6000",
-    "GENERATION_DICTIONARY_VERSION": "lex-244056cfff1d40670ec63f7b"
+    "GENERATION_DICTIONARY_VERSION": "assets-lex-244056cfff1d40670ec63f7b-6b262d70369a",
+    "GENERATION_DICTIONARY_SOURCE_VERSION": "lex-244056cfff1d40670ec63f7b",
+    "GENERATION_DICTIONARY_MANIFEST_SHA256": "6b262d70369aa45ced4c7150cf9bbf4759103884586ca14794422f9b59d54eeb"
   },
-  "observability": { "enabled": true }
-  // No consumers, producers, Cron or secret values. Both approved secrets are
-  // configured remotely. Cancellation and schema installation are verified.
-  // Dictionary import/verification must finish before consumer/Cron activation.
+  "services": [{"binding":"DICTIONARY","service":"inkquest-dictionary-assets","entrypoint":"Dictionary"}],
+  "observability": { "enabled": true },
+  "queues": {
+    "producers": [{ "binding": "GENERATION_QUEUE", "queue": "inkquest-generation" }],
+    "consumers": [{
+      "queue": "inkquest-generation",
+      "max_batch_size": 1,
+      "max_batch_timeout": 1,
+      "max_retries": 3,
+      "max_concurrency": 1
+    }]
+  },
+  "triggers": { "crons": ["* * * * *"] }
+  // Deploy only through the activation workflow after dictionary verification.
+  // Existing secrets remain remote; database creation stays closed until the
+  // deployed consumer and a fresh capability heartbeat have been verified.
 }

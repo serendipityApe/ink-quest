@@ -14,7 +14,7 @@ function services(env:Env):Services & { reportReadiness(): Promise<void> }{
   const dictionaryVersion=config.GENERATION_DICTIONARY_VERSION??"";
   const dictionary=env.DICTIONARY?new AssetServiceReader(env.DICTIONARY,dictionaryVersion,config.GENERATION_DICTIONARY_SOURCE_VERSION??'',config.GENERATION_DICTIONARY_MANIFEST_SHA256??''):undefined;
   const store=new SupabaseEdgeStore(config.SUPABASE_URL??"",config.SUPABASE_SERVICE_ROLE_KEY??"",dictionary);
-  const provider=()=>createLlmProvider({...config,LLM_REQUEST_TIMEOUT_MS:"75000",LLM_REQUEST_ATTEMPTS:"1"});
+  const provider=()=>createLlmProvider({...config,LLM_REQUEST_TIMEOUT_MS:"75000",LLM_REQUEST_ATTEMPTS:"1",LLM_USAGE_TELEMETRY:"true"});
   return {store,queue:env.GENERATION_QUEUE,dictionaryVersion,segmentChinese,provider,incrementalDictionary:!!dictionary,
     async preflight(lease){
       if(lease.job.jobType!=="opening"&&lease.job.jobType!=="scene")throw new EdgeConfigurationError("Unsupported job type.");

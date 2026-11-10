@@ -28,6 +28,7 @@ export async function deliver(message: Delivery, services: Services): Promise<vo
   const body = message.body as { jobId?: unknown } | null;
   if (!body || typeof body.jobId !== "string" || !UUID.test(body.jobId)) { message.ack(); return; }
   let lease: Lease | undefined;
+  let stageStarted:number|undefined;let outcome="interrupted";
   try {
     const claim = await services.store.claim(body.jobId, crypto.randomUUID());
     if (claim.kind === "terminal" || claim.kind === "missing") { message.ack(); return; }
@@ -39,11 +40,13 @@ export async function deliver(message: Delivery, services: Services): Promise<vo
       if (next) await publish(next, services);
       message.ack(); return;
     }
+    stageStarted=Date.now();
     await services.preflight(lease);
     const next = await execute(lease, services);
     if (next) await publish(next, services);
-    message.ack();
+    message.ack();outcome="checkpointed";
   } catch (error) {
+    outcome="retry_or_failure";
     if (!lease || error instanceof StoreUnavailable) {
       message.retry({ delaySeconds: 30 }); return;
     }
@@ -56,6 +59,8 @@ export async function deliver(message: Delivery, services: Services): Promise<vo
       if (next) await publish(next, services);
       message.ack();
     } catch { message.retry({ delaySeconds: 30 }); }
+  }finally{
+    if(lease&&stageStarted!==undefined)console.log(JSON.stringify({event:"generation_stage_timing",jobId:lease.job.jobId,phase:lease.phase,epoch:lease.epoch,startedAt:new Date(stageStarted).toISOString(),endedAt:new Date().toISOString(),durationMs:Date.now()-stageStarted,outcome}));
   }
 }
 

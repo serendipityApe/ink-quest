@@ -4,6 +4,7 @@ import { requestLlmJson, requestPolicyFromEnv, type LlmRequestPolicy } from "./r
 
 interface OpenAIProviderConfig {
   requestPolicy?: LlmRequestPolicy;
+  usageTelemetry?: boolean;
   apiKey: string;
   model: string;
   promptVersion: string;
@@ -41,6 +42,7 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
     }
     return new OpenAIResponsesProvider({
       requestPolicy: requestPolicyFromEnv(env),
+      usageTelemetry: env.LLM_USAGE_TELEMETRY === "true",
       apiKey, model, maxOutputTokens,
       promptVersion: env.LLM_PROMPT_VERSION ?? "opening-v1",
       organizationId: env.OPENAI_ORG_ID?.trim() || undefined,
@@ -49,7 +51,7 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
     });
   }
 
-  protected completeJson(payload: unknown): Promise<unknown> {
+  protected async completeJson(payload: unknown): Promise<unknown> {
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.config.apiKey}`,
       "Content-Type": "application/json",
@@ -57,7 +59,8 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
     if (this.config.organizationId) headers["OpenAI-Organization"] = this.config.organizationId;
     if (this.config.projectId) headers["OpenAI-Project"] = this.config.projectId;
 
-    return requestLlmJson("https://api.openai.com/v1/responses", {
+    const started=Date.now();let responseBody:unknown;let outcome="unavailable";
+    try{return await requestLlmJson("https://api.openai.com/v1/responses", {
       headers,
       body: JSON.stringify({
         model: this.model,
@@ -69,7 +72,18 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
         ...(this.config.reasoningEffort ? { reasoning: { effort: this.config.reasoningEffort } } : {}),
         store: false,
       }),
-    }, parseOpenAIResponse, this.config.requestPolicy);
+    }, body=>{responseBody=body;return parseOpenAIResponse(body);}, this.config.requestPolicy).then(result=>{outcome="completed";return result;});}
+    finally{if(this.config.usageTelemetry){
+      const body=isRecord(responseBody)?responseBody:{};const usage=isRecord(body.usage)?body.usage:{};
+      const inputDetails=isRecord(usage.input_tokens_details)?usage.input_tokens_details:{};
+      const outputDetails=isRecord(usage.output_tokens_details)?usage.output_tokens_details:{};
+      const number=(v:unknown)=>Number.isSafeInteger(v)&&Number(v)>=0?Number(v):null;
+      const task=isRecord(payload)?payload.task:undefined;
+      const stage=task==="Plan a safe interactive language-learning story."?"plan":task==="Write the opening scene for an interactive language-learning story."?"write":task==="Resolve missing learner glosses using the scene context."?"gloss":"unknown";
+      // Only fixed stage labels, timestamps and allowlisted usage numbers. No prompts, keys or output text.
+      console.log(JSON.stringify({event:"generation_llm_usage",stage,model:this.model,startedAt:new Date(started).toISOString(),endedAt:new Date().toISOString(),durationMs:Date.now()-started,outcome,
+        inputTokens:number(usage.input_tokens),cachedInputTokens:number(inputDetails.cached_tokens),cacheWriteTokens:number(inputDetails.cache_write_tokens??inputDetails.cache_creation_tokens),serviceTier:typeof body.service_tier==="string"&&/^[a-z_]{1,32}$/.test(body.service_tier)?body.service_tier:null,outputTokens:number(usage.output_tokens),reasoningTokens:number(outputDetails.reasoning_tokens),totalTokens:number(usage.total_tokens)}));
+    }}
   }
 }
 

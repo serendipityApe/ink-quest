@@ -1,6 +1,9 @@
 name: Activate verified text generation Worker
 on:
   workflow_dispatch:
+  push:
+    branches: [feat/generation-edge-worker-20261106]
+    paths: [.github/generation-worker-activation-request.json]
 permissions:
   contents: read
 concurrency:
@@ -32,7 +35,7 @@ jobs:
           WRANGLER_SEND_METRICS: 'false'
         run: |
           node tools/generation-worker/activation_checks.mjs before
-          pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc --keep-vars
+          pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc
           node tools/generation-worker/activation_checks.mjs after
       # Existing credentials only. No secret relay, database writes, model call,
       # frontend deployment, paid plan change, or automatic backend activation.

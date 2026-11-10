@@ -73,3 +73,15 @@ per four-word call; generator storage uses claim, checkpoint and publication
 RPCs. All progress retains the original lease/epoch and reservation fences.
 A lost checkpoint response is reconciled by redelivery rather than repeating
 paid planning/writing calls. The old partial SQL dictionary is never marked ready.
+
+Full dependency-graph canary `32403031-632e-440b-bb9a-9d8dec31e465` passed all ten
+real Queue fixtures (1–7 ms CPU); the 2,000-distinct-key checkpoint used 6 ms.
+Named private-reader RPC invocations were successful at 0–6 ms. The WASM memory
+buffer was 61,734,912 bytes; platform heap peak is not exposed by this telemetry.
+The canary made no actual database or model calls.
+Evidence: https://github.com/serendipityApe/ink-quest/actions/runs/42767197994
+Migrations 202611100001 and 202611100002 are installed; operator asset attestation
+pins reader version `47b49ee7-7858-47d6-9373-504fd330f11a`. The original SQL
+lexical source remains unready. Production activation now has explicit user approval after the earlier automatic
+review rejection. The single approved deployment request keeps database entry
+closed until the consumer, Cron and fresh capability heartbeat are verified.

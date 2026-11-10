@@ -1,0 +1,16 @@
+{
+  "purpose": "Activate verified OpenAI text generation with private lexical assets",
+  "dictionaryVersion": "assets-lex-244056cfff1d40670ec63f7b-6b262d70369a",
+  "readerVersion": "47b49ee7-7858-47d6-9373-504fd330f11a",
+  "cpuCanaryRun": 42767197994,
+  "migrations": [
+    "202611100001",
+    "202611100002"
+  ],
+  "backendMustRemainClosedDuringDeploy": true,
+  "sharedBuffers": "128MB",
+  "frontendDeployment": false,
+  "tts": false,
+  "status": "explicitly_user_approved",
+  "singleRetryAfterApproval": true
+}

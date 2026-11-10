@@ -214,3 +214,14 @@ test("OPENAI_KEY alias is accepted and OPENAI_API_KEY takes priority when both a
   assert.deepEqual(keys, ["Bearer test-alias", "Bearer test-alias", `Bearer ${openai.OPENAI_API_KEY}`]);
   assert.throws(() => createLlmProvider({ ...openai, OPENAI_REASONING_EFFORT: "typo" }), isProviderError(false));
 });
+
+test('opt-in usage telemetry retains only stage, timing and usage counters',async(t)=>{
+ const logs:unknown[][]=[];t.mock.method(console,'log',(...args:unknown[])=>{logs.push(args);});
+ mockFetch(t,()=>({...responses(plan),usage:{input_tokens:120,output_tokens:30,total_tokens:150,input_tokens_details:{cached_tokens:20},output_tokens_details:{reasoning_tokens:10}},private_prompt:'must not log',secret:'must not log'}));
+ const p=createLlmProvider({...openai,LLM_USAGE_TELEMETRY:'true'});assert.deepEqual(await p.planStory(planInput),plan);
+ assert.equal(logs.length,1);const value=JSON.parse(String(logs[0][0]));assert.equal(value.event,'generation_llm_usage');assert.equal(value.stage,'plan');assert.equal(value.inputTokens,120);assert.equal(value.cachedInputTokens,20);assert.equal(value.outputTokens,30);assert.equal(value.reasoningTokens,10);assert.equal(value.totalTokens,150);assert.equal(value.outcome,'completed');assert.ok(value.durationMs>=0);assert.doesNotMatch(JSON.stringify(value),/must not log|test-openai-only|premise/);
+});
+test('transport failure usage remains unknown rather than reporting zero cost',async(t)=>{
+ const logs:unknown[][]=[];t.mock.method(console,'log',(...args:unknown[])=>{logs.push(args);});mockFetch(t,()=>{throw Error('private transport detail');});
+ await assert.rejects(createLlmProvider({...openai,LLM_USAGE_TELEMETRY:'true',LLM_REQUEST_ATTEMPTS:'1'}).planStory(planInput));const value=JSON.parse(String(logs[0][0]));assert.equal(value.outcome,'unavailable');for(const key of ['inputTokens','outputTokens','totalTokens'])assert.equal(value[key],null);assert.doesNotMatch(JSON.stringify(value),/private transport/);
+});
