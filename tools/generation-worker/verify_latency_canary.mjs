@@ -55,8 +55,11 @@ export async function run(){
 export async function inspect(){
  const marker=JSON.parse(await readFile('.github/generation-latency-request.json','utf8'));
  assert.equal(marker.mode,'inspect');assert.equal(marker.productionActivation,false);
- assert.equal(marker.version,'70efb76b-4e5b-4901-bed4-e44bf70df4cc');
- const from=Date.parse('2026-11-10T09:11:15.405Z');
+ if(!marker.version){
+  const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/workers/scripts/${WORKER}/versions?per_page=100`,{headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN},redirect:'error',signal:AbortSignal.timeout(30000)});if(!response.ok)throw Error('read_http_'+response.status);const data=await response.json();assert.equal(data.success,true);const matches=data.result.items.filter(item=>item.annotations?.['workers/message']==='Isolated '+marker.experiment);assert.equal(matches.length,1,'candidate_identity_ambiguous');marker.version=matches[0].id;
+ }
+ assert.match(marker.version,/^[a-f0-9-]{36}$/);
+ const from=Date.parse(marker.from??'2026-11-10T09:11:15.405Z');assert.ok(Number.isFinite(from));
  const report={mode:'read_only_inspection',version:marker.version,from:new Date(from).toISOString(),messagesSent:0};
  for(const [label,script,version] of [['generator',WORKER,marker.version],['reader',READER,READER_VERSION]]){
   const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/workers/observability/telemetry/query`,{method:'POST',headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,'Content-Type':'application/json'},body:JSON.stringify({queryId:'inkquest-latency-candidate-readonly',dry:true,view:'events',limit:200,timeframe:{from,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:script}]}}),redirect:'error',signal:AbortSignal.timeout(30000)});
