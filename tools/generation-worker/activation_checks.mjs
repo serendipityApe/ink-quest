@@ -5,21 +5,34 @@ import {fileURLToPath} from 'node:url';
 export const ACCOUNT='fdfece8b5c135c21fa630440b8dbf2e4';
 export const WORKER='inkquest-generation-worker';
 export const QUEUE='171b807ab78842a49440bcd21c7d7e8e';
-export const VERSION='lex-244056cfff1d40670ec63f7b';
+export const SOURCE='lex-244056cfff1d40670ec63f7b';
+export const VERSION='assets-lex-244056cfff1d40670ec63f7b-6b262d70369a';
+export const MANIFEST='6b262d70369aa45ced4c7150cf9bbf4759103884586ca14794422f9b59d54eeb';
+export const READER='inkquest-dictionary-assets';
+export const READER_VERSION='47b49ee7-7858-47d6-9373-504fd330f11a';
 export function checkSnapshot(s,phase){
   assert.ok(['before','after'].includes(phase),'invalid_phase');
-  assert.deepEqual(s.dictionary,[{version:VERSION,ready:true,expected_rows:892057}],'dictionary_not_ready');
+  assert.equal(s.dictionary.length,1);const asset=s.dictionary[0];
+  for(const [key,value] of Object.entries({asset_version:VERSION,source_version:SOURCE,manifest_sha256:MANIFEST,expected_rows:892057,zh_rows:121446,en_rows:770611,reader_worker:READER,reader_version:READER_VERSION}))assert.equal(asset[key],value,'asset_'+key);
+  assert.ok(asset.verified_at,'asset_not_verified');
+  assert.deepEqual(s.sqlDictionary,[{version:SOURCE,ready:false,expected_rows:892057}],'partial_sql_dictionary_changed');
+  assert.equal(s.readerPublicUrls.enabled,false);assert.equal(s.readerPublicUrls.previews_enabled,false);
+  assert.deepEqual(s.readerRoutes,[]);assert.deepEqual(s.readerDomains,[]);
+  assert.deepEqual(s.readerVersions,[{version_id:READER_VERSION,percentage:100}]);
+  assert.equal(s.readerWorkerFirst,true,'asset_router_must_not_bypass_worker');
   assert.equal(s.counts.zh,121446);assert.equal(s.counts.en,770611);
   assert.equal(s.backend.length,1);assert.equal(s.backend[0].active,false);assert.equal(s.backend[0].consumer_verified,false);
   assert.deepEqual(s.jobs,[],'active_job_exists');
   assert.equal(s.publicUrls.enabled,false);assert.equal(s.publicUrls.previews_enabled,false);
   const b=Object.fromEntries(s.settings.bindings.map(x=>[x.name,x]));
   for(const name of ['OPENAI_API_KEY','SUPABASE_SERVICE_ROLE_KEY'])assert.equal(b[name]?.type,'secret_text',name+'_missing');
-  for(const [name,value] of Object.entries({LLM_PROVIDER:'openai',OPENAI_MODEL:'gpt-6-luna',OPENAI_REASONING_EFFORT:'low',OPENAI_MAX_OUTPUT_TOKENS:'6000',GENERATION_DICTIONARY_VERSION:VERSION,GENERATION_ENABLED:phase==='before'?'false':'true'}))assert.equal(b[name]?.text,value,name+'_mismatch');
+  for(const [name,value] of Object.entries({LLM_PROVIDER:'openai',OPENAI_MODEL:'gpt-6-luna',OPENAI_REASONING_EFFORT:'low',OPENAI_MAX_OUTPUT_TOKENS:'6000',GENERATION_DICTIONARY_VERSION:phase==='before'?SOURCE:VERSION,GENERATION_ENABLED:phase==='before'?'false':'true'}))assert.equal(b[name]?.text,value,name+'_mismatch');
   assert.equal(s.queue.queue_name,'inkquest-generation');assert.equal(s.queue.queue_id,QUEUE);
   if(phase==='before'){
     assert.deepEqual(s.consumers,[]);assert.deepEqual(s.schedules,[]);assert.equal(b.GENERATION_QUEUE,undefined);
   }else{
+    assert.equal(b.DICTIONARY?.type,'service');assert.equal(b.DICTIONARY?.service,READER);assert.equal(b.DICTIONARY?.entrypoint,'Dictionary');
+    assert.equal(b.GENERATION_DICTIONARY_SOURCE_VERSION?.text,SOURCE);assert.equal(b.GENERATION_DICTIONARY_MANIFEST_SHA256?.text,MANIFEST);
     assert.equal(b.GENERATION_QUEUE?.type,'queue');assert.equal(b.GENERATION_QUEUE?.queue_name,'inkquest-generation');
     assert.equal(s.consumers.length,1);const c=s.consumers[0];assert.equal(c.script_name,WORKER);
     for(const [key,value] of Object.entries({batch_size:1,max_concurrency:1,max_retries:3,max_wait_time_ms:1000}))assert.equal(c.settings?.[key],value,'consumer_'+key);
@@ -40,8 +53,14 @@ export async function inspect(phase){
   async function cf(path){const d=await read('https://api.cloudflare.com/client/v4/accounts/'+ACCOUNT+path,{Authorization:'Bearer '+cfToken});assert.equal(d.success,true);return d.result;}
   const db=(path,head=false)=>read('https://irzfnntlixbtccdfjcpm.supabase.co/rest/v1/'+path,{apikey:dbKey,Authorization:'Bearer '+dbKey,...(head?{Prefer:'count=exact'}:{})},head);
   const s={}; // Sequential, stop on the first denied/failed read. No retries.
-  s.dictionary=await db('generation_dictionary_versions?version=eq.'+VERSION+'&select=version,ready,expected_rows');
-  s.counts={};for(const language of ['zh','en'])s.counts[language]=await db('generation_dictionary_entries?version=eq.'+VERSION+'&language=eq.'+language+'&select=version',true);
+  s.dictionary=await db('generation_asset_dictionaries?asset_version=eq.'+VERSION+'&select=asset_version,source_version,manifest_sha256,expected_rows,zh_rows,en_rows,reader_worker,reader_version,verified_at');
+  s.sqlDictionary=await db('generation_dictionary_versions?version=eq.'+SOURCE+'&select=version,ready,expected_rows');
+  s.counts={zh:s.dictionary[0]?.zh_rows,en:s.dictionary[0]?.en_rows};
+  s.readerPublicUrls=await cf('/workers/scripts/'+READER+'/subdomain');
+  s.readerRoutes=await cf('/workers/services/'+READER+'/environments/production/routes?show_zonename=true');
+  s.readerDomains=await cf('/workers/domains/records?page=0&per_page=5&service='+READER+'&environment=production');
+  s.readerVersions=(await cf('/workers/scripts/'+READER+'/deployments')).deployments?.[0]?.versions;
+  s.readerWorkerFirst=(await cf('/workers/scripts/'+READER+'/versions/'+READER_VERSION)).resources?.script_runtime?.assets?.raw_run_worker_first;
   s.backend=await db('generation_backend_status?worker_name=eq.'+WORKER+'&select=active,consumer_verified');
   s.jobs=await db('generation_jobs?status=in.(queued,running,partial_success)&select=id&limit=1');
   s.settings=await cf('/workers/scripts/'+WORKER+'/settings');

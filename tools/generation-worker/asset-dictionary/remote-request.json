@@ -1,1 +1,1 @@
-{"experiment":"static-dictionary-v3-private-rpc-and-production-phases","version":"3937758a-9055-42fa-ab61-c783f20ca20c","readerVersion":"47b49ee7-7858-47d6-9373-504fd330f11a","productionActivation":false}
+{"experiment":"static-dictionary-v3-private-rpc-and-production-phases","version":"3937758a-9055-42fa-ab61-c783f20ca20c","readerVersion":"47b49ee7-7858-47d6-9373-504fd330f11a","productionActivation":false,"phaseCases":10,"maxDictionaryCallsPerPhase":5,"readerEntrypoint":"Dictionary"}
