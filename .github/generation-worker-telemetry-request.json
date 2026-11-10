@@ -1,8 +1,8 @@
 {
-  "purpose": "Read timing, token usage and sanitized diagnostics for the one completed candidate-fix verification; no generation requests",
-  "from": "2026-11-10T07:44:57.021Z",
-  "jobHash": "e75a3c2ca0dfbe840b2f346e93afaee81c56d4a943def7f9dbb778d04d9ba00d",
-  "deployedCommit": "a14e62ef71bea23d0aa76cc46ef0df084ddbc6a1",
-  "deploymentRun": 42777084915,
-  "terminalStatus": "failed"
+  "purpose": "Read timing and token usage for the single successful gloss-coverage verification; no generation requests",
+  "from": "2026-11-10T08:08:15.420Z",
+  "jobHash": "4d3fad4fd55b32f39d99b119ab4a59210f4d99be082e9d11801f25b158433944",
+  "deployedCommit": "16b4948f98eb8734ac6ef55c385f6d4b0b8f16d6",
+  "deploymentRun": 42779778391,
+  "terminalStatus": "completed"
 }
