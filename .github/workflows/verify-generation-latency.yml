@@ -28,6 +28,7 @@ jobs:
       - run: node --test tools/generation-worker/tests/latency-canary.test.ts
       - run: pnpm --filter @inkquest/generation-worker typecheck
       - run: node tools/generation-worker/build.mjs --asset-rpc-canary
+      - run: node tools/generation-worker/tests/latency-workerd.mjs
       - name: Upload and measure only the isolated candidate once
         env:
           CLOUDFLARE_ACCOUNT_ID: fdfece8b5c135c21fa630440b8dbf2e4

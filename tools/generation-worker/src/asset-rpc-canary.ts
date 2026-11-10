@@ -15,7 +15,7 @@ const IDs=['prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render
 const VERSION='assets-lex-244056cfff1d40670ec63f7b-6b262d70369a';
 function makeFixture(caseId:string){
  const language=caseId.endsWith('zh')?'zh':'en';
- const text=caseId.startsWith('lookup-parallel')?(language==='zh'?zh.repeat(3):en.repeat(2)):caseId==='lookup-distinct'?Array.from({length:2000},(_,i)=>'w'+String(i).padStart(4,'0')).join(' '):language==='zh'?zh.repeat(70):en.repeat(100);
+ const text=caseId.startsWith('lookup-parallel')?(language==='zh'?zh.repeat(3):en.repeat(2)+'A patient traveler reads forgotten stories.'):caseId==='lookup-distinct'?Array.from({length:2000},(_,i)=>'w'+String(i).padStart(4,'0')).join(' '):language==='zh'?zh.repeat(70):en.repeat(100);
  const input={text,plotWords:[],choices:[],targetLang:language as 'zh'|'en',glossLang:language==='zh'?'en' as const:'zh' as const};
  const spans=prepareEnrichmentSpans(input,segmentChinese),keys=[...new Set(spans.map(s=>language==='en'?s.word.toLowerCase():s.word))];
  const fingerprint={provider:'fixture',model:'fixture',promptVersion:'fixture',dictionaryVersion:VERSION};
