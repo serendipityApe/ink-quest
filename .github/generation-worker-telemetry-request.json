@@ -1,7 +1,8 @@
 {
-  "purpose": "Read diagnostic HTTP status, timing and token usage for one terminated authorized test; no new requests",
-  "from": "2026-11-10T07:15:10.219Z",
-  "jobHash": "27eafe31447afb7028254607a73681be100c9beca2442f5f9bcfae0c885f19fd",
-  "version": "1e86bf34-31f8-4591-82bb-7926b1993ea3",
+  "purpose": "Read timing, token usage and sanitized diagnostics for the one completed candidate-fix verification; no generation requests",
+  "from": "2026-11-10T07:44:57.021Z",
+  "jobHash": "e75a3c2ca0dfbe840b2f346e93afaee81c56d4a943def7f9dbb778d04d9ba00d",
+  "deployedCommit": "a14e62ef71bea23d0aa76cc46ef0df084ddbc6a1",
+  "deploymentRun": 42777084915,
   "terminalStatus": "failed"
 }
