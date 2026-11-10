@@ -1,7 +1,7 @@
 // Fixed one-shot experiment on the existing isolated Queue. No app credentials.
 import {appendFile} from 'node:fs/promises';
 const ACCOUNT='fdfece8b5c135c21fa630440b8dbf2e4',WORKER='inkquest-generation-cpu-canary',QUEUE='f5408177e3c3462fac2746874902f80d';
-const VERSION='80b9f60d-2067-4be0-8797-88b439dc27f9';
+const VERSION='32403031-632e-440b-bb9a-9d8dec31e465';
 const report={startedAt:new Date().toISOString(),version:VERSION,samples:[],messagesAccepted:0,completed:false};
 async function api(path,body){
  const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}${path}`,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
@@ -28,7 +28,7 @@ try{
  if(report.dictionaryVersions?.length!==1||report.dictionaryVersions[0].version_id!=='47b49ee7-7858-47d6-9373-504fd330f11a')throw Error('isolation_mismatch');
  const settings=await api(`/workers/scripts/${WORKER}/settings`);
  if(settings.bindings.some(b=>!['ASSETS','DICTIONARY','GENERATION_DICTIONARY_VERSION','GENERATION_DICTIONARY_SOURCE_VERSION','GENERATION_DICTIONARY_MANIFEST_SHA256'].includes(b.name)||b.type==='secret_text'))throw Error('unexpected_binding');
- for(const caseId of ['prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','lookup-distinct','invalid-version']){
+ for(const caseId of ['lookup-distinct','prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','invalid-version']){
   await api(`/queues/${QUEUE}/messages`,{body:{caseId},content_type:'json'});report.messagesAccepted++;
   let sample;
   for(let n=0;n<8&&!sample;n++){

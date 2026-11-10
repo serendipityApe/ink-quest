@@ -274,3 +274,15 @@ test("owned enrichment steps reject malformed, skipped and rewritten progress",a
  await assert.rejects(rpc('edge_checkpoint_enrichment_step',args({...first,resolved:['rewritten','word1']})),/prefix_changed/);
  await f.store.fail(lease,'fixture_cleanup',false);assert.equal((await f.state()).releases,1);
 });
+
+test('preparation cursor and token prefix stay fenced across redelivery',async()=>{
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ await db.query("update public.generation_edge_state set outputs=jsonb_set(outputs,'{scene,text}',to_jsonb($2::text)) where job_id=$1",[f.row.job_id,'library '.repeat(100)]);
+ await f.run();f.queued.length=0;let lease=await f.lease();const initial=lease.outputs.enrichmentProgress!;
+ const args=(p_progress:unknown)=>({p_job_id:f.row.job_id,p_owner:lease.owner,p_epoch:lease.epoch,p_progress});
+ await assert.rejects(rpc('edge_checkpoint_enrichment_step',args({...initial,prepareCursor:385})),/invalid_enrichment/);
+ const partial={...initial,prepareCursor:8,spans:[{word:'library',base:false}]};await rpc('edge_checkpoint_enrichment_step',args(partial));
+ const stale=args({...partial,prepareCursor:16,spans:[...partial.spans,{word:'library',base:false}]});await assert.rejects(rpc('edge_checkpoint_enrichment_step',stale),/fenced/);
+ lease=await f.lease();await assert.rejects(rpc('edge_checkpoint_enrichment_step',args({...partial,prepareCursor:16,spans:[{word:'rewritten',base:false}]})),/prefix_changed/);
+ await f.store.fail(lease,'fixture_cleanup',false);assert.equal((await f.state()).releases,1);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
+});
