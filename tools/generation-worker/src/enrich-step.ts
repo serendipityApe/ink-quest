@@ -1,15 +1,18 @@
 import {EdgeConfigurationError,enrichSceneEdge,prepareEnrichmentSpans,type DictionaryEntry,type DictionaryReader,type ChineseSegmenter,type EnrichmentSpan} from './enrich.js';
 import type {EnrichSceneInput} from '../../story-pipeline/src/core/enrich-scene.js';
 export interface EnrichmentProgress {
-  version:string; input:string; spans:EnrichmentSpan[]; resolved:string[]; entries:DictionaryEntry[];
+  version:string; input:string; spans:EnrichmentSpan[]; resolved:string[]; entries:DictionaryEntry[]; rendered:Awaited<ReturnType<typeof enrichSceneEdge>>["tokens"]; renderCursor:number;
 }
 class Paused extends Error {}
 export async function advanceEnrichment(input:EnrichSceneInput,dictionary:DictionaryReader,version:string,segment:ChineseSegmenter,previous?:EnrichmentProgress|null){
   const identity=JSON.stringify(input);
-  if(!previous)return {progress:{version,input:identity,spans:prepareEnrichmentSpans(input,segment),resolved:[],entries:[]} as EnrichmentProgress};
-  if(previous.version!==version||previous.input!==identity||!Array.isArray(previous.spans)||previous.spans.length>2000||!Array.isArray(previous.resolved)||previous.resolved.length>2000||!Array.isArray(previous.entries)||previous.entries.length>2000)
+  if(!previous)return {progress:{version,input:identity,spans:prepareEnrichmentSpans(input,segment),resolved:[],entries:[],rendered:[],renderCursor:0} as EnrichmentProgress};
+  if(previous.version!==version||previous.input!==identity||!Array.isArray(previous.spans)||previous.spans.length>2000||!Array.isArray(previous.resolved)||previous.resolved.length>2000||!Array.isArray(previous.entries)||previous.entries.length>2000||!Array.isArray(previous.rendered)||previous.rendered.length!==previous.renderCursor||previous.renderCursor<0||previous.renderCursor>previous.spans.length)
     throw new EdgeConfigurationError('Invalid enrichment checkpoint.');
   const progress=structuredClone(previous),resolved=new Set(progress.resolved),entries=new Map(progress.entries.map(e=>[e.word,e]));
+  const allKeys=new Set(progress.spans.map(s=>input.targetLang==='en'?s.word.toLowerCase():s.word));
+  const rendering=allKeys.size===resolved.size&&[...allKeys].every(k=>resolved.has(k));
+  if(rendering&&progress.renderCursor===progress.spans.length)return {enriched:{tokens:progress.rendered,choices:input.choices,dictionaryVersion:version,unresolvedGlosses:progress.rendered.flatMap((t,tokenIndex)=>t.tier!=='base'&&!t.meaning?[{tokenIndex,word:t.word,candidates:t.candidates}]:[])}};
   try{
     const enriched=await enrichSceneEdge(input,{async lookup(language,words,requestedVersion){
       const missing=words.filter(w=>!resolved.has(w));
@@ -26,7 +29,9 @@ export async function advanceEnrichment(input:EnrichSceneInput,dictionary:Dictio
         throw new Paused();
       }
       return {version,ready:true,entries:words.flatMap(w=>entries.has(w)?[entries.get(w)!]:[])};
-    }},version,segment,progress.spans);
-    return {enriched};
+    }},version,segment,rendering?progress.spans.slice(progress.renderCursor,progress.renderCursor+64):progress.spans);
+    if(!rendering)throw new EdgeConfigurationError("Invalid enrichment render state.");
+    progress.rendered.push(...enriched.tokens);progress.renderCursor+=enriched.tokens.length;
+    return {progress};
   }catch(error){if(error instanceof Paused)return {progress};throw error;}
 }

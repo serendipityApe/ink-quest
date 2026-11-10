@@ -4,10 +4,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 const root=dirname(fileURLToPath(import.meta.url));
 const canary=process.argv.includes("--canary");
-const output=join(root,canary?"dist-canary":"dist");
+const rpcCanary=process.argv.includes("--asset-rpc-canary");
+const output=join(root,rpcCanary?"dist-rpc-canary":canary?"dist-canary":"dist");
 await rm(output,{recursive:true,force:true});
 await mkdir(output,{recursive:true});
-const result=await build({entryPoints:[join(root,canary?"src/canary.ts":"src/index.ts")],outfile:join(output,"worker.js"),
+const result=await build({entryPoints:[join(root,rpcCanary?"src/asset-rpc-canary.ts":canary?"src/canary.ts":"src/index.ts")],outfile:join(output,"worker.js"),
   bundle:true,format:"esm",platform:"browser",target:"es2022",conditions:["browser"],metafile:true,minify:true,
   inject:[join(root,"src/speech-websocket.ts")],define:{"process.env.NODE_ENV":'"production"'},
   plugins:[{name:"worker-wasm",setup(builder){builder.onResolve({filter:/\.wasm$/},()=>({path:"./jieba.wasm",external:true}));}}]});
