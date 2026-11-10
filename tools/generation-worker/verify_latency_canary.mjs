@@ -34,6 +34,7 @@ export async function run(){
  try{
   assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.GITHUB_RUN_ATTEMPT,'1','rerun_prohibited');assert.equal(process.env.CLOUDFLARE_ACCOUNT_ID,ACCOUNT);assert.ok(process.env.CLOUDFLARE_API_TOKEN);assert.ok(!process.env.SUPABASE_SERVICE_ROLE_KEY&&!process.env.OPENAI_API_KEY);
   const marker=JSON.parse(await readFile('.github/generation-latency-request.json','utf8'));assert.match(marker.experiment??'',/^latency-[a-z0-9-]{8,60}$/);assert.equal(marker.productionActivation,false);const annotation='Isolated '+marker.experiment;report.experiment=marker.experiment;
+  action='read_production_queue_settings';report.productionQueueConsumers=(await api('/queues/171b807ab78842a49440bcd21c7d7e8e/consumers')).map(c=>({script:c.script_name??c.script,settings:c.settings}));
   action='verify_isolation';await isolation();
   action='guard_repeat';const history=await api(`/workers/scripts/${WORKER}/deployments`);const versions=await api(`/workers/scripts/${WORKER}/versions?per_page=100`);assert.ok(Array.isArray(history.deployments)&&Array.isArray(versions.items));assert.ok(versions.items.length<100,'history_inventory_incomplete');
   // Interrupted uploads count as consumed experiments too. Never resend on rerun.
@@ -70,5 +71,5 @@ export async function inspect(){
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)){
  const marker=JSON.parse(await readFile('.github/generation-latency-request.json','utf8'));
- if(marker.mode==='inspect')await inspect();else await run();
+ if(marker.mode==='inspect'){try{await inspect();}catch(error){console.log('::error title=Isolated latency read-only inspection::'+JSON.stringify({reason:error.message,messagesSent:0}));process.exitCode=1;}}else await run();
 }
