@@ -16,6 +16,7 @@ function telemetry(data){
 async function observe(){return telemetry(await api('/workers/observability/telemetry/query',{queryId:'inkquest-static-dictionary-canary-v1',dry:true,view:'events',limit:200,timeframe:{from:Date.parse(report.startedAt)-86400000,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:WORKER}]}}));}
 try{
  if(process.env.CLOUDFLARE_ACCOUNT_ID!==ACCOUNT||!process.env.CLOUDFLARE_API_TOKEN)throw Error('existing_credentials_missing');
+ if(process.argv.includes('--inspect')){report.mode='read_only_inspection';report.observed=await observe();report.completed=true;throw Error('inspection_complete');}
  const consumers=await api(`/queues/${QUEUE}/consumers`),c=consumers[0];
  if(consumers.length!==1||(c.script_name??c.script)!==WORKER||c.settings.batch_size!==1||c.settings.max_concurrency!==1||c.settings.max_retries!==0)throw Error('isolation_mismatch');
  const urls=await api(`/workers/scripts/${WORKER}/subdomain`);if(urls.enabled||urls.previews_enabled)throw Error('public_url_enabled');
@@ -29,14 +30,14 @@ try{
   let sample;
   for(let n=0;n<8&&!sample;n++){
    await new Promise(r=>setTimeout(r,10000));const seen=await observe();
-   if(seen.some(x=>x.outcome!=='ok'||x.cpuMs>10))throw Error('free_cpu_limit_not_met');
+   if(seen.some(x=>x.outcome!=='ok'||x.cpuMs>10)){report.observed=seen;throw Error('free_cpu_limit_not_met');}
    sample=seen.find(x=>x.fixture?.caseId===caseId);
   }
   if(!sample||!sample.fixture.verified||sample.cpuMs>10)throw Error('correlated_successful_cpu_missing');
   report.samples.push(sample);
  }
  report.completed=true;
-}catch(e){report.stopped=/^(api_\d+|existing_credentials_missing|isolation_mismatch|public_url_enabled|experiment_already_executed_no_more_messages|unexpected_binding|free_cpu_limit_not_met|correlated_successful_cpu_missing)$/.test(e.message)?e.message:'transport_or_unexpected_failure_no_retry';}
+}catch(e){if(e.message!=='inspection_complete')report.stopped=/^(api_\d+|existing_credentials_missing|isolation_mismatch|public_url_enabled|experiment_already_executed_no_more_messages|unexpected_binding|free_cpu_limit_not_met|correlated_successful_cpu_missing)$/.test(e.message)?e.message:'transport_or_unexpected_failure_no_retry';}
 const safe=JSON.stringify(report);console.log(safe);console.log(`::${report.completed?'notice':'error'} title=Static dictionary isolated canary::${safe}`);
 if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,safe+'\n');
 if(!report.completed)process.exitCode=1;
