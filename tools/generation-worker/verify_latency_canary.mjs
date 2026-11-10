@@ -46,7 +46,7 @@ export async function run(){
   for(const caseId of CASES){
    const from=Date.now();action='send_'+caseId;await api(`/queues/${QUEUE}/messages`,{body:{caseId},content_type:'json'});report.messagesAccepted++;
    action='measure_'+caseId;let sample,readers=[];
-   for(let n=0;n<8;n++){await new Promise(resolve=>setTimeout(resolve,10000));const rows=await observe(WORKER,version,from);readers=await observe(READER,READER_VERSION,from);report.lastObservation={caseId,generator:rows,readers};assert.ok([...rows,...readers].every(x=>x.outcome==='ok'&&x.cpuMs<=10),'cpu_or_execution_failed');sample=rows.find(x=>x.fixture?.caseId===caseId);if(sample&&readers.length>=sample.fixture.rpcCalls)break;}
+   for(let n=0;n<8;n++){await new Promise(resolve=>setTimeout(resolve,10000));const rows=await observe(WORKER,version,from);readers=await observe(READER,READER_VERSION,from);report.lastObservation={caseId,generator:rows,readers};assert.ok([...rows,...readers].every(x=>x.outcome==='ok'&&x.cpuMs<=10),'cpu_or_execution_failed');sample=rows.find(x=>x.fixture?.caseId===caseId);if(sample){checkSample(sample,caseId);if(readers.length>=sample.fixture.rpcCalls)break;}}
    assert.ok(sample,'matching_sample_missing');checkSample(sample,caseId);assert.ok(readers.length>=sample.fixture.rpcCalls,'reader_cpu_missing');report.samples.push({caseId,cpuMs:sample.cpuMs,readerMaxCpuMs:Math.max(...readers.map(x=>x.cpuMs)),rpcCalls:sample.fixture.rpcCalls,lookupWords:sample.fixture.lookupWords,maxConcurrentReads:sample.fixture.maxConcurrentReads,checkpointBytes:sample.fixture.checkpointBytes,wasmMemoryBytes:sample.fixture.wasmMemoryBytes});
   }
   action='final_isolation';await isolation();delete report.lastObservation;report.completed=true;
