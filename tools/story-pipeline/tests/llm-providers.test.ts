@@ -225,3 +225,8 @@ test('transport failure usage remains unknown rather than reporting zero cost',a
  const logs:unknown[][]=[];t.mock.method(console,'log',(...args:unknown[])=>{logs.push(args);});mockFetch(t,()=>{throw Error('private transport detail');});
  await assert.rejects(createLlmProvider({...openai,LLM_USAGE_TELEMETRY:'true',LLM_REQUEST_ATTEMPTS:'1'}).planStory(planInput));const value=JSON.parse(String(logs[0][0]));assert.equal(value.outcome,'unavailable');for(const key of ['inputTokens','outputTokens','totalTokens'])assert.equal(value[key],null);assert.doesNotMatch(JSON.stringify(value),/private transport/);
 });
+
+test('usage diagnostics preserve HTTP status without exposing upstream error bodies',async(t)=>{
+ const logs:unknown[][]=[];t.mock.method(console,'log',(...args:unknown[])=>{logs.push(args);});mockFetch(t,()=>Response.json({error:{code:'invalid_request',message:'private prompt and credential'}},{status:400}));
+ await assert.rejects(createLlmProvider({...openai,LLM_USAGE_TELEMETRY:'true',LLM_REQUEST_ATTEMPTS:'1'}).resolveGlosses(glossInput));const value=JSON.parse(String(logs[0][0]));assert.equal(value.httpStatus,400);assert.equal(value.failureKind,'http_error');assert.equal(value.inputTokens,null);assert.doesNotMatch(JSON.stringify(value),/private prompt|credential|test-openai-only/);
+});
