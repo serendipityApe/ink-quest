@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {advanceEnrichment,LOOKUP_RPCS_PER_STEP,LOOKUP_WORDS_PER_RPC} from '../src/enrich-step.js';
+import {advanceEnrichment,LOOKUP_RPCS_PER_STEP,LOOKUP_WORDS_PER_RPC,PARALLEL_LOOKUP_MAX_SPANS} from '../src/enrich-step.js';
 import {enrichSceneEdge,type DictionaryReader} from '../src/enrich.js';
 const input={text:Array.from({length:45},(_,i)=>`word${i}`).join(' '),choices:[],targetLang:'en' as const,glossLang:'zh' as const};
 test('persisted lexical steps preserve whole-scene result and bound each read',async()=>{
@@ -75,4 +75,34 @@ test('out-of-order lookup responses preserve request order and final remainder',
  assert.deepEqual(progress.resolved,Array.from({length:16},(_,i)=>`word${i}`));assert.deepEqual(progress.entries.map(e=>e.word),progress.resolved);
  progress=(await advanceEnrichment(value,dictionary,'v',()=>[],progress)).progress!;
  assert.equal(progress.resolved.length,17);assert.equal(progress.entries[16].word,'word16');
+});
+
+
+test('bounded parallelism covers ordinary scenes through 512 spans and falls back above it',async()=>{
+ assert.equal(PARALLEL_LOOKUP_MAX_SPANS,512);
+ for(const count of [256,257,371,512,513,2000]){
+  const value={...input,text:Array.from({length:count},(_,i)=>'w'+String(i).padStart(4,'0')).join(' ')};
+  let progress=(await advanceEnrichment(value,{} as DictionaryReader,'v',()=>[])).progress!;
+  while(progress.prepareCursor<value.text.length)progress=(await advanceEnrichment(value,{} as DictionaryReader,'v',()=>[],progress)).progress!;
+  assert.equal(progress.spans.length,count);
+  const saved=JSON.stringify(progress);let active=0,maxActive=0,calls=0;
+  const result=await advanceEnrichment(value,{async lookup(_lang,words,version){
+   calls++;active++;maxActive=Math.max(maxActive,active);assert.ok(words.length<=4);
+   await new Promise(resolve=>setTimeout(resolve,1));active--;
+   return {version,ready:true,entries:words.map(word=>({word,reading:null,candidates:['meaning'],level:null}))};
+  }},'v',()=>[],progress);
+  const expected=count<=512?4:1;assert.equal(calls,expected);assert.equal(maxActive,expected);
+  assert.equal(result.progress!.resolved.length,expected*4);assert.equal(JSON.stringify(progress),saved);
+ }
+});
+
+test('synthetic 371-span and 197-key scene finishes 13 lookup rounds with exact output parity',async()=>{
+ const words=Array.from({length:371},(_,i)=>'w'+String(i%197).padStart(3,'0'));
+ const value={...input,text:words.join(' ')};let calls=0,lookupRounds=0;
+ const dictionary:DictionaryReader={async lookup(_lang,keys,version){calls++;assert.ok(keys.length<=4);return {version,ready:true,entries:keys.map(word=>({word,reading:'/fixture/',candidates:['first meaning','second meaning'],level:null}))};}};
+ let progress;let result;let deliveries=0;
+ do{const before=calls;result=await advanceEnrichment(value,dictionary,'v',()=>[],progress);if(calls>before)lookupRounds++;progress=result.progress?JSON.parse(JSON.stringify(result.progress)):undefined;deliveries++;}while(progress&&deliveries<100);
+ assert.ok(result.enriched);assert.equal(result.enriched.tokens.length,371);assert.equal(lookupRounds,13);assert.equal(calls,50);
+ const full=await enrichSceneEdge(value,{async lookup(_lang,keys,version){return {version,ready:true,entries:keys.map(word=>({word,reading:'/fixture/',candidates:['first meaning','second meaning'],level:null}))};}},'v',()=>[]);
+ assert.deepEqual(result.enriched,full);
 });

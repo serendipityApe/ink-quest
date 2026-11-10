@@ -30,6 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm --filter @inkquest/generation-worker typecheck
       - run: pnpm exec tsc --noEmit
+      - run: node --test tests/generator-reveal.test.mjs
       - run: pnpm test:billing
       - run: pnpm --filter @inkquest/generation-worker test
       - run: pnpm --filter @inkquest/generation-worker build

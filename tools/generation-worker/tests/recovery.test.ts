@@ -339,3 +339,26 @@ test('parallel lookup persists sixteen keys and reconciles lost commit with one 
  await tick(f.s);await f.drain();await f.run();
  const state=await f.state();assert.equal(state.status,'completed');assert.equal(state.settles,1);assert.equal(state.nodes,1);assert.equal(state.reserved,0);assert.equal(state.available,980);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
 });
+
+
+test('medium scene resumes an old four-key checkpoint and lost parallel response exactly once',async()=>{
+ const f=await fixture(false,true);const provider=f.s.provider;
+ f.s.provider=()=>{const current=provider();return {...current,async writeScene(input){const scene=await current.writeScene(input);return {...scene,text:Array.from({length:371},(_,i)=>'w'+String(i%197).padStart(3,'0')).join(' ')};}};};
+ await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ let progress;for(let i=0;i<20;i++){
+  await f.run();f.queued.length=0;
+  progress=(await db.query("select outputs->'enrichmentProgress' progress from public.generation_edge_state where job_id=$1",[f.row.job_id])).rows[0].progress;
+  if(progress&&progress.prepareCursor===JSON.parse(progress.input).text.length)break;
+ }
+ assert.equal(progress.spans.length,371);assert.equal(progress.resolved.length,0);
+ const lease=await f.lease();const words=progress.spans.slice(0,4).map(x=>x.word);
+ await rpc('edge_checkpoint_enrichment_step',{p_job_id:f.row.job_id,p_owner:lease.owner,p_epoch:lease.epoch,p_progress:{...progress,resolved:words,entries:words.map(word=>({word,reading:null,candidates:['Fixture meaning'],level:null}))}});
+ const transport=globalThis.fetch;let captured;let lost=true;
+ globalThis.fetch=async(url,request={})=>{const response=await transport(url,request);if(lost&&String(url).endsWith('/edge_checkpoint_enrichment_step')){lost=false;captured=JSON.parse(String(request.body));throw Error('lost medium checkpoint response');}return response;};
+ try{assert.deepEqual((await f.run()).status.retries,[30]);}finally{globalThis.fetch=transport;}
+ progress=(await db.query("select outputs->'enrichmentProgress' progress from public.generation_edge_state where job_id=$1",[f.row.job_id])).rows[0].progress;
+ assert.equal(progress.resolved.length,20);assert.equal(progress.entries.length,20);
+ await assert.rejects(rpc('edge_checkpoint_enrichment_step',captured),/fenced/);
+ await tick(f.s);await f.drain();await f.run();
+ const state=await f.state();assert.equal(state.status,'completed');assert.equal(state.settles,1);assert.equal(state.releases,0);assert.equal(state.nodes,1);assert.equal(state.reserved,0);assert.equal(state.available,980);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
+});

@@ -10,7 +10,8 @@ export const QUEUE='f5408177e3c3462fac2746874902f80d';
 // default to 30 seconds on Free; keep dictionary RPCs within the 10 ms guard.
 export const QUEUE_CPU_GUARD_MS=25;
 export const READER_CPU_GUARD_MS=10;
-export const CASES=['lookup-parallel-zh','lookup-parallel-en','lookup-distinct','prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','invalid-version'];
+const LEGACY_CASES=['lookup-parallel-zh','lookup-parallel-en','lookup-distinct','prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','invalid-version'];
+export const CASES=[...LEGACY_CASES,'lookup-parallel-512-en','lookup-parallel-512-zh','lookup-parallel-512-late-en','lookup-parallel-512-late-zh','lookup-parallel-512-late-heavy-en','lookup-fallback-513-en'];
 export function checkBindings(bindings){
  assert.ok(Array.isArray(bindings));assert.equal(bindings.length,4);
  const b=Object.fromEntries(bindings.map(x=>[x.name,x]));assert.equal(Object.keys(b).length,4);
@@ -24,12 +25,12 @@ export function telemetry(data,script,version){
  function visit(x){if(!x||typeof x!=='object')return;const w=x.$workers,id=x.$metadata?.requestId??w?.requestId;if(w?.scriptName===script&&id){if(w.scriptVersion?.id===version&&Number.isFinite(w.cpuTimeMs))records.set(id,{requestId:id,cpuMs:w.cpuTimeMs,outcome:w.outcome});const f=fixture(x.source)??fixture(x.$metadata?.message);if(f)fixtures.set(id,f);}for(const v of Object.values(x))visit(v);}
  visit(data);return [...records.values()].map(row=>({...row,fixture:fixtures.get(row.requestId)}));
 }
-export function checkSample(sample,caseId){assert.equal(sample.outcome,'ok');assert.ok(sample.cpuMs<=QUEUE_CPU_GUARD_MS);const f=sample.fixture;assert.equal(f?.caseId,caseId);assert.equal(f.verified,true);assert.equal(f.modelCalls,0);assert.equal(f.databaseCalls,0);if(caseId.startsWith('lookup-parallel')){assert.equal(f.rpcCalls,5);assert.equal(f.lookupWords,16);assert.equal(f.maxConcurrentReads,4);}if(caseId==='lookup-distinct'){assert.equal(f.rpcCalls,2);assert.equal(f.lookupWords,4);assert.equal(f.maxConcurrentReads,1);}assert.ok(Number.isInteger(f.rpcCalls)&&f.rpcCalls>=1&&f.rpcCalls<=(caseId.startsWith('lookup')?5:1));if(caseId!=='invalid-version'){assert.ok(f.checkpointBytes>0&&f.checkpointBytes<=1000000);assert.ok(Number.isFinite(f.wasmMemoryBytes)&&f.wasmMemoryBytes<134217728);assert.equal(f.phase,caseId.startsWith('finish')?'gloss':'enrich');}}
+export function checkSample(sample,caseId){assert.equal(sample.outcome,'ok');assert.ok(sample.cpuMs<=QUEUE_CPU_GUARD_MS);const f=sample.fixture;assert.equal(f?.caseId,caseId);assert.equal(f.verified,true);assert.equal(f.modelCalls,0);assert.equal(f.databaseCalls,0);if(caseId.startsWith('lookup-parallel')){assert.equal(f.rpcCalls,5);assert.equal(f.lookupWords,16);assert.equal(f.maxConcurrentReads,4);}if(caseId==='lookup-distinct'||caseId==='lookup-fallback-513-en'){assert.equal(f.rpcCalls,2);assert.equal(f.lookupWords,4);assert.equal(f.maxConcurrentReads,1);}if(caseId.includes('-512-'))assert.equal(f.tokens,512);if(caseId==='lookup-fallback-513-en')assert.equal(f.tokens,513);if(caseId.includes('-512-late-'))assert.ok(f.dictionaryHits>0);assert.ok(Number.isInteger(f.rpcCalls)&&f.rpcCalls>=1&&f.rpcCalls<=(caseId.startsWith('lookup')?5:1));if(caseId!=='invalid-version'){assert.ok(f.checkpointBytes>0&&f.checkpointBytes<=1000000);assert.ok(Number.isFinite(f.wasmMemoryBytes)&&f.wasmMemoryBytes<134217728);assert.equal(f.phase,caseId.startsWith('finish')?'gloss':'enrich');}}
 export function checkContinuation(rows){
  assert.equal(rows.length,3,'unexpected_previous_delivery_count');
- const expected=CASES.slice(0,3);assert.deepEqual([...new Set(rows.map(x=>x.fixture?.caseId))].sort(),[...expected].sort(),'unexpected_previous_fixtures');
+ const expected=LEGACY_CASES.slice(0,3);assert.deepEqual([...new Set(rows.map(x=>x.fixture?.caseId))].sort(),[...expected].sort(),'unexpected_previous_fixtures');
  for(const caseId of expected)checkSample(rows.find(x=>x.fixture?.caseId===caseId),caseId);
- return CASES.slice(3);
+ return LEGACY_CASES.slice(3);
 }
 export async function run(){
  const report={startedAt:new Date().toISOString(),messagesAccepted:0,samples:[],completed:false,queueCpuGuardMs:QUEUE_CPU_GUARD_MS,readerCpuGuardMs:READER_CPU_GUARD_MS,runtimeLimitsChanged:false};let action='ci_guard';
@@ -48,6 +49,7 @@ export async function run(){
   action='verify_isolation';await isolation();
   let version,remainingCases=CASES;
   if(marker.mode==='continue'){
+   assert.deepEqual(CASES,LEGACY_CASES,'legacy_continuation_not_valid_for_changed_fixtures');
    assert.equal(marker.version,'a4b28d96-62b6-4586-b422-b020b198d43b');version=marker.version;
    action='reconcile_previous_samples';const prior=await observe(WORKER,version,Date.parse('2026-11-10T09:30:45.323Z'));remainingCases=checkContinuation(prior);
    report.previouslyAccepted=3;report.samples=CASES.slice(0,3).map(caseId=>{const x=prior.find(x=>x.fixture?.caseId===caseId);return {caseId,cpuMs:x.cpuMs,rpcCalls:x.fixture.rpcCalls,checkpointBytes:x.fixture.checkpointBytes,previouslyObserved:true};});
@@ -67,7 +69,7 @@ export async function run(){
    const from=Date.now();action='send_'+caseId;await api(`/queues/${QUEUE}/messages`,{body:{caseId},content_type:'json'});report.messagesAccepted++;
    action='measure_'+caseId;let sample,readers=[];
    for(let n=0;n<8;n++){await new Promise(resolve=>setTimeout(resolve,10000));const rows=await observe(WORKER,version,from);readers=await observe(READER,READER_VERSION,from);report.lastObservation={caseId,generator:rows,readers};assert.ok(rows.every(x=>x.outcome==='ok'&&x.cpuMs<=QUEUE_CPU_GUARD_MS),'queue_cpu_or_execution_failed');assert.ok(readers.every(x=>x.outcome==='ok'&&x.cpuMs<=READER_CPU_GUARD_MS),'reader_cpu_or_execution_failed');sample=rows.find(x=>x.fixture?.caseId===caseId);if(sample){checkSample(sample,caseId);if(readers.length>=sample.fixture.rpcCalls)break;}}
-   assert.ok(sample,'matching_sample_missing');checkSample(sample,caseId);assert.ok(readers.length>=sample.fixture.rpcCalls,'reader_cpu_missing');report.samples.push({caseId,cpuMs:sample.cpuMs,readerMaxCpuMs:Math.max(...readers.map(x=>x.cpuMs)),rpcCalls:sample.fixture.rpcCalls,lookupWords:sample.fixture.lookupWords,maxConcurrentReads:sample.fixture.maxConcurrentReads,checkpointBytes:sample.fixture.checkpointBytes,wasmMemoryBytes:sample.fixture.wasmMemoryBytes});
+   assert.ok(sample,'matching_sample_missing');checkSample(sample,caseId);assert.ok(readers.length>=sample.fixture.rpcCalls,'reader_cpu_missing');report.samples.push({caseId,cpuMs:sample.cpuMs,readerMaxCpuMs:Math.max(...readers.map(x=>x.cpuMs)),rpcCalls:sample.fixture.rpcCalls,lookupWords:sample.fixture.lookupWords,maxConcurrentReads:sample.fixture.maxConcurrentReads,dictionaryHits:sample.fixture.dictionaryHits,tokens:sample.fixture.tokens,checkpointBytes:sample.fixture.checkpointBytes,wasmMemoryBytes:sample.fixture.wasmMemoryBytes});
   }
   action='final_isolation';await isolation();delete report.lastObservation;report.completed=true;
  }catch(error){report.stopped={action,reason:/^http_\d+$/.test(error.message)?error.message:'guard_or_transport_failed_no_retry'};process.exitCode=1;}

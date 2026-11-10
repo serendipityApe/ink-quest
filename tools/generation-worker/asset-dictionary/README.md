@@ -66,7 +66,7 @@ Preparation processes at most 384 UTF-16 units, ending at whitespace or Chinese
 sentence punctuation, and preserves CRLF pairs. A lexical run longer than the
 bound without any safe separator fails explicitly instead of changing word
 boundaries. The existing 12,000-unit scene and 2,000-token bounds remain.
-For scenes with up to 256 tokens, each lookup delivery resolves at most sixteen keys in at most four concurrent
+For scenes with up to 512 tokens, each lookup delivery resolves at most sixteen keys in at most four concurrent
 private RPC calls, each still capped at four words; rendering appends at most
 64 tokens. A sequential readiness preflight adds one RPC. Responses retain
 request order, each is validated against its own keys, and all reads settle
@@ -155,3 +155,26 @@ readiness record. Postdeployment verifies the deployed version and the same
 configuration, while reporting any job arriving during the deployment.
 Checkpoint formats and lease/epoch/reservation fences remain compatible. This
 update makes no new paid story, model call, database mutation, or frontend change.
+
+
+## Default-scene latency candidate
+
+The next candidate expands bounded parallel lookup coverage from 256 to 512
+spans. It keeps four words per RPC, four concurrent RPCs, all existing SQL and
+reservation fences, and the single-RPC fallback above 512 spans. No model,
+dictionary content, platform runtime setting, or billing rule changes.
+A public synthetic 371-span / 197-key fixture needs thirteen lookup deliveries
+rather than fifty while preserving the complete output and fifty reader calls.
+This is an offline round-count result, not a new live wall-time measurement.
+
+Boundary tests cover 256, 257, 371, 512, 513 and 2,000 spans. The isolated cloud
+suite adds English/Chinese 512-span first and late lookups, a late checkpoint
+with larger cached candidate arrays, and the 513-span fallback. Every reader
+call is still capped at four words. Its late cases require real dictionary hits.
+The existing Queue 25 ms and reader 10 ms conservative regression budgets remain.
+These synthetic fixtures contain no user's story, prompt, job ID or derived hash.
+
+The frontend candidate removes the per-word display timer so completed text
+appears in full. It preserves ordinary native keyboard controls, scene/audio
+behavior and the existing active-job branch guard. It does not change backend
+completion or the polling interval and does not represent a streaming model UI.

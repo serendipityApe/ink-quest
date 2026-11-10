@@ -23,3 +23,14 @@ test('Queue regression guard differs from unchanged reader guard and continuatio
  const remaining=checkContinuation(prior);assert.equal(remaining.length,9);assert.ok(remaining.every(id=>!prior.some(x=>x.fixture.caseId===id)));
  assert.throws(()=>checkContinuation(prior.slice(1)));assert.throws(()=>checkContinuation([...prior,prior[0]]));assert.throws(()=>checkContinuation([...prior.slice(0,2),{...prior[2],cpuMs:26}]));
 });
+
+
+test('512-span boundary and real-hit canary guards fail closed',()=>{
+ const sample={outcome:'ok',cpuMs:9,fixture:{caseId:'lookup-parallel-512-late-en',verified:true,modelCalls:0,databaseCalls:0,rpcCalls:5,lookupWords:16,maxConcurrentReads:4,dictionaryHits:16,tokens:512,checkpointBytes:500000,wasmMemoryBytes:61734912,phase:'enrich'}};
+ checkSample(sample,'lookup-parallel-512-late-en');
+ assert.throws(()=>checkSample({...sample,fixture:{...sample.fixture,tokens:513}},'lookup-parallel-512-late-en'));
+ assert.throws(()=>checkSample({...sample,fixture:{...sample.fixture,dictionaryHits:0}},'lookup-parallel-512-late-en'));
+ const fallback={...sample,fixture:{...sample.fixture,caseId:'lookup-fallback-513-en',tokens:513,rpcCalls:2,lookupWords:4,maxConcurrentReads:1}};
+ checkSample(fallback,'lookup-fallback-513-en');
+ assert.throws(()=>checkSample({...fallback,fixture:{...fallback.fixture,maxConcurrentReads:4}},'lookup-fallback-513-en'));
+});

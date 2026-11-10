@@ -5,7 +5,7 @@ import type {EnrichSceneInput} from '../../story-pipeline/src/core/enrich-scene.
 // complete dictionary or changing segmentation/rendering/checkpoint bounds.
 export const LOOKUP_WORDS_PER_RPC = 4;
 export const LOOKUP_RPCS_PER_STEP = 4;
-export const PARALLEL_LOOKUP_MAX_SPANS = 256;
+export const PARALLEL_LOOKUP_MAX_SPANS = 512;
 export interface EnrichmentProgress {
   version:string; input:string; spans:EnrichmentSpan[]; resolved:string[]; entries:DictionaryEntry[]; rendered:Awaited<ReturnType<typeof enrichSceneEdge>>["tokens"]; renderCursor:number; prepareCursor:number;
 }

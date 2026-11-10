@@ -112,13 +112,10 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [playingNodeId, setPlayingNodeId] = useState<string | null>(null);
   const [playingSentence, setPlayingSentence] = useState<string | null>(null);
-  const [typingNodeId, setTypingNodeId] = useState<string | null>(null);
-  const [revealedUnits, setRevealedUnits] = useState(0);
   const requestKey = useRef<string | null>(null);
   const branchRequestKeys = useRef(new Map<string, string>());
   const previewedJob = useRef<string | null>(null);
   const knownNodeIds = useRef(new Set<string>());
-  const animatedNodeIds = useRef(new Set<string>());
   const previousPlaying = useRef(false);
   const restartingPlayback = useRef(false);
   const { isPlaying, activeSegmentIndex, play, stop } = useAudioSync();
@@ -153,7 +150,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     }
   }, []);
 
-  const loadStory = useCallback(async (storyId: string, options?: { animateLatest?: boolean }) => {
+  const loadStory = useCallback(async (storyId: string, options?: { stopPlaybackForNewNodes?: boolean }) => {
     const response = await fetch(`/api/generated-stories/${storyId}`, { cache: "no-store" });
     if (!response.ok) throw new Error("story_load_failed");
     const data = await response.json() as GeneratedStoryResponse;
@@ -163,16 +160,11 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     setTargetLanguage(data.story.target_language);
     setLearnerLevel(data.story.learner_level);
     setTtsMode(data.story.tts_mode);
-    const latestNode = newNodes.at(-1);
-    if (options?.animateLatest && latestNode && !animatedNodeIds.current.has(latestNode.id)) {
+    // Completed text is immediately readable; only interrupt audio for newly added scenes.
+    if (options?.stopPlaybackForNewNodes && newNodes.length > 0) {
       stop();
       setPlayingNodeId(null);
       setPlayingSentence(null);
-      animatedNodeIds.current.add(latestNode.id);
-      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        setTypingNodeId(latestNode.id);
-        setRevealedUnits(1);
-      }
     }
     if (data.nodes.length > 0) setPhase("reader");
     return data;
@@ -241,11 +233,11 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
         if (cancelled) return;
         setJobStage(body.job.stage);
         if (body.job.stage.includes("tts") && previewedJob.current !== activeJob.jobId) {
-          await loadStory(activeJob.storyId, { animateLatest: true });
+          await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true });
           previewedJob.current = activeJob.jobId;
         }
         if (body.job.status === "completed" || body.job.status === "partial_success") {
-          await loadStory(activeJob.storyId, { animateLatest: true });
+          await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true });
           await refreshBalance();
           if (body.job.status === "partial_success") {
             setError(body.job.error_message_safe ?? (isZh ? "正文已完成，语音生成失败；语音积分已自动退回。" : "The scene is ready, but narration failed. Its credits were returned."));
@@ -364,27 +356,6 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const handleToggleSave = useCallback((segment: TextSegment, target: TargetLanguage) => {
     setSavedWords((current) => toggleSaved(current, fromSegment(segment, target)));
   }, []);
-
-  const typingNode = storyData?.nodes.find((node) => node.id === typingNodeId) ?? null;
-  const typingTotal = typingNode?.text_segments?.length
-    ? typingNode.text_segments.length
-    : Array.from(typingNode?.text ?? "").length;
-
-  useEffect(() => {
-    if (!typingNodeId || typingTotal <= 0) return;
-
-    let visible = 1;
-    const interval = window.setInterval(() => {
-      visible += 1;
-      setRevealedUnits(Math.min(visible, typingTotal));
-      if (visible >= typingTotal) {
-        window.clearInterval(interval);
-        setTypingNodeId(null);
-      }
-    }, typingNode?.text_segments?.length ? 42 : 24);
-
-    return () => window.clearInterval(interval);
-  }, [typingNode?.text_segments?.length, typingNodeId, typingTotal]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -541,13 +512,10 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
               <Link href="/generate" className="inline-flex min-h-11 items-center rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-colors hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-px">{isZh ? "再开一个故事" : "Start another"}</Link>
             </header>
 
-            <article aria-busy={Boolean(typingNodeId)}>
+            <article>
               {storyData.nodes.map((node, index) => {
                 const segments = node.text_segments ?? [];
-                const isTyping = typingNodeId === node.id;
-                const visibleSegments = isTyping ? segments.slice(0, revealedUnits) : segments;
-                const visibleText = isTyping ? Array.from(node.text ?? "").slice(0, revealedUnits).join("") : node.text;
-                const sentenceGroups = toSentenceGroups(visibleSegments, !isTyping);
+                const sentenceGroups = toSentenceGroups(segments, true);
                 const wholeNodeActive = playingNodeId === node.id && playingSentence === null;
                 const bodyClass = storyData.story.target_language === "en"
                   ? "font-body text-[20px] text-ink leading-[1.85] break-words md:text-[22px]"
@@ -572,7 +540,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
                       {segments.length ? (
                         <>
                           <p className="hidden whitespace-pre-wrap md:block">
-                            {visibleSegments.map((segment, segmentIndex) => renderSegment(segment, segmentIndex, segmentIndex === 0))}
+                            {segments.map((segment, segmentIndex) => renderSegment(segment, segmentIndex, segmentIndex === 0))}
                           </p>
                           <div className="flex flex-col gap-5 md:hidden">
                             {sentenceGroups.map((sentence) => {
@@ -596,14 +564,13 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
                             })}
                           </div>
                         </>
-                      ) : <p className="whitespace-pre-wrap">{visibleText}</p>}
+                      ) : <p className="whitespace-pre-wrap">{node.text}</p>}
                     </div>
 
                     <div className="mt-7 flex justify-end">
                       <button
                         type="button"
                         onClick={() => toggleNodePlayback(node)}
-                        disabled={isTyping}
                         className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-px disabled:cursor-wait disabled:opacity-50 ${wholeNodeActive ? "bg-ink text-paper" : "bg-paper hover:bg-accent-soft"}`}
                       >
                         {wholeNodeActive ? <Square className="size-4 fill-current" /> : <Volume2 className="size-4" />}
@@ -616,7 +583,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
 
               {activeJob && <div className="mt-10 flex items-center gap-3 text-sm text-ink-2" aria-live="polite"><span className="size-4 animate-spin rounded-full border-2 border-rule-2 border-r-accent-deep" />{generatingLabel}</div>}
 
-              {currentNode && !typingNodeId && <section className="mt-10 pt-2">
+              {currentNode && <section className="mt-10 pt-2">
                 <h3 className="mb-2 text-sm font-bold text-ink-2">{isZh ? "接下来" : "Next"}</h3>
                 <div className="flex w-full flex-col">
                   {currentNode.story_choices.map((choice, index) => (
