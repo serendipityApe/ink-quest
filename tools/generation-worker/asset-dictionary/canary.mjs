@@ -4,7 +4,7 @@ import {AssetDictionary} from './reader.mjs';
 import fixtures from './fixtures.json';
 let cached;
 async function run(caseId,env){
- const known=['zh48','en48','ready','corrupt','missing'];
+ const known=['zh4','en4','ready','corrupt','missing'];
  if(!known.includes(caseId))throw Error('unknown_canary_case');
  let calls=0;
  const assets={fetch(req){calls++;return env.ASSETS.fetch(req);}};
@@ -17,7 +17,7 @@ async function run(caseId,env){
   try{await new AssetDictionary(fake,env.DICTIONARY_VERSION,env.DICTIONARY_MANIFEST_SHA256).lookup('zh',[],env.DICTIONARY_VERSION);}catch{return{caseId,verified:true,failClosed:true,assetCalls:0};}
   throw Error('expected_integrity_failure');
  }
- const language=caseId==='en48'?'en':'zh',words=caseId==='ready'?[]:fixtures[language];
+ const language=caseId==='en4'?'en':'zh',words=caseId==='ready'?[]:fixtures[language].slice(0,4);
  const result=await reader.lookup(language,words,env.DICTIONARY_VERSION);
  if(!result.ready||result.entries.length!==words.length||calls>50)throw Error('canary_result_mismatch');
  return {caseId,verified:true,entries:result.entries.length,assetCalls:calls,dictionaryVersion:result.version};

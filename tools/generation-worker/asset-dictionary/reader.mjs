@@ -1,4 +1,4 @@
-export const MAX_WORDS=48;
+export const MAX_WORDS=4;
 export function bucket(word){let h=2166136261;for(const b of new TextEncoder().encode(word))h=Math.imul(h^b,16777619)>>>0;return h%8192;}
 const hex=bytes=>Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 async function verified(response,expected,maxBytes,json=true){

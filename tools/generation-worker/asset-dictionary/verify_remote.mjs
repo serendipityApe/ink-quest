@@ -1,7 +1,7 @@
 // Fixed one-shot experiment on the existing isolated Queue. No app credentials.
 import {appendFile} from 'node:fs/promises';
 const ACCOUNT='fdfece8b5c135c21fa630440b8dbf2e4',WORKER='inkquest-generation-cpu-canary',QUEUE='f5408177e3c3462fac2746874902f80d';
-const VERSION='159f1778-fc1f-4c8f-841c-e766d74e970f';
+const VERSION='8552ec7f-f024-4c2f-a8f1-bce0ae840255';
 const report={startedAt:new Date().toISOString(),version:VERSION,samples:[],messagesAccepted:0,completed:false};
 async function api(path,body){
  const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}${path}`,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
@@ -13,7 +13,7 @@ function telemetry(data){
  function visit(x){if(!x||typeof x!=='object')return;const w=x.$workers,m=x.$metadata,id=m?.requestId??w?.requestId;if(w?.scriptName===WORKER&&w.eventType==='queue'&&id){if(Number.isFinite(w.cpuTimeMs))inv.set(id,{requestId:id,cpuMs:w.cpuTimeMs,outcome:w.outcome,version:w.scriptVersion?.id});const f=fixture(x.source)??fixture(m?.message);if(f)logs.set(id,f);}for(const v of Object.values(x))visit(v);}
  visit(data);return [...inv.values()].filter(x=>x.version===VERSION).map(x=>({...x,fixture:logs.get(x.requestId)}));
 }
-async function observe(){return telemetry(await api('/workers/observability/telemetry/query',{queryId:'inkquest-static-dictionary-canary-v1',dry:true,view:'events',limit:200,timeframe:{from:Date.parse(report.startedAt)-86400000,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:WORKER}]}}));}
+async function observe(){return telemetry(await api('/workers/observability/telemetry/query',{queryId:'inkquest-static-dictionary-canary-v2',dry:true,view:'events',limit:200,timeframe:{from:Date.parse(report.startedAt)-86400000,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:WORKER}]}}));}
 try{
  if(process.env.CLOUDFLARE_ACCOUNT_ID!==ACCOUNT||!process.env.CLOUDFLARE_API_TOKEN)throw Error('existing_credentials_missing');
  if(process.argv.includes('--inspect')){report.mode='read_only_inspection';report.observed=await observe();report.completed=true;throw Error('inspection_complete');}
@@ -25,7 +25,7 @@ try{
  await api(`/workers/scripts/${WORKER}/deployments`,{strategy:'percentage',versions:[{version_id:VERSION,percentage:100}],annotations:{'workers/message':'Isolated lexical assets canary only'}});
  const settings=await api(`/workers/scripts/${WORKER}/settings`);
  if(settings.bindings.some(b=>!['ASSETS','DICTIONARY_VERSION','DICTIONARY_MANIFEST_SHA256'].includes(b.name)||b.type==='secret_text'))throw Error('unexpected_binding');
- for(const caseId of ['en48','zh48','ready','corrupt','missing']){
+ for(const caseId of ['en4','zh4','ready','corrupt','missing']){
   await api(`/queues/${QUEUE}/messages`,{body:{caseId},content_type:'json'});report.messagesAccepted++;
   let sample;
   for(let n=0;n<8&&!sample;n++){

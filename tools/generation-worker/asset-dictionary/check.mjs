@@ -16,14 +16,14 @@ for(const [name,meta] of Object.entries(manifest.files)){
  const body=await readFile(dir+'/'+name);assert.equal(body.length,meta.bytes);assert.equal(createHash('sha256').update(body).digest('hex'),meta.sha256);
  const data=JSON.parse(body);assert.equal(Object.keys(data).length,meta.rows);
  for(const word of Object.keys(data)){assert.equal(bucket(word),parseInt(name.slice(3,7),16));counts[name.slice(0,2)]++;}
- const key=Object.keys(data)[0];if(key&&fixture[name.slice(0,2)].length<48)fixture[name.slice(0,2)].push(key);
+ const key=Object.keys(data)[0];if(key&&fixture[name.slice(0,2)].length<4)fixture[name.slice(0,2)].push(key);
 }
 assert.deepEqual(counts,{zh:121446,en:770611});
 let calls=0,bytes=0;
 const assets={async fetch(req){calls++;const data=await readFile(root+new URL(req.url).pathname);bytes+=data.length;return new Response(data);}};
 const reader=new AssetDictionary(assets,build.version,build.manifestSha256);
 await assert.rejects(()=>reader.lookup('en',['x'],'wrong'));
-await assert.rejects(()=>reader.lookup('en',Array(49).fill('x'),build.version));
+await assert.rejects(()=>reader.lookup('en',Array(5).fill('x'),build.version));
 const corrupt=new AssetDictionary({async fetch(){return new Response('{}');}},build.version,build.manifestSha256);
 await assert.rejects(()=>corrupt.lookup('zh',[],build.version),/integrity/);
 const missing=new AssetDictionary({async fetch(){return new Response('',{status:404});}},build.version,build.manifestSha256);
@@ -31,8 +31,8 @@ await assert.rejects(()=>missing.lookup('zh',[],build.version),/unavailable/);
 const benchmarks=[];
 for(const language of ['zh','en']){
  calls=0;bytes=0;const start=process.cpuUsage();const result=await reader.lookup(language,fixture[language],build.version);const used=process.cpuUsage(start);
- assert.equal(result.entries.length,48);assert.equal(result.ready,true);assert.ok(calls<=50);
- benchmarks.push({language,words:48,calls,bytes,cpuMs:(used.user+used.system)/1000});
+ assert.equal(result.entries.length,4);assert.equal(result.ready,true);assert.ok(calls<=50);
+ benchmarks.push({language,words:4,calls,bytes,cpuMs:(used.user+used.system)/1000});
 }
 assert.equal((await reader.lookup('en',['__proto__','constructor','not-a-real-word-0123456789'],build.version)).ready,true);
 console.log(JSON.stringify({verifiedRows:counts,files:16384,benchmarks,note:'Node CPU includes local file I/O work; remote Free-plan validation is still required.'},null,2));
