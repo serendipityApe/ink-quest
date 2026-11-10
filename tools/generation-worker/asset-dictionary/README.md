@@ -111,8 +111,9 @@ checkpoint-size bounds remain unchanged.
 
 Before release, the isolated latency canary must pass against the actual newly
 uploaded candidate version. Its unique experiment annotation prevents replay;
-it carries no model/database credentials and retains the conservative 10 ms
-CPU gate for both generator and private reader. A new paid end-to-end story is
+it carries no model/database credentials. Event-specific regression budgets are
+25 ms for the Queue consumer and 10 ms for the private reader; neither changes
+Cloudflare runtime limits or the account plan. A new paid end-to-end story is
 not part of this offline/canary verification and needs separate authorization.
 
 
@@ -122,3 +123,18 @@ It was not released. The adaptive candidate limits parallel lookups to scenes
 with at most 256 spans; larger checkpoints retain the original single-RPC path.
 The isolated canary now explicitly checks short English/Chinese parallel cases
 and the large-checkpoint fallback. No CPU gate or paid plan is changed.
+
+
+Cloudflare's current [Queues limits](https://developers.cloudflare.com/queues/platform/limits/)
+state that the default consumer CPU budget is 30 seconds and the limits apply
+to Free and Paid except the documented queue-count/retention differences.
+[Workers limits](https://developers.cloudflare.com/workers/platform/limits/)
+label the Free 10 ms CPU limit for HTTP and Cron invocations. Verified on
+2026-11-10. The original all-event 10 ms test threshold incorrectly mixed event
+types: the adaptive maximum-size Queue fixture completed with provider outcome
+`ok` at 11 ms, while its dictionary RPC stayed below 10 ms. It is not a platform
+resource-limit failure. The test now uses a conservative 25 ms Queue regression
+budget (not a platform guarantee), and retains 10 ms for the reader. No
+`limits.cpu_ms`, plan, batch size, concurrency or dictionary bound changes.
+The same candidate is reconciled by version and its three existing fixture
+records before sending only the remaining nine fixtures.

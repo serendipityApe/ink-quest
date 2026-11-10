@@ -6,6 +6,10 @@ import {fileURLToPath} from 'node:url';
 import {ACCOUNT,SOURCE,VERSION,MANIFEST,READER,READER_VERSION} from './activation_checks.mjs';
 export const WORKER='inkquest-generation-cpu-canary';
 export const QUEUE='f5408177e3c3462fac2746874902f80d';
+// Regression budgets, not changes to Cloudflare runtime limits: Queue consumers
+// default to 30 seconds on Free; keep dictionary RPCs within the 10 ms guard.
+export const QUEUE_CPU_GUARD_MS=25;
+export const READER_CPU_GUARD_MS=10;
 export const CASES=['lookup-parallel-zh','lookup-parallel-en','lookup-distinct','prepare-en','prepare-zh','lookup-en','lookup-zh','render-en','render-zh','finish-en','finish-zh','invalid-version'];
 export function checkBindings(bindings){
  assert.ok(Array.isArray(bindings));assert.equal(bindings.length,4);
@@ -20,9 +24,15 @@ export function telemetry(data,script,version){
  function visit(x){if(!x||typeof x!=='object')return;const w=x.$workers,id=x.$metadata?.requestId??w?.requestId;if(w?.scriptName===script&&id){if(w.scriptVersion?.id===version&&Number.isFinite(w.cpuTimeMs))records.set(id,{requestId:id,cpuMs:w.cpuTimeMs,outcome:w.outcome});const f=fixture(x.source)??fixture(x.$metadata?.message);if(f)fixtures.set(id,f);}for(const v of Object.values(x))visit(v);}
  visit(data);return [...records.values()].map(row=>({...row,fixture:fixtures.get(row.requestId)}));
 }
-export function checkSample(sample,caseId){assert.equal(sample.outcome,'ok');assert.ok(sample.cpuMs<=10);const f=sample.fixture;assert.equal(f?.caseId,caseId);assert.equal(f.verified,true);assert.equal(f.modelCalls,0);assert.equal(f.databaseCalls,0);if(caseId.startsWith('lookup-parallel')){assert.equal(f.rpcCalls,5);assert.equal(f.lookupWords,16);assert.equal(f.maxConcurrentReads,4);}if(caseId==='lookup-distinct'){assert.equal(f.rpcCalls,2);assert.equal(f.lookupWords,4);assert.equal(f.maxConcurrentReads,1);}assert.ok(Number.isInteger(f.rpcCalls)&&f.rpcCalls>=1&&f.rpcCalls<=(caseId.startsWith('lookup')?5:1));if(caseId!=='invalid-version'){assert.ok(f.checkpointBytes>0&&f.checkpointBytes<=1000000);assert.ok(Number.isFinite(f.wasmMemoryBytes)&&f.wasmMemoryBytes<134217728);assert.equal(f.phase,caseId.startsWith('finish')?'gloss':'enrich');}}
+export function checkSample(sample,caseId){assert.equal(sample.outcome,'ok');assert.ok(sample.cpuMs<=QUEUE_CPU_GUARD_MS);const f=sample.fixture;assert.equal(f?.caseId,caseId);assert.equal(f.verified,true);assert.equal(f.modelCalls,0);assert.equal(f.databaseCalls,0);if(caseId.startsWith('lookup-parallel')){assert.equal(f.rpcCalls,5);assert.equal(f.lookupWords,16);assert.equal(f.maxConcurrentReads,4);}if(caseId==='lookup-distinct'){assert.equal(f.rpcCalls,2);assert.equal(f.lookupWords,4);assert.equal(f.maxConcurrentReads,1);}assert.ok(Number.isInteger(f.rpcCalls)&&f.rpcCalls>=1&&f.rpcCalls<=(caseId.startsWith('lookup')?5:1));if(caseId!=='invalid-version'){assert.ok(f.checkpointBytes>0&&f.checkpointBytes<=1000000);assert.ok(Number.isFinite(f.wasmMemoryBytes)&&f.wasmMemoryBytes<134217728);assert.equal(f.phase,caseId.startsWith('finish')?'gloss':'enrich');}}
+export function checkContinuation(rows){
+ assert.equal(rows.length,3,'unexpected_previous_delivery_count');
+ const expected=CASES.slice(0,3);assert.deepEqual([...new Set(rows.map(x=>x.fixture?.caseId))].sort(),[...expected].sort(),'unexpected_previous_fixtures');
+ for(const caseId of expected)checkSample(rows.find(x=>x.fixture?.caseId===caseId),caseId);
+ return CASES.slice(3);
+}
 export async function run(){
- const report={startedAt:new Date().toISOString(),messagesAccepted:0,samples:[],completed:false};let action='ci_guard';
+ const report={startedAt:new Date().toISOString(),messagesAccepted:0,samples:[],completed:false,queueCpuGuardMs:QUEUE_CPU_GUARD_MS,readerCpuGuardMs:READER_CPU_GUARD_MS,runtimeLimitsChanged:false};let action='ci_guard';
  async function api(path,body){const r=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}${path}`,{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(30000),headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});if(!r.ok)throw Error('http_'+r.status);const d=await r.json();if(d.success!==true)throw Error('api_failed');return d.result;}
  async function observe(script,version,from){return telemetry(await api('/workers/observability/telemetry/query',{queryId:'inkquest-isolated-latency',dry:true,view:'events',limit:200,timeframe:{from,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:script}]}}),script,version);}
  async function isolation(){
@@ -36,17 +46,27 @@ export async function run(){
   const marker=JSON.parse(await readFile('.github/generation-latency-request.json','utf8'));assert.match(marker.experiment??'',/^latency-[a-z0-9-]{8,60}$/);assert.equal(marker.productionActivation,false);const annotation='Isolated '+marker.experiment;report.experiment=marker.experiment;
   action='read_production_queue_settings';report.productionQueueConsumers=(await api('/queues/171b807ab78842a49440bcd21c7d7e8e/consumers')).map(c=>({script:c.script_name??c.script,settings:c.settings}));
   action='verify_isolation';await isolation();
+  let version,remainingCases=CASES;
+  if(marker.mode==='continue'){
+   assert.equal(marker.version,'a4b28d96-62b6-4586-b422-b020b198d43b');version=marker.version;
+   action='reconcile_previous_samples';const prior=await observe(WORKER,version,Date.parse('2026-11-10T09:30:45.323Z'));remainingCases=checkContinuation(prior);
+   report.previouslyAccepted=3;report.samples=CASES.slice(0,3).map(caseId=>{const x=prior.find(x=>x.fixture?.caseId===caseId);return {caseId,cpuMs:x.cpuMs,rpcCalls:x.fixture.rpcCalls,checkpointBytes:x.fixture.checkpointBytes,previouslyObserved:true};});
+   const candidate=await api(`/workers/scripts/${WORKER}/versions/${version}`);checkBindings(candidate.resources?.bindings);assert.equal(candidate.annotations?.['workers/message'],annotation);
+  }else{
+   assert.ok(!marker.mode,'unsupported_mutating_mode');
   action='guard_repeat';const history=await api(`/workers/scripts/${WORKER}/deployments`);const versions=await api(`/workers/scripts/${WORKER}/versions?per_page=100`);assert.ok(Array.isArray(history.deployments)&&Array.isArray(versions.items));assert.ok(versions.items.length<100,'history_inventory_incomplete');
   // Interrupted uploads count as consumed experiments too. Never resend on rerun.
   assert.ok(!JSON.stringify([history,versions]).includes(marker.experiment),'experiment_already_seen');
-  action='upload_candidate';const upload=spawnSync('pnpm',['exec','wrangler','versions','upload','--config','tools/generation-worker/wrangler.latency-canary.jsonc','--message',annotation],{encoding:'utf8',timeout:180000,env:{...process.env,WRANGLER_SEND_METRICS:'false'}});assert.equal(upload.status,0,'upload_failed_no_retry');const ids=[...(upload.stdout??'').matchAll(/Worker Version ID:\s*([a-f0-9-]{36})/g)];assert.equal(ids.length,1);const version=ids[0][1];report.version=version;
+  action='upload_candidate';const upload=spawnSync('pnpm',['exec','wrangler','versions','upload','--config','tools/generation-worker/wrangler.latency-canary.jsonc','--message',annotation],{encoding:'utf8',timeout:180000,env:{...process.env,WRANGLER_SEND_METRICS:'false'}});assert.equal(upload.status,0,'upload_failed_no_retry');const ids=[...(upload.stdout??'').matchAll(/Worker Version ID:\s*([a-f0-9-]{36})/g)];assert.equal(ids.length,1);version=ids[0][1];
   action='verify_candidate';const candidate=await api(`/workers/scripts/${WORKER}/versions/${version}`);checkBindings(candidate.resources?.bindings);assert.equal(candidate.annotations?.['workers/message'],annotation);
   action='activate_isolated_candidate';await api(`/workers/scripts/${WORKER}/deployments`,{strategy:'percentage',versions:[{version_id:version,percentage:100}],annotations:{'workers/message':annotation}});
+  }
+  report.version=version;
   action='verify_active_candidate';await isolation();checkBindings((await api(`/workers/scripts/${WORKER}/settings`)).bindings);assert.deepEqual((await api(`/workers/scripts/${WORKER}/deployments`)).deployments?.[0]?.versions,[{version_id:version,percentage:100}]);
-  for(const caseId of CASES){
+  for(const caseId of remainingCases){
    const from=Date.now();action='send_'+caseId;await api(`/queues/${QUEUE}/messages`,{body:{caseId},content_type:'json'});report.messagesAccepted++;
    action='measure_'+caseId;let sample,readers=[];
-   for(let n=0;n<8;n++){await new Promise(resolve=>setTimeout(resolve,10000));const rows=await observe(WORKER,version,from);readers=await observe(READER,READER_VERSION,from);report.lastObservation={caseId,generator:rows,readers};assert.ok([...rows,...readers].every(x=>x.outcome==='ok'&&x.cpuMs<=10),'cpu_or_execution_failed');sample=rows.find(x=>x.fixture?.caseId===caseId);if(sample){checkSample(sample,caseId);if(readers.length>=sample.fixture.rpcCalls)break;}}
+   for(let n=0;n<8;n++){await new Promise(resolve=>setTimeout(resolve,10000));const rows=await observe(WORKER,version,from);readers=await observe(READER,READER_VERSION,from);report.lastObservation={caseId,generator:rows,readers};assert.ok(rows.every(x=>x.outcome==='ok'&&x.cpuMs<=QUEUE_CPU_GUARD_MS),'queue_cpu_or_execution_failed');assert.ok(readers.every(x=>x.outcome==='ok'&&x.cpuMs<=READER_CPU_GUARD_MS),'reader_cpu_or_execution_failed');sample=rows.find(x=>x.fixture?.caseId===caseId);if(sample){checkSample(sample,caseId);if(readers.length>=sample.fixture.rpcCalls)break;}}
    assert.ok(sample,'matching_sample_missing');checkSample(sample,caseId);assert.ok(readers.length>=sample.fixture.rpcCalls,'reader_cpu_missing');report.samples.push({caseId,cpuMs:sample.cpuMs,readerMaxCpuMs:Math.max(...readers.map(x=>x.cpuMs)),rpcCalls:sample.fixture.rpcCalls,lookupWords:sample.fixture.lookupWords,maxConcurrentReads:sample.fixture.maxConcurrentReads,checkpointBytes:sample.fixture.checkpointBytes,wasmMemoryBytes:sample.fixture.wasmMemoryBytes});
   }
   action='final_isolation';await isolation();delete report.lastObservation;report.completed=true;

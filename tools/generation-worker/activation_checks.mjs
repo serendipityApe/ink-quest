@@ -41,6 +41,7 @@ export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,now=Dat
   // postdeploy reports any new job without falsely declaring deployment failure.
   assert.ok(Array.isArray(s.jobs));if(!postDeploy)assert.deepEqual(s.jobs,[],'active_job_exists');
   assert.equal(s.publicUrls.enabled,false);assert.equal(s.publicUrls.previews_enabled,false);
+  assert.equal(s.workerVersions.length,1);assert.equal(s.workerVersions[0].percentage,100);assert.match(s.workerVersions[0].version_id,/^[a-f0-9-]{36}$/);
   const b=Object.fromEntries(s.settings.bindings.map(x=>[x.name,x]));
   for(const name of ['OPENAI_API_KEY','SUPABASE_SERVICE_ROLE_KEY'])assert.equal(b[name]?.type,'secret_text',name+'_missing');
   for(const [name,value] of Object.entries({LLM_PROVIDER:'openai',OPENAI_MODEL:'gpt-6-luna',OPENAI_REASONING_EFFORT:'low',OPENAI_MAX_OUTPUT_TOKENS:'6000',GENERATION_DICTIONARY_VERSION:phase==='before'?SOURCE:VERSION,GENERATION_ENABLED:phase==='before'?'false':'true'}))assert.equal(b[name]?.text,value,name+'_mismatch');
@@ -55,7 +56,7 @@ export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,now=Dat
     for(const [key,value] of Object.entries({batch_size:1,max_concurrency:1,max_retries:3,max_wait_time_ms:1000}))assert.equal(c.settings?.[key],value,'consumer_'+key);
     assert.equal(s.schedules.length,1);assert.equal(s.schedules[0].cron,'* * * * *');
   }
-  return {phase,verified:true,dictionaryVersion:VERSION,rows:892057,backendActive:backend.active,consumerVerified:backend.consumer_verified,...(keepActive?{keepActive:true,postDeploy,heartbeatAgeMs:now-Date.parse(backend.checked_at),activeJobObserved:s.jobs.length>0}:{}),consumerCount:s.consumers.length,cronCount:s.schedules.length,model:'gpt-6-luna'};
+  return {phase,verified:true,dictionaryVersion:VERSION,rows:892057,backendActive:backend.active,consumerVerified:backend.consumer_verified,...(keepActive?{keepActive:true,postDeploy,heartbeatAgeMs:now-Date.parse(backend.checked_at),activeJobObserved:s.jobs.length>0}:{}),consumerCount:s.consumers.length,cronCount:s.schedules.length,model:'gpt-6-luna',workerVersion:s.workerVersions[0].version_id};
 }
 export async function inspect(phase,options={}){
   // Validate opt-in before any remote read. No state is changed by either mode.
@@ -83,6 +84,7 @@ export async function inspect(phase,options={}){
   s.backend=await db('generation_backend_status?worker_name=eq.'+WORKER+'&select=active,consumer_verified,checked_at,dictionary_version,capabilities');
   s.jobs=await db('generation_jobs?status=in.(queued,running,partial_success)&select=id&limit=1');
   s.settings=await cf('/workers/scripts/'+WORKER+'/settings');
+  s.workerVersions=(await cf('/workers/scripts/'+WORKER+'/deployments')).deployments?.[0]?.versions;
   s.publicUrls=await cf('/workers/scripts/'+WORKER+'/subdomain');
   s.schedules=(await cf('/workers/scripts/'+WORKER+'/schedules')).schedules;
   s.queue=await cf('/queues/'+QUEUE);s.consumers=await cf('/queues/'+QUEUE+'/consumers');
