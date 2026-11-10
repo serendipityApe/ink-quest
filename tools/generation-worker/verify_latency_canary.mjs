@@ -50,6 +50,22 @@ export async function run(){
   }
   action='final_isolation';await isolation();report.completed=true;
  }catch(error){report.stopped={action,reason:/^http_\d+$/.test(error.message)?error.message:'guard_or_transport_failed_no_retry'};process.exitCode=1;}
- const safe=JSON.stringify(report);console.log(safe);if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,safe+'\n');return report;
+ const safe=JSON.stringify(report);console.log('::notice title=Isolated latency result::'+safe);if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,safe+'\n');return report;
 }
-if(process.argv[1]===fileURLToPath(import.meta.url))await run();
+export async function inspect(){
+ const marker=JSON.parse(await readFile('.github/generation-latency-request.json','utf8'));
+ assert.equal(marker.mode,'inspect');assert.equal(marker.productionActivation,false);
+ assert.equal(marker.version,'70efb76b-4e5b-4901-bed4-e44bf70df4cc');
+ const from=Date.parse('2026-11-10T09:11:15.405Z');
+ const report={mode:'read_only_inspection',version:marker.version,from:new Date(from).toISOString(),messagesSent:0};
+ for(const [label,script,version] of [['generator',WORKER,marker.version],['reader',READER,READER_VERSION]]){
+  const response=await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/workers/observability/telemetry/query`,{method:'POST',headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN,'Content-Type':'application/json'},body:JSON.stringify({queryId:'inkquest-latency-candidate-readonly',dry:true,view:'events',limit:200,timeframe:{from,to:Date.now()},parameters:{filters:[{key:'$metadata.service',type:'string',operation:'eq',value:script}]}}),redirect:'error',signal:AbortSignal.timeout(30000)});
+  if(!response.ok)throw Error('read_http_'+response.status);const data=await response.json();assert.equal(data.success,true);
+  report[label]=telemetry(data.result,script,version);
+ }
+ console.log('::notice title=Isolated latency inspection::'+JSON.stringify(report));return report;
+}
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+ const marker=JSON.parse(await readFile('.github/generation-latency-request.json','utf8'));
+ if(marker.mode==='inspect')await inspect();else await run();
+}
