@@ -2,11 +2,13 @@ import type { ClaimedGenerationJob, CommitGeneratedTextInput, CommitGeneratedAud
 import type { StoryPlan, SceneDraft } from "../../story-pipeline/src/core/contracts.js";
 import type { EnrichSceneResult } from "../../story-pipeline/src/core/enrich-scene.js";
 import type { DictionaryReader } from "./enrich.js";
+import type { EnrichmentProgress } from './enrich-step.js';
 
 export type Phase = "plan" | "write" | "enrich" | "gloss" | "commit" | "audio";
 export interface Outputs {
   plan?: StoryPlan; scene?: SceneDraft; enriched?: EnrichSceneResult & { dictionaryVersion: string };
   fingerprint?: { provider: string; model: string; promptVersion: string; dictionaryVersion: string };
+  enrichmentProgress?: EnrichmentProgress | null;
 }
 export interface Lease {
   job: ClaimedGenerationJob; owner: string; epoch: number; phase: Phase;

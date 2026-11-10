@@ -5,15 +5,17 @@ import { segmentChinese } from "./segment.js";
 import { checkSpeechConfiguration, generateAudio, type StringEnv } from "./audio.js";
 import { EdgeConfigurationError } from "./enrich.js";
 import type { Delivery, QueueBinding } from "./contracts.js";
+import {AssetServiceReader,type DictionaryServiceBinding} from './asset-service.js';
 
-interface Env { GENERATION_QUEUE?: QueueBinding; GENERATION_ENABLED?: string; [key: string]: unknown; }
+interface Env { GENERATION_QUEUE?: QueueBinding; GENERATION_ENABLED?: string; DICTIONARY?:DictionaryServiceBinding; [key: string]: unknown; }
 function services(env:Env):Services & { reportReadiness(): Promise<void> }{
   if(!env.GENERATION_QUEUE)throw new EdgeConfigurationError("Generation queue binding is unavailable.");
   const config=Object.fromEntries(Object.entries(env).filter((entry):entry is [string,string]=>typeof entry[1]==="string")) as StringEnv;
-  const store=new SupabaseEdgeStore(config.SUPABASE_URL??"",config.SUPABASE_SERVICE_ROLE_KEY??"");
   const dictionaryVersion=config.GENERATION_DICTIONARY_VERSION??"";
+  const dictionary=env.DICTIONARY?new AssetServiceReader(env.DICTIONARY,dictionaryVersion,config.GENERATION_DICTIONARY_SOURCE_VERSION??'',config.GENERATION_DICTIONARY_MANIFEST_SHA256??''):undefined;
+  const store=new SupabaseEdgeStore(config.SUPABASE_URL??"",config.SUPABASE_SERVICE_ROLE_KEY??"",dictionary);
   const provider=()=>createLlmProvider({...config,LLM_REQUEST_TIMEOUT_MS:"75000",LLM_REQUEST_ATTEMPTS:"1"});
-  return {store,queue:env.GENERATION_QUEUE,dictionaryVersion,segmentChinese,provider,
+  return {store,queue:env.GENERATION_QUEUE,dictionaryVersion,segmentChinese,provider,incrementalDictionary:!!dictionary,
     async preflight(lease){
       if(lease.job.jobType!=="opening"&&lease.job.jobType!=="scene")throw new EdgeConfigurationError("Unsupported job type.");
       if(lease.phase!=="audio"){

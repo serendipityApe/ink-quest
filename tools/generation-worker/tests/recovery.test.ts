@@ -25,7 +25,7 @@ async function rpc(name: string, args: Record<string, unknown> = {}) {
   return (await db.query(sql,entries.map(([,v])=>v))).rows[0].result;
 }
 before(async () => {
-  db=await isolatedDatabase();
+  db=await isolatedDatabase({includeAssets:true});
   await db.exec(`insert into public.generation_dictionary_versions(version,ready,expected_rows,sources) values('test-v1',false,2,'[]');
     insert into public.generation_dictionary_entries values('test-v1','en','library','/laɪbrəri/','["图书馆"]','B1'),
       ('test-v1','zh','图书馆',null,'["library"]','HSK 3');`);
@@ -108,7 +108,7 @@ test("queued cancellation and claiming have exclusive outcomes in either transac
 });
 after(async()=>{globalThis.fetch=originalFetch;await db.close();});
 
-async function fixture(tts=false){
+async function fixture(tts=false,incrementalDictionary=false){
   const userId=crypto.randomUUID();
   await db.query("insert into auth.users(id) values($1)",[userId]);
   await rpc("grant_credits",{p_user_id:userId,p_amount:1000,p_source_type:"test",p_source_id:userId,p_idempotency_key:`grant:${userId}`});
@@ -118,10 +118,11 @@ async function fixture(tts=false){
   ]);
   const row=result.rows[0];
   const store=new SupabaseEdgeStore("https://database.invalid","fixture-key");
+  if(incrementalDictionary)store.lookup=async(_language,words,version)=>{assert.ok(words.length<=4);return {version,ready:true,entries:words.map(word=>({word,reading:null,candidates:["Fixture meaning"],level:null}))};};
   const queued:string[]=[];
   const calls={plan:0,write:0,gloss:0,audio:0};
   const s:Services={store,queue:{async send({jobId}){queued.push(jobId);}},dictionaryVersion:"test-v1",
-    segmentChinese:text=>[text],async preflight(){},
+    segmentChinese:text=>[text],incrementalDictionary,async preflight(){},
     provider:()=>({provider:"mock",model:"mock-v1",promptVersion:"test-v1",
       async planStory(){calls.plan++;return {title:"The Library",worldBible:{},characters:[],openingIntent:"Discover"};},
       async writeScene(){calls.write++;return {text:"Alice opens the library door. A mysterious letter waits beside a silver key on the wooden desk.",
@@ -239,4 +240,37 @@ test("missing dictionary version is explicit and incomplete imports cannot be ac
   await db.exec("insert into public.generation_dictionary_versions(version,expected_rows,sources) values('incomplete',5,'[]')");
   await assert.rejects(rpc("verify_generation_dictionary",{p_version:"incomplete"}));
   await f.store.fail(await f.lease(),"fixture_cleanup",false);
+});
+
+test("lost enrichment checkpoint response resumes its durable cursor without duplicate model work or settlement",async()=>{
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ const transport=globalThis.fetch;let lost=true;let captured:Record<string,unknown>|undefined;
+ globalThis.fetch=async(url,request={})=>{const response=await transport(url,request);if(lost&&String(url).endsWith('/edge_checkpoint_enrichment_step')){lost=false;captured=JSON.parse(String(request.body));throw Error('response lost after commit');}return response;};
+ try{const first=await f.run();assert.equal(first.status.acks,0);assert.deepEqual(first.status.retries,[30]);}finally{globalThis.fetch=transport;}
+ const progress=(await db.query("select outputs->'enrichmentProgress' progress from public.generation_edge_state where job_id=$1",[f.row.job_id])).rows[0].progress;
+ assert.deepEqual(progress.resolved,[]);await assert.rejects(rpc('edge_checkpoint_enrichment_step',captured!),/fenced/);
+ await tick(f.s);await f.drain();const state=await f.state();assert.equal(state.status,'completed');assert.equal(state.settles,1);assert.equal(state.releases,0);assert.equal(state.nodes,1);assert.equal(state.available,980);assert.equal(state.reserved,0);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);assert.equal(f.calls.gloss,0);
+});
+test("temporary missing asset retries a pure enrichment step and preserves the same reservation",async()=>{
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ const lookup=f.store.lookup.bind(f.store);let unavailable=true;
+ f.store.lookup=async(...args)=>{if(unavailable){unavailable=false;throw new StoreUnavailable('missing fixture shard');}return lookup(...args);};
+ const failed=await f.run();assert.deepEqual(failed.status.retries,[30]);assert.equal((await f.state()).reserved,20);
+ await f.expire();await f.run();await f.drain();await f.run();
+ const state=await f.state();assert.equal(state.status,'completed');assert.equal(state.settles,1);assert.equal(state.releases,0);assert.equal(state.available,980);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
+});
+test("wrong dictionary version terminates enrichment and releases credit only once",async()=>{
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ f.store.lookup=async()=>({version:'wrong',ready:true,entries:[]});await f.run();await f.run();
+ const state=await f.state();assert.equal(state.status,'failed');assert.equal(state.releases,1);assert.equal(state.settles,0);assert.equal(state.available,1000);assert.equal(state.reserved,0);assert.equal(state.nodes,0);assert.equal(f.calls.plan,1);assert.equal(f.calls.write,1);
+});
+
+test("owned enrichment steps reject malformed, skipped and rewritten progress",async()=>{
+ const f=await fixture(false,true);await f.run();f.queued.length=0;await f.run();f.queued.length=0;await f.run();f.queued.length=0;
+ let lease=await f.lease();const original=lease.outputs.enrichmentProgress!;
+ const args=(p_progress:unknown)=>({p_job_id:f.row.job_id,p_owner:lease.owner,p_epoch:lease.epoch,p_progress});
+ for(const invalid of [null,{}, {...original,resolved:[]},{...original,resolved:['x'],version:'changed'},{...original,resolved:Array.from({length:17},(_,i)=>String(i))},{...original,resolved:['x','x']}])await assert.rejects(rpc('edge_checkpoint_enrichment_step',args(invalid)),/invalid_enrichment/);
+ const first={...original,resolved:['word0']};await rpc('edge_checkpoint_enrichment_step',args(first));lease=await f.lease();
+ await assert.rejects(rpc('edge_checkpoint_enrichment_step',args({...first,resolved:['rewritten','word1']})),/prefix_changed/);
+ await f.store.fail(lease,'fixture_cleanup',false);assert.equal((await f.state()).releases,1);
 });

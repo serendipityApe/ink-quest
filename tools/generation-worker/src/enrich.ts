@@ -16,15 +16,22 @@ export interface DictionaryReader {
   lookup(language: "zh" | "en", words: string[], version: string): Promise<DictionaryBatch>;
 }
 export type ChineseSegmenter = (text: string) => string[];
-
-export async function enrichSceneEdge(input: EnrichSceneInput, dictionary: DictionaryReader,
-  version: string, segmentChinese: ChineseSegmenter): Promise<EnrichSceneResult & { dictionaryVersion: string }> {
-  if (!version) throw new EdgeConfigurationError("A verified dictionary version is required.");
+export interface EnrichmentSpan { word: string; base: boolean; }
+export function prepareEnrichmentSpans(input: EnrichSceneInput, segmentChinese: ChineseSegmenter): EnrichmentSpan[] {
   if (input.text.length > 12_000) throw new EdgeConfigurationError("Scene exceeds the bounded enrichment size.");
   const spans = input.targetLang === "zh"
     ? segmentChinese(input.text.trim()).map(word => ({ word, base: PUNCT_RE.test(word) || ZH_BASE_WORDS.has(word) }))
     : [...new Intl.Segmenter("en", { granularity: "word" }).segment(input.text.trim())]
       .filter(s => s.segment.trim()).map(s => ({ word: s.segment, base: !s.isWordLike || PUNCT_RE.test(s.segment) || EN_BASE_WORDS.has(s.segment.toLowerCase()) }));
+  if (spans.length > 2000) throw new EdgeConfigurationError("Scene exceeds the bounded token count.");
+  return spans;
+}
+
+export async function enrichSceneEdge(input: EnrichSceneInput, dictionary: DictionaryReader,
+  version: string, segmentChinese: ChineseSegmenter, preparedSpans?: EnrichmentSpan[]): Promise<EnrichSceneResult & { dictionaryVersion: string }> {
+  if (!version) throw new EdgeConfigurationError("A verified dictionary version is required.");
+  if (input.text.length > 12_000) throw new EdgeConfigurationError("Scene exceeds the bounded enrichment size.");
+  const spans = preparedSpans ?? prepareEnrichmentSpans(input, segmentChinese);
   if (spans.length > 2000) throw new EdgeConfigurationError("Scene exceeds the bounded token count.");
   const keys = [...new Set(spans.map(s => input.targetLang === "en" ? s.word.toLowerCase() : s.word))];
   const entries = new Map<string, DictionaryEntry>();

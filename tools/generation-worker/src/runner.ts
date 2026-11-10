@@ -4,12 +4,14 @@ import { EdgeConfigurationError, enrichSceneEdge, type ChineseSegmenter } from "
 import type { Delivery, EdgeStore, Lease, OutboxItem, QueueBinding, Phase } from "./contracts.js";
 import { StoreUnavailable } from "./store.js";
 import { LlmProviderError } from "../../story-pipeline/src/providers/llm/errors.js";
+import {advanceEnrichment} from './enrich-step.js';
 
 export interface Services {
   store: EdgeStore; queue: QueueBinding; dictionaryVersion: string;
   segmentChinese: ChineseSegmenter;
   provider(): LlmProvider & { provider: string; model: string; promptVersion: string };
   preflight(lease: Lease): Promise<void>;
+  incrementalDictionary?: boolean;
   audio(lease: Lease): Promise<CommitGeneratedAudioInput>;
 }
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -92,6 +94,10 @@ async function execute(lease: Lease, s: Services): Promise<OutboxItem | null> {
     }
     case "enrich": {
       if (!outputs.scene) throw new EdgeConfigurationError("Writing checkpoint is missing.");
+      if(s.incrementalDictionary){
+        const result=await advanceEnrichment({text:outputs.scene.text,plotWords:outputs.scene.plotWords,choices:[],targetLang:job.targetLanguage,glossLang:job.targetLanguage==='zh'?'en':'zh'},s.store,s.dictionaryVersion,s.segmentChinese,outputs.enrichmentProgress);
+        return result.progress?checkpoint('enrich',{enrichmentProgress:result.progress}):checkpoint('gloss',{enriched:result.enriched!,enrichmentProgress:null});
+      }
       const enriched = await enrichSceneEdge({ text: outputs.scene.text, plotWords: outputs.scene.plotWords,
         choices: [], targetLang: job.targetLanguage, glossLang: job.targetLanguage === "zh" ? "en" : "zh" },
       s.store, s.dictionaryVersion, s.segmentChinese);

@@ -1,12 +1,12 @@
 import type { Claim, EdgeStore, Lease, OutboxItem, Outputs, Phase } from "./contracts.js";
-import type { DictionaryBatch } from "./enrich.js";
+import type { DictionaryBatch,DictionaryReader } from "./enrich.js";
 import type { CommitGeneratedTextInput, CommitGeneratedAudioInput } from "../../story-pipeline/src/worker/store.js";
 
 export class StoreUnavailable extends Error {}
 const VOID_RPCS = new Set(["edge_begin_generation_stage", "edge_recover_generation_jobs",
   "edge_mark_generation_published", "edge_commit_generated_audio", "edge_report_generation_readiness"]);
 export class SupabaseEdgeStore implements EdgeStore {
-  constructor(private readonly url: string, private readonly key: string) {
+  constructor(private readonly url: string, private readonly key: string,private readonly dictionary?:DictionaryReader) {
     if (!url || !key || !url.startsWith("https://")) throw new Error("Generation storage is not configured.");
   }
   private fence(lease: Lease) {
@@ -15,6 +15,7 @@ export class SupabaseEdgeStore implements EdgeStore {
   claim(jobId: string, owner: string) { return this.rpc<Claim>("edge_claim_generation_job", { p_job_id: jobId, p_owner: owner }); }
   begin(lease: Lease) { return this.rpc<void>("edge_begin_generation_stage", this.fence(lease)); }
   checkpoint(lease: Lease, next: Phase, patch: Outputs) {
+    if(next==='enrich'&&patch.enrichmentProgress)return this.rpc<OutboxItem>('edge_checkpoint_enrichment_step',{...this.fence(lease),p_progress:patch.enrichmentProgress});
     return this.rpc<OutboxItem>("edge_checkpoint_generation_stage", { ...this.fence(lease), p_next: next, p_output: patch });
   }
   commitText(lease: Lease, input: CommitGeneratedTextInput) {
@@ -33,6 +34,7 @@ export class SupabaseEdgeStore implements EdgeStore {
     return this.rpc<void>("edge_report_generation_readiness", { p_dictionary_version: version, p_capabilities: capabilities });
   }
   lookup(language: "zh" | "en", words: string[], version: string) {
+    if(this.dictionary)return this.dictionary.lookup(language,words,version);
     return this.rpc<DictionaryBatch>("lookup_generation_dictionary", { p_language: language, p_words: words, p_version: version });
   }
   async ready(language: "zh" | "en", version: string) {
