@@ -1,5 +1,5 @@
 import { StructuredFictionProvider } from "./structured-fiction.js";
-import { LlmProviderError } from "./errors.js";
+import { LlmProviderError, type LlmHttpDiagnostics } from "./errors.js";
 import { requestLlmJson, requestPolicyFromEnv, type LlmRequestPolicy } from "./request.js";
 
 interface OpenAIProviderConfig {
@@ -59,7 +59,7 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
     if (this.config.organizationId) headers["OpenAI-Organization"] = this.config.organizationId;
     if (this.config.projectId) headers["OpenAI-Project"] = this.config.projectId;
 
-    const started=Date.now();let responseBody:unknown;let outcome="unavailable";let httpStatus:number|null=null;let failureKind:string|null=null;
+    const started=Date.now();let responseBody:unknown;let outcome="unavailable";let httpStatus:number|null=null;let failureKind:string|null=null;let httpDiagnostics:LlmHttpDiagnostics|null=null;
     try{return await requestLlmJson("https://api.openai.com/v1/responses", {
       headers,
       body: JSON.stringify({
@@ -74,6 +74,7 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
       }),
     }, body=>{responseBody=body;return parseOpenAIResponse(body);}, this.config.requestPolicy).then(result=>{outcome="completed";return result;});}
     catch(error){
+      httpDiagnostics=error instanceof LlmProviderError?error.httpDiagnostics??null:null;
       const status=error instanceof LlmProviderError?error.message.match(/^LLM request failed with status (\d{3})\.$/):null;
       httpStatus=status?Number(status[1]):null;
       failureKind=status?"http_error":responseBody!==undefined?"response_error":"transport_or_decode_error";
@@ -87,7 +88,7 @@ export class OpenAIResponsesProvider extends StructuredFictionProvider {
       const task=isRecord(payload)?payload.task:undefined;
       const stage=task==="Plan a safe interactive language-learning story."?"plan":task==="Write the opening scene for an interactive language-learning story."?"write":task==="Resolve missing learner glosses using the scene context."?"gloss":"unknown";
       // Only fixed stage labels, timestamps and allowlisted usage numbers. No prompts, keys or output text.
-      console.log(JSON.stringify({event:"generation_llm_usage",stage,model:this.model,startedAt:new Date(started).toISOString(),endedAt:new Date().toISOString(),durationMs:Date.now()-started,outcome,httpStatus,failureKind,responseStatus:["completed","failed","incomplete"].includes(String(body.status))?body.status:null,
+      console.log(JSON.stringify({event:"generation_llm_usage",stage,model:this.model,startedAt:new Date(started).toISOString(),endedAt:new Date().toISOString(),durationMs:Date.now()-started,outcome,httpStatus,failureKind,httpDiagnostics,responseStatus:["completed","failed","incomplete"].includes(String(body.status))?body.status:null,
         inputTokens:number(usage.input_tokens),cachedInputTokens:number(inputDetails.cached_tokens),cacheWriteTokens:number(inputDetails.cache_write_tokens??inputDetails.cache_creation_tokens),serviceTier:typeof body.service_tier==="string"&&/^[a-z_]{1,32}$/.test(body.service_tier)?body.service_tier:null,outputTokens:number(usage.output_tokens),reasoningTokens:number(outputDetails.reasoning_tokens),totalTokens:number(usage.total_tokens)}));
     }}
   }

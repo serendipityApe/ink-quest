@@ -1,4 +1,4 @@
-import { LlmProviderError } from "./errors.js";
+import { LlmProviderError, safeLlmHttpDiagnostics } from "./errors.js";
 
 export interface LlmRequestPolicy { timeoutMs: number; attempts: number; }
 export function requestPolicyFromEnv(env: Record<string, string | undefined>): LlmRequestPolicy {
@@ -31,7 +31,7 @@ export async function requestLlmJson(
         const quotaExhausted = body?.error?.code === "insufficient_quota";
         const retryable = !quotaExhausted && (response.status === 429 || response.status >= 500);
         throw new LlmProviderError(`LLM request failed with status ${response.status}.`, retryable,
-          !quotaExhausted && response.status === 429);
+          !quotaExhausted && response.status === 429, safeLlmHttpDiagnostics(response.status, body));
       }
       return parse(await response.json());
     } catch (error) {

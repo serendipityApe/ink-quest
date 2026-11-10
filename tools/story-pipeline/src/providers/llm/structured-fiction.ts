@@ -89,7 +89,7 @@ export abstract class StructuredFictionProvider implements LlmProvider {
     if (input.unresolvedTokenIndexes.length === 0) return [];
     const result = await this.completeJson({
       task: "Resolve missing learner glosses using the scene context.",
-      requirements: ["Return only requested token indexes.", "Keep each meaning under 12 words."],
+      requirements: ["Return a JSON object matching outputSchema.", "Return only requested token indexes.", "Keep each meaning under 12 words."],
       outputSchema: { resolutions: [{ tokenIndex: 0, meaning: "string" }] },
       input,
     });

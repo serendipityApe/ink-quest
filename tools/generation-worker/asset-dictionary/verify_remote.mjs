@@ -30,7 +30,7 @@ try{
     if(Number.isFinite(w.cpuTimeMs))inv.set(id,{cpuMs:w.cpuTimeMs,outcome:w.outcome,eventType:w.eventType,version:w.scriptVersion?.id});
     const a=audit(x.source)??audit(m?.message);
     if(a?.event==='generation_stage_timing'&&expectedHash&&createHash('sha256').update(String(a.jobId)).digest('hex')===expectedHash)phases.set(id,{phase:a.phase,epoch:a.epoch,startedAt:a.startedAt,endedAt:a.endedAt,durationMs:a.durationMs,outcome:a.outcome});
-    if(a?.event==='generation_llm_usage')usage.set(id,Object.fromEntries(['stage','model','startedAt','endedAt','durationMs','outcome','httpStatus','failureKind','responseStatus','inputTokens','cachedInputTokens','cacheWriteTokens','serviceTier','outputTokens','reasoningTokens','totalTokens'].map(k=>[k,a[k]])));
+    if(a?.event==='generation_llm_usage')usage.set(id,Object.fromEntries(['stage','model','startedAt','endedAt','durationMs','outcome','httpStatus','failureKind','httpDiagnostics','responseStatus','inputTokens','cachedInputTokens','cacheWriteTokens','serviceTier','outputTokens','reasoningTokens','totalTokens'].map(k=>[k,a[k]])));
    }
    for(const v of Object.values(x))visit(v);
   }visit(data);
