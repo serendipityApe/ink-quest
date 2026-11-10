@@ -138,3 +138,20 @@ budget (not a platform guarantee), and retains 10 ms for the reader. No
 `limits.cpu_ms`, plan, batch size, concurrency or dictionary bound changes.
 The same candidate is reconciled by version and its three existing fixture
 records before sending only the remaining nine fixtures.
+
+
+The adaptive candidate `a4b28d96-62b6-4586-b422-b020b198d43b` passed all twelve
+cloud Queue fixtures. The continuation verified the same version and three
+previously accepted cases, then sent only the remaining nine. Short Chinese and
+English parallel cases used 4 ms and 3 ms Queue CPU; the 2,000-key serial case
+used 11 ms. All outcomes were `ok`; private reader CPU was at most 3 ms.
+Runtime settings, production queue settings and the plan were unchanged.
+Evidence: https://github.com/serendipityApe/ink-quest/actions/runs/42792631692
+Offline verification: https://github.com/serendipityApe/ink-quest/actions/runs/42792631726
+
+The compatible production update has explicit approval to preserve the live
+text-only entry. Predeployment requires an idle queue and a fresh, unchanged
+readiness record. Postdeployment verifies the deployed version and the same
+configuration, while reporting any job arriving during the deployment.
+Checkpoint formats and lease/epoch/reservation fences remain compatible. This
+update makes no new paid story, model call, database mutation, or frontend change.

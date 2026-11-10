@@ -1,22 +1,18 @@
 {
-  "purpose": "User-approved explicit gloss token mapping and complete coverage validation; exactly one separately guarded text-only verification",
+  "purpose": "Deploy verified adaptive dictionary lookup optimization while preserving the active text service",
+  "mode": "compatible_latency_update",
   "dictionaryVersion": "assets-lex-244056cfff1d40670ec63f7b-6b262d70369a",
   "readerVersion": "47b49ee7-7858-47d6-9373-504fd330f11a",
-  "cpuCanaryRun": 42767197994,
-  "migrations": [
-    "202611100001",
-    "202611100002"
-  ],
-  "backendMustRemainClosedDuringDeploy": true,
-  "sharedBuffers": "128MB",
+  "verifiedCommit": "2d5896631233e4eec29655a883890a966c63a9a6",
+  "offlineVerificationRun": 42792631726,
+  "cpuVerificationRun": 42792631692,
+  "cpuCandidateVersion": "a4b28d96-62b6-4586-b422-b020b198d43b",
+  "verifiedFixtures": 12,
+  "creationEntry": "preserve active text-only flags",
   "frontendDeployment": false,
   "tts": false,
-  "status": "explicitly_user_approved",
-  "singleRetryAfterApproval": true,
-  "mode": "gloss_coverage_fix",
-  "diagnosticCommit": "4c387e58cda1fdc3ea799d9313c496e045362f45",
-  "singleNewTestKey": "inkquest-openai-text-glosscoverage-20261110-once",
-  "offlineVerificationRun": 42779463460,
-  "offlineTestCount": 149,
-  "requestedAt": "2026-11-10T08:04:12.016916+00:00"
+  "newModelTests": 0,
+  "runtimeLimitsChanged": false,
+  "databaseWrites": false,
+  "requestedAt": "2026-11-10T09:52:19.176Z"
 }
