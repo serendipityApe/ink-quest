@@ -190,7 +190,7 @@ export default function WordSegment({
   return (
     <span
       ref={triggerRef}
-      className={`word-interactive relative inline-block ${baseClass} ${hoverClass} ${audioClass}`}
+      className={`word-interactive relative ${lang === "en" ? "inline" : "inline-block"} ${baseClass} ${hoverClass} ${audioClass}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}

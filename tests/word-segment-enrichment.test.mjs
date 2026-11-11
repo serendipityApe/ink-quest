@@ -21,7 +21,7 @@ function text(tree) {
   if (tree == null || typeof tree === "boolean") return "";
   return typeof tree === "object" ? text(tree.props?.children) : String(tree);
 }
-function harness(segment, learningEnabled) {
+function harness(segment, learningEnabled, options = {}) {
   const states = [];
   let index = 0;
   let longPress;
@@ -49,7 +49,7 @@ function harness(segment, learningEnabled) {
   });
   const render = () => {
     index = 0;
-    return module.exports.default({ segment, learningEnabled, index: 0, lang: "zh", isSaved: false, isAudioActive: false, onToggleSave: () => saves++ });
+    return module.exports.default({ segment, learningEnabled, index: 0, lang: options.lang ?? "zh", isSaved: false, isAudioActive: options.isAudioActive ?? false, onToggleSave: () => saves++ });
   };
   return { render, longPress: () => longPress?.(), saves: () => saves };
 }
@@ -89,3 +89,21 @@ test("completed definitions and legacy default retain original save behavior", (
     assert.equal(h.saves(), 1);
   }
 });
+
+for (const tier of ["normal", "key"]) {
+ test(`English ${tier} stays inline with punctuation; Chinese keeps atomic layout`, () => {
+  const segment = {word:'find', reading:null, meaning:'找到', level:'B1', tier};
+  const en = harness(segment, true, {lang:'en', isAudioActive:true});
+  const tree = en.render();
+  assert.ok(tree.props.className.split(/\s+/).includes('inline'));
+  assert.ok(!tree.props.className.split(/\s+/).includes('inline-block'));
+  assert.ok(tree.props.className.includes('word-audio-active'));
+  assert.equal(text(tree), 'find');
+  tree.props.onPointerDown({pointerType:'touch', preventDefault(){}});
+  en.longPress();
+  assert.ok(text(en.render()).includes('找到'));
+  assert.equal(en.saves(), 0);
+  const zh = harness(segment, true, {lang:'zh'}).render();
+  assert.ok(zh.props.className.split(/\s+/).includes('inline-block'));
+ });
+}
