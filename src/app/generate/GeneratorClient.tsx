@@ -5,7 +5,7 @@
  */
 import Link from "next/link";
 import StoryPolicyNotice from "@/components/StoryPolicyNotice";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Coins, LockKeyhole, RefreshCw, Sparkles, Square, Volume2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import WordSegment from "@/components/WordSegment";
@@ -110,7 +110,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const [activeJob, setActiveJob] = useState<{ jobId: string; storyId: string; branch: boolean } | null>(null);
   const [branchSubmitting, setBranchSubmitting] = useState(false);
   const [jobStage, setJobStage] = useState("queued");
-  const [openingStoryId, setOpeningStoryId] = useState<string | null>(null);
+  const [acceptedOpening, setAcceptedOpening] = useState<{ storyId: string; navigationTarget: string | null } | null>(null);
   const [storyData, setStoryData] = useState<GeneratedStoryResponse | null>(null);
   const [savedWords, setSavedWords] = useState<SavedWord[]>([]);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -124,6 +124,8 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const balanceRequest = useRef<AbortController | null>(null);
   const generationPoll = useRef<AbortController | null>(null);
   const branchSubmission = useRef<AbortController | null>(null);
+  const openingRequest = useRef<AbortController | null>(null);
+  const openingNavigationTarget = useRef(initialStoryId);
   const previousPlaying = useRef(false);
   const restartingPlayback = useRef(false);
   const { isPlaying, activeSegmentIndex, play, stop } = useAudioSync();
@@ -189,13 +191,20 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     return data;
   }, [stop]);
 
+  // Layout cleanup fences opening responses at navigation commit, before passive
+  // effects run. Choice availability below also checks the current render's prop.
+  useLayoutEffect(() => {
+    openingNavigationTarget.current = initialStoryId;
+    return () => { openingRequest.current?.abort(); openingRequest.current = null; };
+  }, [initialStoryId]);
+
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
       setBranchSubmitting(false);
       setActiveJob(null);
-      setOpeningStoryId(null);
+      setAcceptedOpening(null);
       void refreshBalance();
     });
     return () => {
@@ -372,7 +381,12 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   };
 
   const startOpening = async () => {
-    if (!quote) return;
+    if (!quote || activeJob || openingRequest.current) return;
+    const controller = new AbortController();
+    openingRequest.current = controller;
+    const navigationTarget = initialStoryId;
+    const isCurrentOpening = () => !controller.signal.aborted
+      && openingRequest.current === controller && openingNavigationTarget.current === navigationTarget;
     setError("");
     setPhase("generating");
     setJobStage("queued");
@@ -381,6 +395,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
       const response = await fetch("/api/generated-stories", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": requestKey.current },
+        signal: controller.signal,
         body: JSON.stringify({
           targetLanguage,
           learnerLevel,
@@ -390,6 +405,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
         }),
       });
       const body = await response.json() as { error?: string; story_id?: string; job_id?: string };
+      if (!isCurrentOpening()) return;
       if (!response.ok || !body.story_id || !body.job_id) {
         setPhase("intro");
         if (body.error === "generation_backend_unavailable") setError(isZh ? "生成服务暂未就绪，未预留积分，请稍后再试。" : "Generation is temporarily unavailable. No credits were reserved. Please try again later.");
@@ -397,20 +413,25 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
         else setError(isZh ? "暂时无法开始生成，请稍后重试。" : "Generation could not start. Please try again.");
         return;
       }
-      setOpeningStoryId(body.story_id);
+      setAcceptedOpening({ storyId: body.story_id, navigationTarget });
       window.history.replaceState(null, "", `/generate?story=${body.story_id}`);
       setActiveJob({ jobId: body.job_id, storyId: body.story_id, branch: false });
     } catch {
+      if (!isCurrentOpening()) return;
       setPhase("intro");
       setError(isZh ? "网络连接中断，请重试。" : "The connection was interrupted. Please try again.");
+    } finally {
+      if (openingRequest.current === controller) openingRequest.current = null;
     }
   };
 
   // Check the render's navigation target, not only effects: the previous story
   // can remain visible while the next one loads (or its load fails).
   // replaceState after a new opening does not update initialStoryId, so retain
-  // that explicitly accepted story as the target when the prop is still null.
-  const branchTargetMatches = Boolean(storyData && storyData.story.id === (initialStoryId ?? openingStoryId));
+  // that accepted story only while the originating navigation context still matches.
+  const branchTarget = acceptedOpening?.navigationTarget === initialStoryId
+    ? acceptedOpening.storyId : initialStoryId;
+  const branchTargetMatches = Boolean(storyData && storyData.story.id === branchTarget);
   const chooseBranch = async (choiceId: string) => {
     if (!storyData || !branchTargetMatches || activeJob || branchSubmission.current) return;
     const controller = new AbortController();

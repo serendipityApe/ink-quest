@@ -36,7 +36,10 @@ function harness(data, reducedMotion = false, options = {}) {
   const refs = [];
   const callbacks = [];
   const effects = [];
-  const calls = { stopped: 0, played: [], requests: [], timers: 0 };
+  const layoutEffects = [];
+  let layoutIndex = 0;
+  const pendingLayout = [];
+  const calls = { stopped: 0, played: [], requests: [], timers: 0, history: [] };
   let stateIndex = 0;
   let refIndex = 0;
   const forbidTimer = () => { calls.timers++; throw new Error("Unexpected presentation timer"); };
@@ -50,6 +53,16 @@ function harness(data, reducedMotion = false, options = {}) {
     useCallback(callback) { callbacks.push(callback); return callback; },
     useMemo(callback) { return callback(); },
     useEffect(effect) { effects.push(effect); },
+    useLayoutEffect(effect, dependencies) {
+      const i = layoutIndex++;
+      const previous = layoutEffects[i];
+      if (!previous || dependencies.some((value, index) => value !== previous.dependencies[index])) {
+        pendingLayout.push(() => {
+          previous?.cleanup?.();
+          layoutEffects[i] = { dependencies, cleanup: effect() };
+        });
+      }
+    },
   };
   const compiledModule = { exports: {} };
   vm.runInNewContext(compiled, {
@@ -63,7 +76,7 @@ function harness(data, reducedMotion = false, options = {}) {
       if (name === "lucide-react") return new Proxy({}, { get: (_, key) => key });
       return { default: name };
     },
-    window: { history: { replaceState() {} }, matchMedia: () => ({ matches: reducedMotion }), setInterval: forbidTimer },
+    window: { history: { replaceState(...args) { calls.history.push(args); } }, matchMedia: () => ({ matches: reducedMotion }), setInterval: forbidTimer },
     setInterval: forbidTimer, setTimeout: options.setTimeout ?? forbidTimer, clearTimeout: options.clearTimeout ?? (() => {}),
     fetch: async (url, options) => {
       calls.requests.push({ url, options });
@@ -80,9 +93,11 @@ function harness(data, reducedMotion = false, options = {}) {
     },
   });
   const render = (initialStoryId = options.initialStoryId === undefined ? "fixture" : options.initialStoryId) => {
-    stateIndex = refIndex = 0;
+    stateIndex = refIndex = layoutIndex = 0;
     callbacks.length = effects.length = 0;
-    return compiledModule.exports.default({ initialStoryId });
+    const tree = compiledModule.exports.default({ initialStoryId });
+    for (const commit of pendingLayout.splice(0)) commit();
+    return tree;
   };
   render();
   return { merge: compiledModule.exports.mergeNodeEnrichment, states, calls, callbacks, effects, render, load: (...args) => callbacks[1](...args) };
@@ -642,7 +657,7 @@ test("new opening with unchanged null prop unlocks its own choices after complet
   const generate = button(h.render(), "Generate chapter one");
   assert.ok(generate);
   await generate.props.onClick();
-  assert.equal(h.states.get("openingStoryId"), "fixture");
+  assert.equal(h.states.get("acceptedOpening").storyId, "fixture");
   h.render();
   const cleanup = h.effects.find((fn) => fn.toString().includes("job_poll_failed"))();
   await flushAsync();
@@ -652,3 +667,60 @@ test("new opening with unchanged null prop unlocks its own choices after complet
   assert.equal(h.states.get("activeJob").jobId, "branch-job");
   cleanup();
 });
+
+test("non-null A load failure can open B and branch, but rendering C immediately fences B", async () => {
+  const data = fixture("en", 1);
+  data.story.id = "B";
+  const h = harness(data, false, {
+    initialStoryId: "A",
+    storyFetch: async (url) => url.endsWith("/A") ? response({}, false, 503) : response(data),
+    openingFetch: async () => response({ story_id: "B", job_id: "opening-B" }),
+    branchFetch: async () => response({ job_id: "branch-B" }),
+  });
+  const cancelLoad = h.effects.find((fn) => fn.toString().includes("loadStory(initialStoryId"))();
+  await flushAsync();
+  assert.equal(h.states.get("phase"), "intro");
+  h.states.set("quote", { total: 1, items: [] });
+  await button(h.render(), "Generate chapter one").props.onClick();
+  assert.equal(h.states.get("acceptedOpening").navigationTarget, "A");
+  h.render();
+  const cleanup = h.effects.find((fn) => fn.toString().includes("job_poll_failed"))();
+  await flushAsync();
+  assert.equal(h.states.get("storyData").story.id, "B");
+  assert.equal(button(h.render(), "AContinue fixture").props.disabled, false);
+  const wrongTarget = button(h.render("C"), "AContinue fixture");
+  assert.equal(wrongTarget.props.disabled, true);
+  await wrongTarget.props.onClick();
+  assert.equal(h.calls.requests.filter(({ url }) => url.includes("/choices/")).length, 0);
+  // The accepted B context works when still on A, without changing A's prop.
+  const correctTarget = button(h.render("A"), "AContinue fixture");
+  await correctTarget.props.onClick();
+  assert.ok(h.calls.requests.some(({ url }) => url === "/api/generated-stories/B/choices/choice"));
+  assert.equal(h.states.get("activeJob").jobId, "branch-B");
+  cleanup();
+  cancelLoad();
+});
+
+for (const outcome of ["success", "failure", "network rejection"]) {
+  test(`opening ${outcome} arriving after navigation cannot replace new target before passive effects`, async () => {
+    const pending = deferred();
+    const h = harness(fixture("en", 1), false, { initialStoryId: "A", openingFetch: () => pending.promise });
+    h.states.set("phase", "intro");
+    h.states.set("quote", { total: 1, items: [] });
+    const submission = button(h.render(), "Generate chapter one").props.onClick();
+    h.render("C"); // Layout cleanup runs at commit; passive effects intentionally do not.
+    h.states.set("phase", "reader");
+    h.states.set("activeJob", { jobId: "job-C", storyId: "C", branch: false });
+    h.states.set("error", "C status");
+    if (outcome === "network rejection") pending.reject(new Error("old network error"));
+    else pending.resolve(outcome === "success"
+      ? response({ story_id: "B", job_id: "opening-B" })
+      : response({ error: "insufficient_credits" }, false, 402));
+    await submission;
+    assert.equal(h.states.get("acceptedOpening"), null);
+    assert.equal(h.states.get("phase"), "reader");
+    assert.equal(h.states.get("activeJob").jobId, "job-C");
+    assert.equal(h.states.get("error"), "C status");
+    assert.equal(h.calls.history.length, 0);
+  });
+}
