@@ -20,11 +20,11 @@ before(async () => {
   };
 });
 after(async () => { globalThis.fetch = fetchOriginal; await db.close(); });
-async function fixture() {
+async function fixture(language: 'en' | 'zh' = 'en') {
   const user = crypto.randomUUID();
   await db.query('insert into auth.users(id) values($1)', [user]);
   await rpc('grant_credits', { p_user_id: user, p_amount: 100, p_source_type: 'test', p_source_id: user, p_idempotency_key: `grant:${user}` });
-  const row = (await db.query(`select * from public.create_generated_story_job($1,'en','B1','Library','off',20,'test',$2,$3,'{}')`, [user, `request:${user}`, [{ code: 'scene_text', credits: 20 }]])).rows[0];
+  const row = (await db.query(`select * from public.create_generated_story_job($1,$4,$5,'Library','off',20,'test',$2,$3,'{}')`, [user, `request:${user}`, [{ code: 'scene_text', credits: 20 }], language, language === 'zh' ? 'HSK 4' : 'B1'])).rows[0];
   const store = new SupabaseEdgeStore('https://database.invalid', 'fixture');
   const enrichmentStore = new SupabaseEdgeStore('https://database.invalid', 'fixture', undefined, true);
   const counts = { plan: 0, write: 0, lookup: 0, gloss: 0 };
@@ -58,6 +58,49 @@ test('text commits and choices are ready before any dictionary or gloss request'
   assert.equal(node.model_metadata.enrichmentStatus, 'pending'); assert.ok(node.text_segments.every(t => t.meaning === null));
   await f.drain(); assert.equal((await f.state()).enrichment, 'completed'); assert.equal(f.counts.gloss, 1); assert.equal((await f.state()).settles, 1);
 });
+
+test('365 UTF-16 units / 244 tokens reach atomic text commit in eight deliveries and 25 primary RPCs', async () => {
+  const f = await fixture('zh'); const provider = f.s.provider;
+  f.s.segmentChinese = () => [...Array(121).fill('清晨'), ...Array(123).fill('风')];
+  f.s.provider = () => ({ ...provider(), async writeScene(input) {
+    return { ...await provider().writeScene(input), text: '清晨'.repeat(121) + '风'.repeat(123), plotWords: [] };
+  } });
+  const transport = globalThis.fetch; const calls: string[] = [];
+  globalThis.fetch = async (url, request) => { calls.push(String(url).split('/').at(-1)!); return transport(url, request); };
+  try { await f.primary(); } finally { globalThis.fetch = transport; }
+  const edge = (await db.query('select epoch,revision from public.generation_edge_state where job_id=$1', [f.row.job_id])).rows[0];
+  assert.deepEqual(edge, { epoch: 8, revision: 7 });
+  const primaryCalls = calls.filter(name => name.startsWith('edge_'));
+  assert.equal(primaryCalls.length, 25);
+  assert.equal(primaryCalls.filter(name => name === 'edge_claim_generation_job').length, 8);
+  assert.equal(primaryCalls.filter(name => name === 'edge_checkpoint_generation_stage').length, 7);
+  assert.deepEqual(await f.state(), { status: 'completed', settles: 1, nodes: 1, enrichment: 'queued' });
+  const node = (await db.query('select text,text_segments from public.story_nodes where created_by_job_id=$1', [f.row.job_id])).rows[0];
+  assert.equal(node.text.length, 365); assert.equal(node.text_segments.length, 244);
+  assert.ok(node.text_segments.every(token => token.reading && token.meaning === null));
+});
+
+for (const interruptedNext of ['prepare', 'commit']) {
+  test(`lost combined ${interruptedNext} checkpoint response resumes without repeating model or billing`, async () => {
+    const f = await fixture(); const transport = globalThis.fetch; let lost = false;
+    globalThis.fetch = async (url, request) => {
+      const response = await transport(url, request);
+      const body = JSON.parse(String(request?.body ?? '{}'));
+      if (!lost && String(url).endsWith('/edge_checkpoint_generation_stage')
+        && body.p_next === interruptedNext && body.p_output.preparation) {
+        lost = true; throw Error('Lost successful combined checkpoint response');
+      }
+      return response;
+    };
+    try { await f.primary(); } finally { globalThis.fetch = transport; }
+    assert.equal(lost, true);
+    // Read the persisted phase on redelivery, including an extra duplicate.
+    await f.primary(); await f.run();
+    assert.deepEqual(await f.state(), { status: 'completed', settles: 1, nodes: 1, enrichment: 'queued' });
+    assert.deepEqual(f.counts, { plan: 1, write: 1, lookup: 0, gloss: 0 });
+    await f.drain(); assert.equal((await f.state()).settles, 1);
+  });
+}
 test('background lookup retries independently and a lost final response never repeats gloss or billing', async () => {
   const f = await fixture(); await f.primary();
   const lookup = f.enrichmentStore.lookup; let fail = true;

@@ -108,7 +108,9 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const [pricingError, setPricingError] = useState(false);
   const [error, setError] = useState("");
   const [activeJob, setActiveJob] = useState<{ jobId: string; storyId: string; branch: boolean } | null>(null);
+  const [branchSubmitting, setBranchSubmitting] = useState(false);
   const [jobStage, setJobStage] = useState("queued");
+  const [openingStoryId, setOpeningStoryId] = useState<string | null>(null);
   const [storyData, setStoryData] = useState<GeneratedStoryResponse | null>(null);
   const [savedWords, setSavedWords] = useState<SavedWord[]>([]);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -119,6 +121,9 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const previewedJob = useRef<string | null>(null);
   const knownNodeIds = useRef(new Set<string>());
   const storyLoadSequence = useRef(0);
+  const balanceRequest = useRef<AbortController | null>(null);
+  const generationPoll = useRef<AbortController | null>(null);
+  const branchSubmission = useRef<AbortController | null>(null);
   const previousPlaying = useRef(false);
   const restartingPlayback = useRef(false);
   const { isPlaying, activeSegmentIndex, play, stop } = useAudioSync();
@@ -133,21 +138,27 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const premise = customPrompt.trim() || `${selections.identity.name}在${selections.genre.name}的世界里，必须${selections.motive.name}。`;
 
   const refreshBalance = useCallback(async () => {
+    balanceRequest.current?.abort();
+    const controller = new AbortController();
+    balanceRequest.current = controller;
     setBalanceState("loading");
     try {
-      const response = await fetch("/api/billing/status", { cache: "no-store" });
+      const response = await fetch("/api/billing/status", { cache: "no-store", signal: controller.signal });
+      if (controller.signal.aborted || balanceRequest.current !== controller) return;
       if (!response.ok) {
         setCredits(null);
         setBalanceState(response.status === 401 ? "unauthorized" : "unavailable");
         return;
       }
       const body = await response.json() as { credits?: { available?: number } };
+      if (controller.signal.aborted || balanceRequest.current !== controller) return;
       if (typeof body.credits?.available !== "number" || !Number.isFinite(body.credits.available)) {
         throw new Error("invalid_balance");
       }
       setCredits(body.credits.available);
       setBalanceState("ready");
     } catch {
+      if (controller.signal.aborted || balanceRequest.current !== controller) return;
       setCredits(null);
       setBalanceState("unavailable");
     }
@@ -158,7 +169,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     const response = await fetch(`/api/generated-stories/${storyId}`, { cache: "no-store", signal: options?.signal });
     if (!response.ok) throw new Error("story_load_failed");
     const data = await response.json() as GeneratedStoryResponse;
-    if (options?.signal?.aborted || sequence !== storyLoadSequence.current) return data;
+    if (options?.signal?.aborted || sequence !== storyLoadSequence.current) throw new DOMException("Stale story request", "AbortError");
     const newNodes = data.nodes.filter((node) => !knownNodeIds.current.has(node.id));
     knownNodeIds.current = new Set(data.nodes.map((node) => node.id));
     // A full story request may have started before a dictionary poll completed.
@@ -179,8 +190,22 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   }, [stop]);
 
   useEffect(() => {
-    queueMicrotask(() => { void refreshBalance(); });
-  }, [refreshBalance]);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setBranchSubmitting(false);
+      setActiveJob(null);
+      setOpeningStoryId(null);
+      void refreshBalance();
+    });
+    return () => {
+      cancelled = true;
+      balanceRequest.current?.abort();
+      generationPoll.current?.abort();
+      branchSubmission.current?.abort();
+      branchSubmission.current = null;
+    };
+  }, [initialStoryId, refreshBalance]);
 
   useEffect(() => {
     queueMicrotask(() => setSavedWords(loadSavedWords()));
@@ -222,7 +247,8 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
         if (cancelled || data.nodes.length > 0) return;
         const pending = data.jobs.find((job) => job.status === "queued" || job.status === "running");
         if (pending) setActiveJob({ jobId: pending.id, storyId: initialStoryId, branch: false });
-      }).catch(() => {
+      }).catch((reason) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
         if (!cancelled) {
           setError(isZh ? "无法加载这个故事。" : "This story could not be loaded.");
           setPhase("intro");
@@ -236,48 +262,53 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     if (!activeJob) return;
     let cancelled = false;
     const controller = new AbortController();
+    generationPoll.current = controller;
     const poll = async () => {
-      while (!cancelled) {
+      while (!cancelled && !controller.signal.aborted) {
         const response = await fetch(`/api/generated-stories/jobs/${activeJob.jobId}`, { cache: "no-store", signal: controller.signal });
         if (!response.ok) throw new Error("job_poll_failed");
         const body = await response.json() as { job: { status: string; stage: string; node_id?: string | null; error_message_safe: string | null } };
-        if (cancelled) return;
+        if (cancelled || controller.signal.aborted) return;
         setJobStage(body.job.stage);
         // Scene jobs initially point at the parent node. Only a post-commit TTS
         // stage proves that the new scene is available for preview. No-TTS jobs
         // reveal through the completed-status branch below.
         if (body.job.stage.includes("tts") && previewedJob.current !== activeJob.jobId) {
           await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true, signal: controller.signal });
-          if (cancelled) return;
+          if (cancelled || controller.signal.aborted) return;
           previewedJob.current = activeJob.jobId;
         }
         if (body.job.status === "completed" || body.job.status === "partial_success") {
           await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true, signal: controller.signal });
-          if (cancelled) return;
-          await refreshBalance();
-          if (cancelled) return;
+          if (cancelled || controller.signal.aborted) return;
           if (body.job.status === "partial_success") {
             setError(body.job.error_message_safe ?? (isZh ? "正文已完成，语音生成失败；语音积分已自动退回。" : "The scene is ready, but narration failed. Its credits were returned."));
           }
-          setActiveJob(null);
+          setActiveJob((current) => current?.jobId === activeJob.jobId ? null : current);
+          branchSubmission.current = null;
           requestKey.current = null;
           previewedJob.current = null;
+          // The committed scene is usable now. Billing must not hold its choices.
+          // This refresh has its own lifetime; clearing activeJob cancels this poll.
+          void refreshBalance();
           return;
         }
         if (body.job.status === "failed" || body.job.status === "canceled") {
           setError(body.job.error_message_safe ?? (isZh ? "生成失败，请重试。" : "Generation failed. Please try again."));
           setPhase((current) => current === "reader" ? "reader" : "intro");
-          setActiveJob(null);
+          setActiveJob((current) => current?.jobId === activeJob.jobId ? null : current);
+          branchSubmission.current = null;
           requestKey.current = null;
           previewedJob.current = null;
-          await refreshBalance();
+          void refreshBalance();
           return;
         }
         await new Promise((resolve) => setTimeout(resolve, 1600));
       }
     };
-    poll().catch(() => {
-      if (!cancelled) setError(isZh ? "暂时无法获取生成进度，请稍后刷新。" : "Generation status is temporarily unavailable.");
+    poll().catch((reason) => {
+      if (reason instanceof DOMException && reason.name === "AbortError") return;
+      if (!cancelled && !controller.signal.aborted) setError(isZh ? "暂时无法获取生成进度，请稍后刷新。" : "Generation status is temporarily unavailable.");
     });
     return () => { cancelled = true; controller.abort(); };
   }, [activeJob, isZh, loadStory, refreshBalance]);
@@ -366,6 +397,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
         else setError(isZh ? "暂时无法开始生成，请稍后重试。" : "Generation could not start. Please try again.");
         return;
       }
+      setOpeningStoryId(body.story_id);
       window.history.replaceState(null, "", `/generate?story=${body.story_id}`);
       setActiveJob({ jobId: body.job_id, storyId: body.story_id, branch: false });
     } catch {
@@ -374,8 +406,19 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     }
   };
 
+  // Check the render's navigation target, not only effects: the previous story
+  // can remain visible while the next one loads (or its load fails).
+  // replaceState after a new opening does not update initialStoryId, so retain
+  // that explicitly accepted story as the target when the prop is still null.
+  const branchTargetMatches = Boolean(storyData && storyData.story.id === (initialStoryId ?? openingStoryId));
   const chooseBranch = async (choiceId: string) => {
-    if (!storyData || activeJob) return;
+    if (!storyData || !branchTargetMatches || activeJob || branchSubmission.current) return;
+    const controller = new AbortController();
+    branchSubmission.current = controller;
+    setBranchSubmitting(true);
+    // Ignore an older balance response after a new credit-consuming action starts.
+    balanceRequest.current?.abort();
+    let accepted = false;
     stop();
     setPlayingNodeId(null);
     setPlayingSentence(null);
@@ -390,18 +433,31 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
       const response = await fetch(`/api/generated-stories/${storyData.story.id}/choices/${choiceId}`, {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey },
+        signal: controller.signal,
       });
       const body = await response.json() as { error?: string; story_id?: string; job_id?: string };
+      if (controller.signal.aborted || branchSubmission.current !== controller) return;
       if (!response.ok || !body.job_id) {
         if (body.error === "generation_backend_unavailable") setError(isZh ? "生成服务暂未就绪，未预留积分，请稍后再试。" : "Generation is temporarily unavailable. No credits were reserved. Please try again later.");
         else if (body.error === "insufficient_credits") setError(isZh ? "积分不足，暂时无法继续这个分支。" : "You need more credits to continue this branch.");
         else setError(isZh ? "这个选择暂时无法生成，请刷新后重试。" : "This branch could not be generated. Please refresh and try again.");
         return;
       }
+      accepted = true;
       setJobStage("queued");
       setActiveJob({ jobId: body.job_id, storyId: storyData.story.id, branch: true });
     } catch {
-      setError(isZh ? "网络连接中断，请重试。" : "The connection was interrupted. Please try again.");
+      if (!controller.signal.aborted && branchSubmission.current === controller) {
+        setError(isZh ? "网络连接中断，请重试。" : "The connection was interrupted. Please try again.");
+      }
+    } finally {
+      if (!controller.signal.aborted && branchSubmission.current === controller) {
+        setBranchSubmitting(false);
+        if (!accepted) {
+          branchSubmission.current = null;
+          void refreshBalance();
+        }
+      }
     }
   };
 
@@ -650,7 +706,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
                     <button
                       key={choice.id}
                       type="button"
-                      disabled={Boolean(activeJob)}
+                      disabled={!branchTargetMatches || Boolean(activeJob) || branchSubmitting}
                       onClick={() => chooseBranch(choice.id)}
                       className="group relative flex min-h-16 w-full cursor-pointer items-center border-b border-rule bg-paper px-1 py-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-wait disabled:opacity-50"
                     >

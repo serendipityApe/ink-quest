@@ -26,6 +26,16 @@ Mode is pinned in each job's fingerprint. Enabling the flag mid-job preserves an
 
 The frontend polls owner-scoped lexical status independently, checks node ID/version/text/word boundaries before merging, never changes the selected branch during refresh, and limits a polling session to 120 attempts. Failed/stale jobs stop polling; reopening a story obtains current state.
 
+## Combined preparation update
+
+Apply `202611110004_combine_preparation_checkpoints.sql` before deploying the worker with combined checkpoints. This migration replaces only the fenced preparation checkpoint RPC and retains its service-role-only access. Existing workers and unfinished jobs remain compatible. It changes no table, historical story, dictionary, or credit balance.
+
+The write checkpoint now includes empty preparation state. The last bounded rendering batch checkpoints its final preparation and commit-ready tokens together. Segmentation remains limited to 384 UTF-16 units and rendering to 64 tokens per delivery. For a 365-unit / 244-token fixture, primary processing takes 8 deliveries and 25 database RPCs instead of 10 and 31. These are verified operation counts, not a production latency measurement.
+
+Validate the exact release commit using offline tests, native PostgreSQL multi-session tests and a complete web build; then independently verify the installed migration before worker deployment. Roll back the worker to its preceding compatible async-dictionary version if necessary, leaving migration 004 installed. Do not restore the pre-004 function while a combined-checkpoint worker can still run. No new paid production story is required by this update's deployment checks.
+
+The reader unlocks choices once a terminal job's committed story has loaded, without waiting for balance refresh. Balance failures do not lock an already committed scene. Superseded balance/story requests and old navigation cannot overwrite newer state; branch POSTs retain their server-enforced credit checks and idempotency key.
+
 ## Offline verification
 
 - Worker/SQL suite includes duplicate delivery, lost commit responses, immutable node/text/word fencing, invalid glossary, bounded lookup retries, spent-credit preservation, branch creation while glossary is pending, and both audio/gloss completion orders.
@@ -40,4 +50,4 @@ PGlite has one session; its checks do not establish multi-session native Postgre
 
 The existing development-branch verification workflow also prepares a full `pnpm build` with synthetic Supabase settings and a separate PostgreSQL 17 service. Neither job references production secrets, changes the production database, or deploys anything.
 
-`node tools/generation-worker/tests/postgres-concurrency.mjs` exercises nineteen transaction and privilege cases using independent psql processes and verified `pg_blocking_pids` barriers. It refuses non-loopback hosts, any database name other than `inkquest_test`, and nonempty databases. CI owns the disposable service lifecycle. Local syntax validation is not a concurrency result. Require successful `postgres-concurrency` and `full-web-build` jobs for the exact development-branch commit before treating these checks as passed.
+`node tools/generation-worker/tests/postgres-concurrency.mjs` exercises twenty-three transaction and privilege cases, including combined-checkpoint replay and an in-progress migration-003 job resumed after migration 004, using independent psql processes and verified `pg_blocking_pids` barriers. It refuses non-loopback hosts, any database name other than `inkquest_test`, and nonempty databases. CI owns the disposable service lifecycle. Local syntax validation is not a concurrency result. Require successful `postgres-concurrency` and `full-web-build` jobs for the exact development-branch commit before treating these checks as passed.

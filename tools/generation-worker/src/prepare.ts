@@ -12,11 +12,15 @@ export interface Preparation {
   renderCursor: number;
 }
 
+export function initialPreparation(): Preparation {
+  return { version: SEGMENTATION_VERSION, cursor: 0, spans: [], tokens: [], renderCursor: 0 };
+}
+
 // Tokenization and pinyin are bounded separately, just like the existing
 // dictionary path. No dictionary/model request is needed to deliver a scene.
 export function prepareScene(input: EnrichSceneInput, segment: ChineseSegmenter, previous?: Preparation) {
-  if (!previous) return { preparation: { version: SEGMENTATION_VERSION, cursor: 0,
-    spans: [], tokens: [], renderCursor: 0 } satisfies Preparation };
+  // Resume checkpoints written by older workers that did not initialize during write.
+  if (!previous) return { preparation: initialPreparation() };
   if (previous.version !== SEGMENTATION_VERSION || !Number.isInteger(previous.cursor)
     || previous.cursor < 0 || previous.cursor > input.text.trim().length
     || previous.spans.length > 2000 || previous.tokens.length !== previous.renderCursor
@@ -32,7 +36,12 @@ export function prepareScene(input: EnrichSceneInput, segment: ChineseSegmenter,
   if (previous.renderCursor < previous.spans.length) {
     const tokens = [...previous.tokens,
       ...initialSceneTokens(input, previous.spans.slice(previous.renderCursor, previous.renderCursor + 64))];
-    return { preparation: { ...previous, tokens, renderCursor: tokens.length } };
+    const preparation = { ...previous, tokens, renderCursor: tokens.length };
+    // Persist the final bounded batch and its commit-ready tokens together. This
+    // avoids a separate no-work delivery without doing more than 64 tokens here.
+    return tokens.length === previous.spans.length
+      ? { preparation, initialTokens: tokens }
+      : { preparation };
   }
   return { initialTokens: previous.tokens };
 }

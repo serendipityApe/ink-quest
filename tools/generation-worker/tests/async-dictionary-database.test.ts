@@ -219,3 +219,47 @@ test('Supabase-style default grants cannot expose helpers or direct writes; serv
  assert.equal((await f.db.query('select model_metadata from public.story_nodes where created_by_job_id=$1',[f.row.job_id])).rows[0].model_metadata.enrichmentStatus,'completed');assert.equal((await f.state()).settles,1);
  }finally{await f.db.close();}
 });
+
+test('004 combines empty initialization and final rendering while keeping lease and billing fences',async()=>{
+ const f=await fixture(false);try{
+ await f.db.query("update public.generation_edge_state set phase='write',outputs='{}',in_flight=true where job_id=$1",[f.row.job_id]);
+ const initial={version:'segments-v1',cursor:0,spans:[],tokens:[],renderCursor:0};
+ for(const preparation of [{...initial,cursor:1},{...initial,tokens:f.tokens},{...initial,spans:[{word:'Alice',base:true}]},null]){
+  await assert.rejects(f.rpc('edge_checkpoint_generation_stage',{...f.auth,p_next:'prepare',p_output:{scene:f.input.enrichment.scene,preparation}}),/invalid_preparation_initial/);
+ }
+ await f.rpc('edge_checkpoint_generation_stage',{...f.auth,p_next:'prepare',p_output:{scene:f.input.enrichment.scene,preparation:initial}});
+ assert.equal((await f.state()).settles,0);
+ async function lease(){const c=await f.rpc('edge_claim_generation_job',{p_job_id:f.row.job_id,p_owner:crypto.randomUUID()});return {p_job_id:f.row.job_id,p_owner:c.lease.owner,p_epoch:c.lease.epoch};}
+ let auth=await lease();const prepared={...initial,cursor:f.input.text.length,spans:f.input.enrichment.enrichmentProgress.spans};
+ await f.rpc('edge_checkpoint_generation_stage',{...auth,p_next:'prepare',p_output:{preparation:prepared}});auth=await lease();
+ const finished={...prepared,tokens:f.tokens,renderCursor:f.tokens.length};
+ const combined={preparation:finished,initialTokens:f.tokens};
+ for(const p_output of [{...combined,scene:{text:'rewrite'}},{...combined,plan:{}},{...combined,fingerprint:{}},{...combined,initialTokens:[]},{...combined,preparation:{...finished,cursor:1}},{...combined,preparation:{...finished,tokens:[{...f.tokens[0],word:'different'},f.tokens[1]]}}]){
+  await assert.rejects(f.rpc('edge_checkpoint_generation_stage',{...auth,p_next:'commit',p_output}));
+ }
+ const oldAuth=auth;await f.rpc('edge_checkpoint_generation_stage',{...auth,p_next:'commit',p_output:combined});
+ // An acknowledged-but-response-lost final checkpoint cannot run twice.
+ await assert.rejects(f.rpc('edge_checkpoint_generation_stage',{...oldAuth,p_next:'commit',p_output:combined}),/generation_lease_fenced/);
+ auth=await lease();const stored=(await f.db.query('select outputs,phase from public.generation_edge_state where job_id=$1',[f.row.job_id])).rows[0];assert.equal(stored.phase,'commit');assert.deepEqual(stored.outputs.preparation,finished);assert.deepEqual(stored.outputs.initialTokens,f.tokens);
+ await f.rpc('edge_commit_generated_text',{...auth,p_input:f.input});assert.equal((await f.state()).settles,1);assert.equal((await f.state()).nodes,1);
+ const grants=(await f.db.query("select has_function_privilege('service_role','public.edge_checkpoint_generation_stage(uuid,text,bigint,text,jsonb)','execute') service,has_function_privilege('anon','public.edge_checkpoint_generation_stage(uuid,text,bigint,text,jsonb)','execute') anon,has_function_privilege('authenticated','public.edge_checkpoint_generation_stage(uuid,text,bigint,text,jsonb)','execute') authenticated")).rows[0];assert.deepEqual(grants,{service:true,anon:false,authenticated:false});
+ }finally{await f.db.close();}
+});
+
+test('004 final combination cannot exceed 64 tokens, rewrite prefixes, or skip 384 UTF-16 units',async()=>{
+ const f=await fixture(false);try{
+ const text='w '.repeat(210).trim();const spans=Array.from({length:66},()=>({word:'w',base:true}));const tokens=spans.map(s=>({word:s.word,tier:'base',meaning:null,reading:null,level:null}));
+ await f.db.query("update public.generation_edge_state set phase='prepare',outputs=$2 where job_id=$1",[f.row.job_id,{scene:{text},preparation:{version:'segments-v1',cursor:0,spans:[],tokens:[],renderCursor:0}}]);
+ let auth=f.auth;
+ async function checkpoint(next:string,p_output:any){await f.rpc('edge_checkpoint_generation_stage',{...auth,p_next:next,p_output});const c=await f.rpc('edge_claim_generation_job',{p_job_id:f.row.job_id,p_owner:crypto.randomUUID()});auth={p_job_id:f.row.job_id,p_owner:c.lease.owner,p_epoch:c.lease.epoch};}
+ const prepared={version:'segments-v1',cursor:text.length,spans,tokens:[],renderCursor:0};
+ await assert.rejects(f.rpc('edge_checkpoint_generation_stage',{...auth,p_next:'prepare',p_output:{preparation:prepared}}),/invalid_preparation_order/);
+ await checkpoint('prepare',{preparation:{...prepared,cursor:384}});await checkpoint('prepare',{preparation:prepared});
+ const finished={...prepared,tokens,renderCursor:66};
+ await assert.rejects(f.rpc('edge_checkpoint_generation_stage',{...auth,p_next:'commit',p_output:{preparation:finished,initialTokens:tokens}}),/invalid_preparation_order/);
+ await checkpoint('prepare',{preparation:{...prepared,tokens:tokens.slice(0,64),renderCursor:64}});
+ const rewritten=[{...tokens[0],meaning:'changed'},...tokens.slice(1)];
+ await assert.rejects(f.rpc('edge_checkpoint_generation_stage',{...auth,p_next:'commit',p_output:{preparation:{...finished,tokens:rewritten},initialTokens:rewritten}}),/preparation_prefix_changed/);
+ await checkpoint('commit',{preparation:finished,initialTokens:tokens});assert.equal((await f.state()).settles,0);
+ }finally{await f.db.close();}
+});

@@ -11,7 +11,7 @@ export async function isolatedDatabase({includeEdge=true,includeAssets=false,ser
     create function extensions.digest(text,text) returns bytea language sql as 'select decode(md5($1),''hex'')';`);
   for(const file of ["202608220001_generated_story_billing.sql","202608220002_generation_worker_rpc.sql",
     "202608230001_generated_story_tts.sql","202608230002_fix_generation_digest_search_path.sql","202611060001_edge_generation_worker.sql",
-    "202611060002_generation_readiness.sql",...(includeAssets?["202611100001_asset_dictionary_generation.sql","202611100002_incremental_enrichment_preparation.sql","202611100003_async_dictionary_enrichment.sql"]:[])]){
+    "202611060002_generation_readiness.sql",...(includeAssets?["202611100001_asset_dictionary_generation.sql","202611100002_incremental_enrichment_preparation.sql","202611100003_async_dictionary_enrichment.sql","202611110004_combine_preparation_checkpoints.sql"]:[])]){
     if(!includeEdge && file.startsWith("20261106"))continue;
     if(serviceRoleFunctionDefaults && file==="202611100003_async_dictionary_enrichment.sql"){
       await db.exec("alter default privileges in schema public grant execute on functions to service_role; alter default privileges in schema public grant all on tables to service_role;");

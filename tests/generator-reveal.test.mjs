@@ -27,6 +27,10 @@ function fixture(language, count, plain = false) {
 
 function harness(data, reducedMotion = false, options = {}) {
   const jobFetch = options.jobFetch;
+  const billingFetch = options.billingFetch;
+  const storyFetch = options.storyFetch;
+  const branchFetch = options.branchFetch;
+  const openingFetch = options.openingFetch;
   const enrichmentFetch = options.fetch ?? (() => { throw new Error("Unexpected enrichment fetch"); });
   const states = new Map();
   const refs = [];
@@ -49,7 +53,7 @@ function harness(data, reducedMotion = false, options = {}) {
   };
   const compiledModule = { exports: {} };
   vm.runInNewContext(compiled, {
-    module: compiledModule, exports: compiledModule.exports, AbortController,
+    module: compiledModule, exports: compiledModule.exports, AbortController, DOMException, crypto, queueMicrotask,
     require(name) {
       if (name === "react") return hooks;
       if (name === "react/jsx-runtime") return require(name);
@@ -59,22 +63,26 @@ function harness(data, reducedMotion = false, options = {}) {
       if (name === "lucide-react") return new Proxy({}, { get: (_, key) => key });
       return { default: name };
     },
-    window: { matchMedia: () => ({ matches: reducedMotion }), setInterval: forbidTimer },
+    window: { history: { replaceState() {} }, matchMedia: () => ({ matches: reducedMotion }), setInterval: forbidTimer },
     setInterval: forbidTimer, setTimeout: options.setTimeout ?? forbidTimer, clearTimeout: options.clearTimeout ?? (() => {}),
     fetch: async (url, options) => {
       calls.requests.push({ url, options });
       if (url.includes("?enrichment=1")) return await enrichmentFetch(url, options);
       if (url.includes("/jobs/") && jobFetch) return await jobFetch(url, options);
       if (url.includes("/jobs/")) return { ok: true, json: async () => ({ job: { status: "completed", stage: "completed" } }) };
+      if (url === "/api/billing/status" && billingFetch) return await billingFetch(url, options);
       if (url === "/api/billing/status") return { ok: true, json: async () => ({ credits: { available: 10 } }) };
+      if (url === "/api/generated-stories" && openingFetch) return await openingFetch(url, options);
+      if (url.includes("/choices/") && branchFetch) return await branchFetch(url, options);
+      if (storyFetch) return await storyFetch(url, options);
       assert.equal(url, "/api/generated-stories/fixture");
       return { ok: true, json: async () => data };
     },
   });
-  const render = () => {
+  const render = (initialStoryId = options.initialStoryId === undefined ? "fixture" : options.initialStoryId) => {
     stateIndex = refIndex = 0;
     callbacks.length = effects.length = 0;
-    return compiledModule.exports.default({ initialStoryId: "fixture" });
+    return compiledModule.exports.default({ initialStoryId });
   };
   render();
   return { merge: compiledModule.exports.mergeNodeEnrichment, states, calls, callbacks, effects, render, load: (...args) => callbacks[1](...args) };
@@ -384,4 +392,263 @@ test("dictionary status labels distinguish loading and unavailable without block
     assert.ok(!button(tree, "AContinue fixture").props.disabled);
     assert.ok(!button(tree, "Listen").props.disabled);
   }
+});
+
+function deferred() {
+  let resolve, reject;
+  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
+  return { promise, resolve, reject };
+}
+const flushAsync = async () => { for (let i = 0; i < 50; i++) await Promise.resolve(); };
+const response = (body, ok = true, status = 200) => ({ ok, status, json: async () => body });
+function startJobPoll(h, jobId = "job") {
+  h.states.set("activeJob", { jobId, storyId: "fixture", branch: true });
+  h.render();
+  return h.effects.find((fn) => fn.toString().includes("job_poll_failed"))();
+}
+
+for (const status of ["completed", "partial_success", "failed", "canceled"]) {
+  test(`${status}: slow balance never blocks choices; late balance failure does not relock`, async () => {
+    const balance = deferred();
+    const h = harness(fixture("en", 2), false, {
+      jobFetch: async () => response({ job: { status, stage: status, error_message_safe: "terminal notice" } }),
+      billingFetch: () => balance.promise,
+    });
+    await h.load("fixture");
+    const cleanup = startJobPoll(h);
+    await flushAsync();
+    assert.equal(h.states.get("activeJob"), null);
+    assert.equal(h.states.get("balanceState"), "loading");
+    assert.equal(button(h.render(), "AContinue fixture").props.disabled, false);
+    if (status !== "completed") assert.equal(h.states.get("error"), "terminal notice");
+    // React cleans up the old poll when activeJob clears. Balance must survive it.
+    cleanup();
+    balance.reject(new Error("billing offline"));
+    await flushAsync();
+    assert.equal(h.states.get("balanceState"), "unavailable");
+    assert.equal(h.states.get("credits"), null);
+    assert.equal(h.states.get("activeJob"), null);
+    assert.equal(button(h.render(), "AContinue fixture").props.disabled, false);
+  });
+}
+
+test("terminal success does not unlock before story load succeeds", async () => {
+  const story = deferred();
+  let loads = 0;
+  const data = fixture("en", 2);
+  const h = harness(data, false, { storyFetch: () => ++loads === 1 ? Promise.resolve(response(data)) : story.promise });
+  await h.load("fixture");
+  const cleanup = startJobPoll(h);
+  await flushAsync();
+  assert.equal(h.states.get("activeJob").jobId, "job");
+  assert.equal(button(h.render(), "AContinue fixture").props.disabled, true);
+  story.resolve(response({}, false, 503));
+  await flushAsync();
+  assert.equal(h.states.get("activeJob").jobId, "job");
+  assert.equal(h.calls.requests.some(({ url }) => url === "/api/billing/status"), false);
+  assert.match(h.states.get("error"), /temporarily unavailable/);
+  cleanup();
+});
+
+test("older balance responses cannot overwrite the newest balance, including HTTP failures", async () => {
+  for (const staleResponse of [response({ credits: { available: 999 } }), response({}, false, 401)]) {
+    const old = deferred();
+    let requests = 0;
+    const h = harness(fixture("en", 1), false, { billingFetch: () => ++requests === 1 ? old.promise : Promise.resolve(response({ credits: { available: 7 } })) });
+    const first = h.callbacks[0]();
+    await h.callbacks[0]();
+    old.resolve(staleResponse);
+    await first;
+    assert.equal(h.states.get("credits"), 7);
+    assert.equal(h.states.get("balanceState"), "ready");
+  }
+});
+
+test("navigation/unmount cancels independent billing and old generation responses", async () => {
+  const job = deferred();
+  const balance = deferred();
+  const h = harness(fixture("en", 1), false, { jobFetch: () => job.promise, billingFetch: () => balance.promise });
+  await h.load("fixture");
+  const lifetime = h.effects.find((fn) => fn.toString().includes("generationPoll.current"));
+  const dispose = lifetime();
+  await flushAsync();
+  const cleanup = startJobPoll(h, "old-job");
+  dispose();
+  h.states.set("activeJob", { jobId: "new-job", storyId: "new-story", branch: true });
+  h.states.set("credits", 6);
+  h.states.set("balanceState", "ready");
+  balance.resolve(response({ credits: { available: 999 } }));
+  job.resolve(response({ job: { status: "failed", stage: "failed", error_message_safe: "old error" } }));
+  await flushAsync();
+  assert.equal(h.states.get("activeJob").jobId, "new-job");
+  assert.equal(h.states.get("credits"), 6);
+  assert.notEqual(h.states.get("error"), "old error");
+  cleanup();
+});
+
+test("superseded or canceled story responses cannot clear a newer active job", async () => {
+  for (const cancel of [true, false]) {
+    const old = deferred();
+    const data = fixture("en", 1);
+    let count = 0;
+    const h = harness(data, false, { storyFetch: async () => ++count === 2 ? old.promise : response(data) });
+    await h.load("fixture");
+    const cleanup = startJobPoll(h, "old-job");
+    await flushAsync();
+    if (cancel) cleanup();
+    else await h.load("fixture"); // Newer request wins even before poll cleanup.
+    h.states.set("activeJob", { jobId: "new-job", storyId: "fixture", branch: true });
+    old.resolve(response(data));
+    await flushAsync();
+    assert.equal(h.states.get("activeJob").jobId, "new-job");
+    assert.equal(h.states.get("error"), "");
+    cleanup();
+  }
+});
+
+test("new branch works during slow balance; duplicate clicks stay single-flight and old balance stays stale", async () => {
+  const balance = deferred();
+  const branch = deferred();
+  const h = harness(fixture("en", 1), false, { billingFetch: () => balance.promise, branchFetch: () => branch.promise });
+  await h.load("fixture");
+  const cleanup = startJobPoll(h);
+  await flushAsync();
+  cleanup();
+  const choose = button(h.render(), "AContinue fixture").props.onClick;
+  const first = choose();
+  const second = choose();
+  assert.equal(h.calls.requests.filter(({ url }) => url.includes("/choices/")).length, 1);
+  assert.equal(button(h.render(), "AContinue fixture").props.disabled, true);
+  balance.resolve(response({ credits: { available: 999 } }));
+  await flushAsync();
+  assert.notEqual(h.states.get("credits"), 999);
+  branch.resolve(response({ job_id: "next-job" }));
+  await Promise.all([first, second]);
+  assert.equal(h.states.get("activeJob").jobId, "next-job");
+  assert.equal(h.states.get("branchSubmitting"), false);
+  await choose(); // Even an old callback must not submit again before re-render.
+  assert.equal(h.calls.requests.filter(({ url }) => url.includes("/choices/")).length, 1);
+});
+
+test("backend credit rejection unlocks submission and retry reuses idempotency key", async () => {
+  const h = harness(fixture("en", 1), false, { branchFetch: async () => response({ error: "insufficient_credits" }, false, 402) });
+  await h.load("fixture");
+  await button(h.render(), "AContinue fixture").props.onClick();
+  assert.match(h.states.get("error"), /more credits/);
+  assert.equal(h.states.get("activeJob"), null);
+  assert.equal(h.states.get("branchSubmitting"), false);
+  await button(h.render(), "AContinue fixture").props.onClick();
+  const requests = h.calls.requests.filter(({ url }) => url.includes("/choices/"));
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0].options.headers["Idempotency-Key"], requests[1].options.headers["Idempotency-Key"]);
+});
+
+test("balance succeeds independently after terminal poll cleanup", async () => {
+  const balance = deferred();
+  const h = harness(fixture("en", 1), false, { billingFetch: () => balance.promise });
+  await h.load("fixture");
+  const cleanup = startJobPoll(h);
+  await flushAsync();
+  assert.equal(h.states.get("activeJob"), null);
+  cleanup();
+  balance.resolve(response({ credits: { available: 8 } }));
+  await flushAsync();
+  assert.equal(h.states.get("credits"), 8);
+  assert.equal(h.states.get("balanceState"), "ready");
+});
+
+test("navigation during branch POST ignores its late acceptance and cannot replace new job", async () => {
+  const branch = deferred();
+  const h = harness(fixture("en", 1), false, { branchFetch: () => branch.promise });
+  await h.load("fixture");
+  const dispose = h.effects.find((fn) => fn.toString().includes("generationPoll.current"))();
+  await flushAsync();
+  const submit = button(h.render(), "AContinue fixture").props.onClick();
+  dispose();
+  h.states.set("activeJob", { jobId: "new-job", storyId: "other", branch: true });
+  branch.resolve(response({ job_id: "stale-job" }));
+  await submit;
+  assert.equal(h.states.get("activeJob").jobId, "new-job");
+  assert.equal(h.states.get("error"), "");
+});
+
+test("branch network failure unlocks retries without bypassing server validation", async () => {
+  const h = harness(fixture("en", 1), false, { branchFetch: async () => { throw new Error("offline"); } });
+  await h.load("fixture");
+  await button(h.render(), "AContinue fixture").props.onClick();
+  assert.equal(h.states.get("branchSubmitting"), false);
+  assert.equal(h.states.get("activeJob"), null);
+  assert.match(h.states.get("error"), /connection was interrupted/);
+  assert.equal(button(h.render(), "AContinue fixture").props.disabled, false);
+});
+
+test("A to B navigation blocks old choices synchronously, while loading, and after failure", async () => {
+  const next = deferred();
+  const data = fixture("en", 1);
+  const h = harness(data, false, { storyFetch: (url) => url.endsWith("/B") ? next.promise : Promise.resolve(response(data)) });
+  await h.load("fixture");
+  const assertBlocked = async () => {
+    const oldChoice = button(h.render("B"), "AContinue fixture");
+    assert.equal(oldChoice.props.disabled, true);
+    await oldChoice.props.onClick(); // The handler itself must enforce it too.
+    assert.equal(h.calls.requests.filter(({ url }) => url.includes("/choices/")).length, 0);
+  };
+  await assertBlocked(); // Before any navigation effects run.
+  const lifetime = h.effects.find((fn) => fn.toString().includes("generationPoll.current"));
+  const dispose = lifetime();
+  const loadEffect = h.effects.find((fn) => fn.toString().includes("loadStory(initialStoryId"));
+  const cancelLoad = loadEffect();
+  await flushAsync();
+  await assertBlocked();
+  next.resolve(response({}, false, 503));
+  await flushAsync();
+  assert.match(h.states.get("error"), /could not be loaded/);
+  h.states.set("phase", "reader"); // Even if stale content is shown, it cannot submit.
+  await assertBlocked();
+  cancelLoad();
+  dispose();
+});
+
+test("canceled B navigation cannot enable A while C is the target; null target also blocks A", async () => {
+  const pending = deferred();
+  const data = fixture("en", 1);
+  const h = harness(data, false, { storyFetch: (url) => url.endsWith("/B") ? pending.promise : Promise.resolve(response(data)) });
+  await h.load("fixture");
+  h.render("B");
+  const cancel = h.effects.find((fn) => fn.toString().includes("loadStory(initialStoryId"))();
+  await flushAsync();
+  cancel();
+  const lateB = structuredClone(data);
+  lateB.story.id = "B";
+  pending.resolve(response(lateB));
+  await flushAsync();
+  assert.equal(h.states.get("storyData").story.id, "fixture");
+  for (const target of ["C", null]) {
+    const choice = button(h.render(target), "AContinue fixture");
+    assert.equal(choice.props.disabled, true);
+    await choice.props.onClick();
+  }
+  assert.equal(h.calls.requests.filter(({ url }) => url.includes("/choices/")).length, 0);
+});
+
+test("new opening with unchanged null prop unlocks its own choices after completion", async () => {
+  const data = fixture("en", 1);
+  const h = harness(data, false, {
+    initialStoryId: null,
+    openingFetch: async () => response({ story_id: "fixture", job_id: "opening-job" }),
+    branchFetch: async () => response({ job_id: "branch-job" }),
+  });
+  h.states.set("quote", { total: 1, items: [] });
+  const generate = button(h.render(), "Generate chapter one");
+  assert.ok(generate);
+  await generate.props.onClick();
+  assert.equal(h.states.get("openingStoryId"), "fixture");
+  h.render();
+  const cleanup = h.effects.find((fn) => fn.toString().includes("job_poll_failed"))();
+  await flushAsync();
+  const choice = button(h.render(), "AContinue fixture");
+  assert.equal(choice.props.disabled, false);
+  await choice.props.onClick();
+  assert.equal(h.states.get("activeJob").jobId, "branch-job");
+  cleanup();
 });

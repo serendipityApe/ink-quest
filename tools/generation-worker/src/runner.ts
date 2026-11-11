@@ -5,7 +5,7 @@ import type { Delivery, EdgeStore, Lease, OutboxItem, QueueBinding, Phase } from
 import { StoreUnavailable } from "./store.js";
 import { GlossValidationError, LlmProviderError, type GlossValidationDiagnostics } from "../../story-pipeline/src/providers/llm/errors.js";
 import {advanceEnrichment} from './enrich-step.js';
-import { prepareScene, SEGMENTATION_VERSION } from './prepare.js';
+import { initialPreparation, prepareScene, SEGMENTATION_VERSION } from './prepare.js';
 
 export interface Services {
   store: EdgeStore; queue: QueueBinding; dictionaryVersion: string;
@@ -116,15 +116,18 @@ async function execute(lease: Lease, s: Services): Promise<OutboxItem | null> {
       const scene = await provider.writeScene({ storyId: job.storyId, targetLang: job.targetLanguage,
         learnerLevel: job.learnerLevel, plan, state: { storyId: job.storyId, currentNodeId: job.nodeId,
           version: job.storyVersion, snapshot: json(job.stateSnapshot) }, selectedChoice: json(job.input.selectedChoice) });
-      return checkpoint(fingerprint.segmentationVersion ? "prepare" : "enrich", { plan, scene, fingerprint });
+      return checkpoint(fingerprint.segmentationVersion ? "prepare" : "enrich", { plan, scene, fingerprint,
+        ...(fingerprint.segmentationVersion ? { preparation: initialPreparation() } : {}) });
     }
     case "prepare": {
       if (!outputs.scene) throw new EdgeConfigurationError("Writing checkpoint is missing.");
       const result = prepareScene({ text: outputs.scene.text, plotWords: outputs.scene.plotWords,
         choices: [], targetLang: job.targetLanguage, glossLang: job.targetLanguage === "zh" ? "en" : "zh" },
       s.segmentChinese, outputs.preparation);
-      return result.preparation ? checkpoint("prepare", { preparation: result.preparation })
-        : checkpoint("commit", { initialTokens: result.initialTokens });
+      return result.initialTokens !== undefined
+        ? checkpoint("commit", { initialTokens: result.initialTokens,
+          ...(result.preparation ? { preparation: result.preparation } : {}) })
+        : checkpoint("prepare", { preparation: result.preparation });
     }
     case "enrich": {
       if (!outputs.scene) throw new EdgeConfigurationError("Writing checkpoint is missing.");

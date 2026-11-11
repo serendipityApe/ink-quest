@@ -87,6 +87,10 @@ async function bootstrap(){
   }
   await sql(await readFile(new URL(`../../../supabase/migrations/${file}`,import.meta.url),'utf8'));
  }
+ // Freeze a genuinely in-progress legacy job before replacing the checkpoint RPC.
+ const legacy=await preparationFixture(false);
+ await sql(await readFile(new URL('../../../supabase/migrations/202611110004_combine_preparation_checkpoints.sql',import.meta.url),'utf8'));
+ return legacy;
 }
 async function fixture({commit=true,tts=false}={}){
  const user=randomUUID();await sql(`insert into auth.users(id) values(${quote(user)});`);
@@ -110,10 +114,34 @@ async function fixture({commit=true,tts=false}={}){
  const node=()=>json(`select row_to_json(n) from public.story_nodes n where created_by_job_id=${id};`);
  const billing=()=>json(`select jsonb_build_object('status',j.status,'amount',r.settled_amount,'settles',(select count(*) from public.credit_ledger where reservation_id=r.id and entry_type='settle'),'nodes',(select count(*) from public.story_nodes where created_by_job_id=j.id)) from public.generation_jobs j join public.credit_reservations r on r.id=j.reservation_id where j.id=${id};`);
  const ledger=()=>json(`select jsonb_agg(to_jsonb(l) order by l.id) from public.credit_ledger l where user_id=${quote(user)};`);
- return {user,row,id,primary,auth,tokens,claimEnrich,eauth,commitLease,gloss,node,billing,ledger};
+ return {user,row,id,primary,auth,input,tokens,claimEnrich,eauth,commitLease,gloss,node,billing,ledger};
+}
+const emptyPreparation=()=>({version:'segments-v1',cursor:0,spans:[],tokens:[],renderCursor:0});
+async function primaryLease(f){
+ const {lease}=await call('edge_claim_generation_job',{p_job_id:f.row.job_id,p_owner:randomUUID()});
+ return {p_job_id:f.row.job_id,p_owner:lease.owner,p_epoch:lease.epoch};
+}
+const checkpoint=(auth,next,output)=>rpc('edge_checkpoint_generation_stage',{...auth,p_next:next,p_output:output});
+async function preparationFixture(combined=true){
+ const f=await fixture({commit:false});
+ // Character-sized fixture spans leave exactly 64 tokens for the final batch.
+ const text='Alice reads a mysterious letter in the library and quietly opens the ancient book.';
+ f.tokens=Array.from(text,word=>({word,reading:null,level:null,tier:'base',meaning:null}));
+ f.input={...f.input,text,textSegments:f.tokens,enrichment:{...f.input.enrichment,scene:{text},
+  enrichmentProgress:{...f.input.enrichment.enrichmentProgress,input:JSON.stringify({text}),prepareCursor:text.length,spans:f.tokens.map(t=>({word:t.word,base:true}))}}};
+ await sql(`update public.generation_edge_state set phase='write',outputs='{}' where job_id=${f.id};`);
+ const initial=emptyPreparation();
+ await sql(checkpoint(f.auth,'prepare',{scene:{text:f.input.text},...(combined?{preparation:initial}:{})}));
+ let auth=await primaryLease(f);
+ if(!combined){await sql(checkpoint(auth,'prepare',{preparation:initial}));auth=await primaryLease(f);}
+ const scanned={...initial,cursor:f.input.text.length,spans:f.tokens.map(t=>({word:t.word,base:true}))};
+ await sql(checkpoint(auth,'prepare',{preparation:scanned}));auth=await primaryLease(f);
+ const partial={...scanned,tokens:f.tokens.slice(0,-64),renderCursor:f.tokens.length-64};
+ await sql(checkpoint(auth,'prepare',{preparation:partial}));auth=await primaryLease(f);
+ return {f,auth,partial,finished:{...scanned,tokens:f.tokens,renderCursor:f.tokens.length}};
 }
 try{
- await bootstrap();
+ const legacy=await bootstrap();
  await check('default function grants cannot expose private enrichment helpers',async()=>{
   // PUBLIC has no access to the probe, proving the service grant is explicit.
   assert.equal(await json(`select to_jsonb(has_function_privilege('service_role','public.test_default_grant()','execute'));`),true);
@@ -144,6 +172,52 @@ try{
   await sql(`set role service_role; ${rpc('enrichment_fail_stage',{...f.eauth(claim.lease),p_code:'fixture_terminal',p_retryable:false})}`);
   assert.equal((await f.node()).model_metadata.enrichmentStatus,'failed');
   assert.deepEqual(await f.billing(),{status:'completed',amount:20,settles:1,nodes:1});
+ });
+ await check('combined initialization serializes duplicate checkpoints without billing',async()=>{
+  const f=await fixture({commit:false});
+  await sql(`update public.generation_edge_state set phase='write',outputs='{}' where job_id=${f.id};`);
+  const command=checkpoint(f.auth,'prepare',{scene:{text:f.input.text},preparation:emptyPreparation()});
+  const before=await f.ledger();const {second}=await overlap(command,command);
+  assert.equal(second.ok,false);assert.match(second.error.message,/generation_lease_fenced/);
+  const state=await json(`select jsonb_build_object('phase',phase,'preparation',outputs->'preparation') from public.generation_edge_state where job_id=${f.id};`);
+  assert.deepEqual(state,{phase:'prepare',preparation:emptyPreparation()});
+  assert.deepEqual(await f.ledger(),before);assert.equal((await f.billing()).nodes,0);
+ });
+ await check('combined final checkpoint and primary commit each reject concurrent replay',async()=>{
+  const {f,auth,finished}=await preparationFixture();const before=await f.ledger();
+  const command=checkpoint(auth,'commit',{preparation:finished,initialTokens:f.tokens});
+  const duplicate=await overlap(command,command);
+  assert.equal(duplicate.second.ok,false);assert.match(duplicate.second.error.message,/generation_lease_fenced/);
+  assert.deepEqual(await f.ledger(),before);
+  const state=await json(`select jsonb_build_object('phase',phase,'preparation',outputs->'preparation','initialTokens',outputs->'initialTokens') from public.generation_edge_state where job_id=${f.id};`);
+  assert.deepEqual(state,{phase:'commit',preparation:finished,initialTokens:f.tokens});
+  const commit=rpc('edge_commit_generated_text',{...await primaryLease(f),p_input:f.input});
+  const replay=await overlap(commit,commit);assert.equal(replay.second.ok,false);assert.match(replay.second.error.message,/generation_lease_fenced/);
+  assert.deepEqual(await f.billing(),{status:'completed',amount:20,settles:1,nodes:1});
+ });
+ await check('combined final checkpoint fences old lease after concurrent replacement',async()=>{
+  const {f,auth,partial,finished}=await preparationFixture();const before=await f.ledger();
+  await sql(`update public.generation_jobs set lease_expires_at=now()-interval '1 second' where id=${f.id};`);
+  const replacement=rpc('edge_claim_generation_job',{p_job_id:f.row.job_id,p_owner:'combined-replacement'});
+  const stale=checkpoint(auth,'commit',{preparation:finished,initialTokens:f.tokens});
+  const result=await overlap(replacement,stale);assert.equal(result.second.ok,false);assert.match(result.second.error.message,/generation_lease_fenced/);
+  const lease=JSON.parse(result.first).lease;assert.ok(lease.epoch>auth.p_epoch);
+  assert.deepEqual(await json(`select outputs->'preparation' from public.generation_edge_state where job_id=${f.id};`),partial);
+  assert.deepEqual(await f.ledger(),before);
+  await sql(checkpoint({p_job_id:f.row.job_id,p_owner:lease.owner,p_epoch:lease.epoch},'commit',{preparation:finished,initialTokens:f.tokens}));
+  await sql(rpc('edge_commit_generated_text',{...await primaryLease(f),p_input:f.input}));
+  assert.deepEqual(await f.billing(),{status:'completed',amount:20,settles:1,nodes:1});
+ });
+ await check('in-progress pre-migration worker retains legacy checkpoint sequence',async()=>{
+  const {f,auth,finished}=legacy;const before=await f.ledger();
+  // This lease and partial token prefix were persisted under migration003.
+  await sql(checkpoint(auth,'prepare',{preparation:finished}));
+  const command=checkpoint(await primaryLease(f),'commit',{initialTokens:f.tokens});
+  const {second}=await overlap(command,command);assert.equal(second.ok,false);assert.match(second.error.message,/generation_lease_fenced/);
+  assert.deepEqual(await f.ledger(),before);
+  await sql(rpc('edge_commit_generated_text',{...await primaryLease(f),p_input:f.input}));
+  assert.deepEqual(await f.billing(),{status:'completed',amount:20,settles:1,nodes:1});
+  assert.deepEqual((await f.node()).text_segments,f.tokens);
  });
  await check('duplicate primary commit serializes with one node and settlement',async()=>{
   const f=await fixture({commit:false});const {second}=await overlap(f.primary,f.primary);
