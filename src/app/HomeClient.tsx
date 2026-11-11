@@ -3,6 +3,7 @@
 import StoryCover from "@/components/StoryCover";
 import Link from "next/link";
 import StoryPolicyNotice from "@/components/StoryPolicyNotice";
+import PaymentAvailabilityNotice from "@/components/PaymentAvailabilityNotice";
 import { useEffect, useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
@@ -184,8 +185,9 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
           <div className="grid gap-6 rounded-card border-2 border-ink bg-paper-2 p-6 shadow-card md:grid-cols-[1fr_auto] md:items-center md:p-10">
             <div>
               <h2 id="founding-reader-heading" className="hallmark-display text-3xl">{isZh ? "创作积分" : "Story Creator credits"}</h2>
+              <PaymentAvailabilityNotice isZh={isZh} />
               <p className="mt-4 text-4xl font-bold">US$6 <span className="text-base font-normal">{isZh ? "/ 月 · 1,000 积分" : "/ month · 1,000 credits"}</span></p>
-              <p className="mt-4 max-w-[60ch] text-ink-2">{isZh ? "用积分定制与续写故事。每月积分到期不结转，可取消续费；另有 $5/500 积分一次性补充包。税费及最终金额以结账为准。" : "Create and continue your own stories. Monthly credits expire without rollover; cancel future renewal anytime. Or buy 500 credits once for $5. Taxes and the final total appear at checkout."}</p>
+              <p className="mt-4 max-w-[60ch] text-ink-2">{isZh ? "用积分定制与续写故事。每月积分到期不结转，可取消续费；另有 $5/500 积分一次性补充包。税费及最终金额以结账为准。" : "Create and continue your own stories. Monthly credits expire without rollover; cancel future renewal anytime. A one-time pack provides 500 credits for $5. Taxes and the final total appear at checkout."}</p>
             </div>
             <Link href="/subscribe" className="hallmark-btn w-fit">{isZh ? "查看订阅详情" : "View subscription details"}<span aria-hidden="true">→</span></Link>
           </div>
