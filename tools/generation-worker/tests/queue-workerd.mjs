@@ -18,7 +18,7 @@ await db.exec(`insert into public.generation_dictionary_versions values('fixture
   insert into public.generation_dictionary_entries values('fixture-v1','en','library','/laɪbrəri/','["图书馆"]','B1'),
     ('fixture-v1','zh','图书馆',null,'["library"]','HSK 3');`);
 let databaseCalls=0;
-const mf=new Miniflare({workers:[
+const mf=new Miniflare({cf:false,workers:[
   {name:"generation",modulesRoot:join(root,"dist"),modules:[{type:"ESModule",path:join(root,"dist/worker.js")},
     {type:"CompiledWasm",path:join(root,"dist/jieba.wasm")}],compatibilityDate:"2026-07-21",outboundService:"external-fixture",
     bindings:{GENERATION_ENABLED:"true",SUPABASE_URL:"https://database.invalid",SUPABASE_SERVICE_ROLE_KEY:"fixture-key",

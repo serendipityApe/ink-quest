@@ -35,6 +35,8 @@ export interface CommitGeneratedTextInput {
   promptVersion: string;
   modelMetadata: JsonValue;
   ttsDeferred: boolean;
+  enrichmentDeferred?: boolean;
+  enrichment?: unknown;
 }
 
 export interface CommitGeneratedAudioInput {

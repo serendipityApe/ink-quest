@@ -4,32 +4,36 @@ import type { CommitGeneratedTextInput, CommitGeneratedAudioInput } from "../../
 
 export class StoreUnavailable extends Error {}
 const VOID_RPCS = new Set(["edge_begin_generation_stage", "edge_recover_generation_jobs",
-  "edge_mark_generation_published", "edge_commit_generated_audio", "edge_report_generation_readiness"]);
+  "edge_mark_generation_published", "edge_commit_generated_audio", "edge_report_generation_readiness",
+  "enrichment_begin_stage", "enrichment_recover_jobs", "enrichment_mark_published", "enrichment_commit"]);
 export class SupabaseEdgeStore implements EdgeStore {
-  constructor(private readonly url: string, private readonly key: string,private readonly dictionary?:DictionaryReader) {
+  constructor(private readonly url: string, private readonly key: string,private readonly dictionary?:DictionaryReader, private readonly enrichment = false) {
     if (!url || !key || !url.startsWith("https://")) throw new Error("Generation storage is not configured.");
   }
   private fence(lease: Lease) {
     return { p_job_id: lease.job.jobId, p_owner: lease.owner, p_epoch: lease.epoch };
   }
-  claim(jobId: string, owner: string) { return this.rpc<Claim>("edge_claim_generation_job", { p_job_id: jobId, p_owner: owner }); }
-  begin(lease: Lease) { return this.rpc<void>("edge_begin_generation_stage", this.fence(lease)); }
+  claim(jobId: string, owner: string) { return this.rpc<Claim>(this.enrichment ? "enrichment_claim_job" : "edge_claim_generation_job", { p_job_id: jobId, p_owner: owner }); }
+  begin(lease: Lease) { return this.rpc<void>(this.enrichment ? "enrichment_begin_stage" : "edge_begin_generation_stage", this.fence(lease)); }
   checkpoint(lease: Lease, next: Phase, patch: Outputs) {
-    if(next==='enrich'&&patch.enrichmentProgress)return this.rpc<OutboxItem>('edge_checkpoint_enrichment_step',{...this.fence(lease),p_progress:patch.enrichmentProgress});
-    return this.rpc<OutboxItem>("edge_checkpoint_generation_stage", { ...this.fence(lease), p_next: next, p_output: patch });
+    if(next==='enrich'&&patch.enrichmentProgress)return this.rpc<OutboxItem>(this.enrichment ? 'enrichment_checkpoint_step' : 'edge_checkpoint_enrichment_step',{...this.fence(lease),p_progress:patch.enrichmentProgress});
+    return this.rpc<OutboxItem>(this.enrichment ? "enrichment_checkpoint_stage" : "edge_checkpoint_generation_stage", { ...this.fence(lease), p_next: next, p_output: patch });
   }
   commitText(lease: Lease, input: CommitGeneratedTextInput) {
+    if (this.enrichment) return this.rpc<void>("enrichment_commit", {
+      ...this.fence(lease), p_tokens: input.textSegments,
+    }).then(() => null);
     return this.rpc<OutboxItem | null>("edge_commit_generated_text", { ...this.fence(lease), p_input: input });
   }
   commitAudio(lease: Lease, input: CommitGeneratedAudioInput) {
     return this.rpc<void>("edge_commit_generated_audio", { ...this.fence(lease), p_input: input });
   }
   fail(lease: Lease, code: string, retryable: boolean) {
-    return this.rpc<OutboxItem | null>("edge_fail_generation_stage", { ...this.fence(lease), p_code: code, p_retryable: retryable });
+    return this.rpc<OutboxItem | null>(this.enrichment ? "enrichment_fail_stage" : "edge_fail_generation_stage", { ...this.fence(lease), p_code: code, p_retryable: retryable });
   }
-  pending() { return this.rpc<OutboxItem[]>("edge_pending_generation_jobs", {}); }
-  published(item: OutboxItem) { return this.rpc<void>("edge_mark_generation_published", { p_job_id: item.jobId, p_revision: item.revision }); }
-  recover() { return this.rpc<void>("edge_recover_generation_jobs", {}); }
+  pending() { return this.rpc<OutboxItem[]>(this.enrichment ? "enrichment_pending_jobs" : "edge_pending_generation_jobs", {}); }
+  published(item: OutboxItem) { return this.rpc<void>(this.enrichment ? "enrichment_mark_published" : "edge_mark_generation_published", { p_job_id: item.jobId, p_revision: item.revision }); }
+  recover() { return this.rpc<void>(this.enrichment ? "enrichment_recover_jobs" : "edge_recover_generation_jobs", {}); }
   reportReadiness(version: string, capabilities: Record<string, boolean>) {
     return this.rpc<void>("edge_report_generation_readiness", { p_dictionary_version: version, p_capabilities: capabilities });
   }

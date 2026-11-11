@@ -1,4 +1,4 @@
-import {EdgeConfigurationError,enrichSceneEdge,prepareEnrichmentChunk,type DictionaryEntry,type DictionaryReader,type ChineseSegmenter,type EnrichmentSpan} from './enrich.js';
+import {EdgeConfigurationError,enrichSceneEdge,prepareEnrichmentChunk,dictionaryKeys,type DictionaryEntry,type DictionaryReader,type ChineseSegmenter,type EnrichmentSpan} from './enrich.js';
 import type {EnrichSceneInput} from '../../story-pipeline/src/core/enrich-scene.js';
 // Keep every asset RPC within its independently verified four-word bound.
 // Four concurrent reads amortize queue/database latency without loading the
@@ -21,9 +21,12 @@ export async function advanceEnrichment(input:EnrichSceneInput,dictionary:Dictio
     return {progress:{...previous,spans,prepareCursor:chunk.prepareCursor}};
   }
   const resolved=new Set(previous.resolved);
-  const allKeys=new Set(previous.spans.map(s=>input.targetLang==='en'?s.word.toLowerCase():s.word));
+  const allKeys=new Set(dictionaryKeys(input,previous.spans));
   const missing=[...allKeys].filter(k=>!resolved.has(k));
-  if(!missing.length&&allKeys.size!==resolved.size)throw new EdgeConfigurationError('Invalid enrichment keys.');
+  // Older checkpoints may include now-skipped base words. Keep their durable
+  // prefix, but never query them again. Reject keys outside the frozen spans.
+  const spanKeys=new Set(previous.spans.map(s=>input.targetLang==='en'?s.word.toLowerCase():s.word));
+  if([...resolved].some(key=>!spanKeys.has(key)))throw new EdgeConfigurationError('Invalid enrichment keys.');
   if(missing.length){
     // Lookup is independent of token rendering: do not replay all cached reads.
     // Large checkpoints keep the previously verified single-RPC path.

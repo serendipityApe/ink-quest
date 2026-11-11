@@ -34,8 +34,10 @@ interface StoryChoice {
 
 interface GeneratedNode {
   id: string;
+  node_version?: number;
   text: string | null;
   text_segments: TextSegment[] | null;
+  model_metadata?: { enrichmentStatus?: string };
   summary: string | null;
   status: string;
   story_choices: StoryChoice[];
@@ -116,6 +118,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   const branchRequestKeys = useRef(new Map<string, string>());
   const previewedJob = useRef<string | null>(null);
   const knownNodeIds = useRef(new Set<string>());
+  const storyLoadSequence = useRef(0);
   const previousPlaying = useRef(false);
   const restartingPlayback = useRef(false);
   const { isPlaying, activeSegmentIndex, play, stop } = useAudioSync();
@@ -150,13 +153,18 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     }
   }, []);
 
-  const loadStory = useCallback(async (storyId: string, options?: { stopPlaybackForNewNodes?: boolean }) => {
-    const response = await fetch(`/api/generated-stories/${storyId}`, { cache: "no-store" });
+  const loadStory = useCallback(async (storyId: string, options?: { stopPlaybackForNewNodes?: boolean; signal?: AbortSignal }) => {
+    const sequence = ++storyLoadSequence.current;
+    const response = await fetch(`/api/generated-stories/${storyId}`, { cache: "no-store", signal: options?.signal });
     if (!response.ok) throw new Error("story_load_failed");
     const data = await response.json() as GeneratedStoryResponse;
+    if (options?.signal?.aborted || sequence !== storyLoadSequence.current) return data;
     const newNodes = data.nodes.filter((node) => !knownNodeIds.current.has(node.id));
     knownNodeIds.current = new Set(data.nodes.map((node) => node.id));
-    setStoryData(data);
+    // A full story request may have started before a dictionary poll completed.
+    setStoryData((current) => current?.story.id === data.story.id
+      ? mergeNodeEnrichment(data, data.story.id, current.nodes)
+      : data);
     setTargetLanguage(data.story.target_language);
     setLearnerLevel(data.story.learner_level);
     setTtsMode(data.story.tts_mode);
@@ -207,8 +215,10 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
   useEffect(() => {
     if (!initialStoryId) return;
     let cancelled = false;
+    const controller = new AbortController();
     queueMicrotask(() => {
-      loadStory(initialStoryId).then((data) => {
+      if (cancelled) return;
+      loadStory(initialStoryId, { signal: controller.signal }).then((data) => {
         if (cancelled || data.nodes.length > 0) return;
         const pending = data.jobs.find((job) => job.status === "queued" || job.status === "running");
         if (pending) setActiveJob({ jobId: pending.id, storyId: initialStoryId, branch: false });
@@ -219,26 +229,33 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
         }
       });
     });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; controller.abort(); };
   }, [initialStoryId, isZh, loadStory]);
 
   useEffect(() => {
     if (!activeJob) return;
     let cancelled = false;
+    const controller = new AbortController();
     const poll = async () => {
       while (!cancelled) {
-        const response = await fetch(`/api/generated-stories/jobs/${activeJob.jobId}`, { cache: "no-store" });
+        const response = await fetch(`/api/generated-stories/jobs/${activeJob.jobId}`, { cache: "no-store", signal: controller.signal });
         if (!response.ok) throw new Error("job_poll_failed");
-        const body = await response.json() as { job: { status: string; stage: string; error_message_safe: string | null } };
+        const body = await response.json() as { job: { status: string; stage: string; node_id?: string | null; error_message_safe: string | null } };
         if (cancelled) return;
         setJobStage(body.job.stage);
+        // Scene jobs initially point at the parent node. Only a post-commit TTS
+        // stage proves that the new scene is available for preview. No-TTS jobs
+        // reveal through the completed-status branch below.
         if (body.job.stage.includes("tts") && previewedJob.current !== activeJob.jobId) {
-          await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true });
+          await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true, signal: controller.signal });
+          if (cancelled) return;
           previewedJob.current = activeJob.jobId;
         }
         if (body.job.status === "completed" || body.job.status === "partial_success") {
-          await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true });
+          await loadStory(activeJob.storyId, { stopPlaybackForNewNodes: true, signal: controller.signal });
+          if (cancelled) return;
           await refreshBalance();
+          if (cancelled) return;
           if (body.job.status === "partial_success") {
             setError(body.job.error_message_safe ?? (isZh ? "正文已完成，语音生成失败；语音积分已自动退回。" : "The scene is ready, but narration failed. Its credits were returned."));
           }
@@ -262,8 +279,43 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     poll().catch(() => {
       if (!cancelled) setError(isZh ? "暂时无法获取生成进度，请稍后刷新。" : "Generation status is temporarily unavailable.");
     });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; controller.abort(); };
   }, [activeJob, isZh, loadStory, refreshBalance]);
+
+  // Background dictionary refreshes may only enrich existing nodes. In particular,
+  // an older response must never move current_node_id back after a branch commits.
+  const enrichmentStoryId = storyData?.story.id;
+  const pendingEnrichmentIds = storyData?.nodes
+    .filter((node) => isEnrichmentPending(node))
+    .map((node) => node.id).sort().join(",") ?? "";
+  useEffect(() => {
+    if (!enrichmentStoryId || !pendingEnrichmentIds) return;
+    const controller = new AbortController();
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/generated-stories/${enrichmentStoryId}?enrichment=1`, {
+          cache: "no-store", signal: controller.signal,
+        });
+        if (response.status === 401 || response.status === 403 || response.status === 404) return;
+        if (!response.ok) throw new Error("enrichment_poll_failed");
+        const data = await response.json() as Pick<GeneratedStoryResponse, "nodes">;
+        if (cancelled) return;
+        setStoryData((current) => mergeNodeEnrichment(current, enrichmentStoryId, data.nodes));
+        const pendingIds = new Set(pendingEnrichmentIds.split(","));
+        if (!data.nodes.some((node) => pendingIds.has(node.id) && isEnrichmentPending(node))) return;
+      } catch {
+        if (cancelled) return;
+        // Dictionary availability never blocks reading, audio, or the next choice.
+      }
+      // Bound retries for abandoned jobs; reopening the story starts a fresh check.
+      if (!cancelled && ++attempts < 120) timer = setTimeout(poll, 2500);
+    };
+    timer = setTimeout(poll, 1500);
+    return () => { cancelled = true; controller.abort(); if (timer) clearTimeout(timer); };
+  }, [enrichmentStoryId, pendingEnrichmentIds]);
 
   const chooseTarget = (target: TargetLanguage) => {
     setTargetLanguage(target);
@@ -525,6 +577,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
                     {shouldPrefixSpace(segment.word, storyData.story.target_language, isFirst) ? " " : ""}
                     <WordSegment
                       segment={segment}
+                      learningEnabled={!node.model_metadata?.enrichmentStatus || Boolean(segment.meaning?.trim())}
                       index={segmentIndex}
                       isAudioActive={playingNodeId === node.id && activeSegmentIndex === segmentIndex}
                       lang={storyData.story.target_language}
@@ -566,6 +619,13 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
                         </>
                       ) : <p className="whitespace-pre-wrap">{node.text}</p>}
                     </div>
+
+                    {isEnrichmentPending(node) && <p className="mt-4 text-xs text-muted" role="status">
+                      {isZh ? "词义正在加载，可先阅读或选择下一步。" : "Definitions are loading. You can keep reading or choose what happens next."}
+                    </p>}
+                    {["failed", "stale", "canceled"].includes(node.model_metadata?.enrichmentStatus ?? "") && <p className="mt-4 text-xs text-muted" role="status">
+                      {isZh ? "词义暂不可用，可继续阅读或选择下一步。" : "Definitions are unavailable. You can keep reading or choose what happens next."}
+                    </p>}
 
                     <div className="mt-7 flex justify-end">
                       <button
@@ -669,4 +729,35 @@ function GeneratingPanel({ label, tts, isZh }: { label: string; tts: boolean; is
 
 function ErrorNotice({ message }: { message: string }) {
   return <p role="alert" className="rounded-input border border-error bg-error-soft px-4 py-3 text-sm text-error">{message}</p>;
+}
+
+function isEnrichmentPending(node: GeneratedNode) {
+  return node.model_metadata?.enrichmentStatus === "pending" || node.model_metadata?.enrichmentStatus === "running";
+}
+
+export function mergeNodeEnrichment(
+  current: GeneratedStoryResponse | null,
+  storyId: string,
+  incoming: GeneratedNode[],
+): GeneratedStoryResponse | null {
+  if (!current || current.story.id !== storyId) return current;
+  const byId = new Map(incoming.map((node) => [node.id, node]));
+  return {
+    ...current,
+    nodes: current.nodes.map((node) => {
+      const update = byId.get(node.id);
+      if (!isEnrichmentPending(node) || !update || isEnrichmentPending(update)) return node;
+      if (node.node_version !== update.node_version || node.text !== update.text) return node;
+      const status = update.model_metadata?.enrichmentStatus;
+      if (!["completed", "failed", "stale", "canceled"].includes(status ?? "")) return node;
+      // Enrichment must preserve segment boundaries used by narration timestamps.
+      const compatible = update.text_segments?.length === node.text_segments?.length
+        && update.text_segments?.every((segment, index) => segment.word === node.text_segments?.[index].word);
+      return {
+        ...node,
+        text_segments: compatible ? update.text_segments : node.text_segments,
+        model_metadata: { ...node.model_metadata, ...update.model_metadata },
+      };
+    }),
+  };
 }

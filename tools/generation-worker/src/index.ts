@@ -12,24 +12,30 @@ function services(env:Env):Services & { reportReadiness(): Promise<void> }{
   if(!env.GENERATION_QUEUE)throw new EdgeConfigurationError("Generation queue binding is unavailable.");
   const config=Object.fromEntries(Object.entries(env).filter((entry):entry is [string,string]=>typeof entry[1]==="string")) as StringEnv;
   const dictionaryVersion=config.GENERATION_DICTIONARY_VERSION??"";
-  const dictionary=env.DICTIONARY?new AssetServiceReader(env.DICTIONARY,dictionaryVersion,config.GENERATION_DICTIONARY_SOURCE_VERSION??'',config.GENERATION_DICTIONARY_MANIFEST_SHA256??''):undefined;
+  const asyncDictionary=config.GENERATION_ASYNC_DICTIONARY==="true";
+  // Defer dictionary configuration/read failures to dictionary work. They must
+  // not prevent a text-first scene from being written or its readiness heartbeat.
+  const dictionary=env.DICTIONARY?{lookup:(language:'zh'|'en',words:string[],version:string)=>
+    new AssetServiceReader(env.DICTIONARY!,dictionaryVersion,config.GENERATION_DICTIONARY_SOURCE_VERSION??'',config.GENERATION_DICTIONARY_MANIFEST_SHA256??'').lookup(language,words,version)}:undefined;
   const store=new SupabaseEdgeStore(config.SUPABASE_URL??"",config.SUPABASE_SERVICE_ROLE_KEY??"",dictionary);
   const provider=()=>createLlmProvider({...config,LLM_REQUEST_TIMEOUT_MS:"75000",LLM_REQUEST_ATTEMPTS:"1",LLM_USAGE_TELEMETRY:"true"});
-  return {store,queue:env.GENERATION_QUEUE,dictionaryVersion,segmentChinese,provider,incrementalDictionary:!!dictionary,
+  return {store,asyncDictionary,
+    enrichmentStore:new SupabaseEdgeStore(config.SUPABASE_URL??"",config.SUPABASE_SERVICE_ROLE_KEY??"",dictionary,true),queue:env.GENERATION_QUEUE,dictionaryVersion,segmentChinese,provider,incrementalDictionary:!!dictionary,
     async preflight(lease){
       if(lease.job.jobType!=="opening"&&lease.job.jobType!=="scene")throw new EdgeConfigurationError("Unsupported job type.");
-      if(lease.phase!=="audio"){
+      if(lease.phase!=="audio" && !lease.enrichment
+        && !(lease.outputs.fingerprint?.segmentationVersion || (asyncDictionary && !lease.outputs.fingerprint))){
         if(!dictionaryVersion)throw new EdgeConfigurationError("Dictionary version is required.");
         await store.ready(lease.job.targetLanguage,dictionaryVersion);
       }
-      if(lease.job.ttsMode==="every_scene")checkSpeechConfiguration(config,lease.job.targetLanguage);
+      if(!lease.enrichment && lease.job.ttsMode==="every_scene")checkSpeechConfiguration(config,lease.job.targetLanguage);
     },audio:lease=>generateAudio(lease,config),
     async reportReadiness(){
-      const capabilities={text_zh:false,text_en:false,audio_zh:false,audio_en:false};
+      const capabilities={text_zh:false,text_en:false,audio_zh:false,audio_en:false,async_dictionary:asyncDictionary};
       for(const lang of ["zh","en"] as const){
         try{
           provider();if(!dictionaryVersion)throw new EdgeConfigurationError("Dictionary version is required.");
-          await store.ready(lang,dictionaryVersion);capabilities[`text_${lang}`]=true;
+          if(!asyncDictionary)await store.ready(lang,dictionaryVersion);capabilities[`text_${lang}`]=true;
           try{checkSpeechConfiguration(config,lang);capabilities[`audio_${lang}`]=true;}catch{}
         }catch{}
       }
@@ -47,7 +53,8 @@ const generationWorker = {
   async scheduled(_event:unknown,env:Env){
     if(env.GENERATION_ENABLED!=="true")return;
     const s=services(env);
-    // An unhealthy dictionary/provider closes creation, while recovery must
+    // Legacy mode requires dictionary readiness; text-first mode needs only
+    // provider readiness. Recovery must
     // still release expired work. No credentials are included in the report.
     try{await s.reportReadiness();}catch{}
     await tick(s);

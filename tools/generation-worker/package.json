@@ -8,6 +8,7 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "test:runtime": "node tests/workerd.mjs",
     "test:queue": "node tests/queue-workerd.mjs",
+    "test:queue:async": "node tests/queue-async-workerd.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

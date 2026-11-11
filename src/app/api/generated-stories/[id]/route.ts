@@ -2,7 +2,7 @@ import { getUser } from "@/lib/dal";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const user = await getUser();
   if (!user) return Response.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await context.params;
@@ -15,9 +15,17 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   if (storyResult.error) return Response.json({ error: "story_unavailable" }, { status: 503 });
   if (!storyResult.data) return Response.json({ error: "story_not_found" }, { status: 404 });
 
+  // Lightweight owner-scoped poll: no audio URL signing or generation-job reads.
+  if (new URL(request.url).searchParams.get("enrichment") === "1") {
+    const nodes = await supabase.from("story_nodes")
+      .select("id,node_version,text,text_segments,model_metadata").eq("story_id", id);
+    if (nodes.error) return Response.json({ error: "story_details_unavailable" }, { status: 503 });
+    return Response.json({ nodes: nodes.data ?? [] }, { headers: { "Cache-Control": "private, no-store" } });
+  }
+
   const [nodesResult, jobsResult, audioResult] = await Promise.all([
     supabase.from("story_nodes")
-      .select("id,parent_node_id,node_version,text,text_segments,summary,status,created_at,story_choices(id,label,intent,risk_hint,branch_seed,selected_at)")
+      .select("id,parent_node_id,node_version,text,text_segments,model_metadata,summary,status,created_at,story_choices(id,label,intent,risk_hint,branch_seed,selected_at)")
       .eq("story_id", id).order("created_at", { ascending: true }),
     supabase.from("generation_jobs")
       .select("id,job_type,status,stage,attempt,error_code,error_message_safe,created_at,updated_at")

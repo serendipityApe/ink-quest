@@ -1,0 +1,166 @@
+/** Real PostgreSQL sessions; run only against a fresh disposable inkquest_test DB. */
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {readFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {setTimeout as delay} from 'node:timers/promises';
+
+assert.ok(['127.0.0.1', '::1', 'localhost'].includes(process.env.PGHOST), 'PGHOST must explicitly name loopback');
+assert.equal(process.env.PGDATABASE, 'inkquest_test', 'Only the disposable inkquest_test database is allowed');
+assert.equal(process.env.PGUSER, 'postgres', 'Use the isolated service superuser');
+assert.ok(process.env.PGPASSWORD, 'An explicit synthetic service password is required');
+const sessions = new Set();
+// Do not inherit connection services, production URLs, options, or password files.
+const env = {PATH:process.env.PATH, PGHOST:process.env.PGHOST, PGPORT:process.env.PGPORT ?? '5432',
+ PGDATABASE:'inkquest_test', PGUSER:'postgres', PGPASSWORD:process.env.PGPASSWORD,
+ PGCONNECT_TIMEOUT:'5', PGOPTIONS:'-c statement_timeout=15000 -c idle_in_transaction_session_timeout=20000'};
+const quote = x => `'${String(x).replaceAll("'", "''")}'`;
+const value = x => x === null ? 'null' : typeof x === 'object' ? `${quote(JSON.stringify(x))}::jsonb` : typeof x === 'number' || typeof x === 'boolean' ? String(x) : quote(x);
+const rpc = (name,args={}) => `select public.${name}(${Object.entries(args).map(([k,v])=>`${k}=>${value(v)}`).join(',')});`;
+class Session {
+ constructor(){
+  this.name=`inkquest-test-${randomUUID()}`;this.out='';this.err='';this.dead=false;
+  this.child=spawn('psql',['-X','-q','-A','-t','-v','ON_ERROR_STOP=1'],{env:{...env,PGAPPNAME:this.name},stdio:['pipe','pipe','pipe']});
+  sessions.add(this);this.child.stdout.on('data',d=>this.out+=d);this.child.stderr.on('data',d=>this.err+=d);
+  this.child.stdin.on('error',e=>{this.err+=e.message;this.dead=true;});
+  this.child.on('error',e=>{this.err+=e.message;this.dead=true;});this.child.on('close',()=>{this.dead=true;sessions.delete(this);});
+ }
+ async sql(sql){
+  const marker=`DONE_${randomUUID()}`, start=this.out.length;
+  this.child.stdin.write(`${sql}\n\\echo ${marker}\n`);
+  const deadline=Date.now()+20000;
+  while(!this.out.slice(start).includes(marker)){
+   if(this.dead)throw new Error(this.err || 'psql exited');
+   if(Date.now()>deadline)throw new Error(`psql command timed out: ${this.name}`);
+   await delay(10);
+  }
+  return this.out.slice(start,this.out.indexOf(marker,start)).trim();
+ }
+ close(){this.child.stdin.end();this.child.kill();sessions.delete(this);}
+}
+async function sql(query){const s=new Session();try{return await s.sql(query);}finally{s.close();}}
+async function json(query){return JSON.parse(await sql(query));}
+const call=(name,args)=>json(rpc(name,args));
+async function blockedBy(waiter,holder){
+ const deadline=Date.now()+10000;
+ while(Date.now()<deadline){
+  const blocked=await json(`select to_jsonb(exists(select 1 from pg_stat_activity w join pg_stat_activity h on h.pid=any(pg_blocking_pids(w.pid)) where w.application_name=${quote(waiter.name)} and h.application_name=${quote(holder.name)} and w.wait_event_type='Lock'));`);
+  if(blocked)return;
+  if(waiter.dead)throw new Error(`Contender exited before lock barrier: ${waiter.err}`);
+  await delay(20);
+ }
+ throw new Error('Expected PostgreSQL lock barrier was not observed');
+}
+// Execute first change but withhold COMMIT. Prove the second connection is waiting
+// on the first transaction before release. No sleep-based ordering assumptions.
+async function overlap(firstSQL,secondSQL){
+ const a=new Session(),b=new Session();
+ try{
+  const first=await a.sql(`begin; ${firstSQL}`);
+  const pending=b.sql(secondSQL).then(result=>({ok:true,result}),error=>({ok:false,error}));
+  await blockedBy(b,a);await a.sql('commit;');
+  return {first,second:await pending};
+ }finally{a.close();b.close();}
+}
+const passed=[];
+async function check(name,fn){await fn();passed.push(name);console.log(JSON.stringify({test:name,status:'passed'}));}
+
+async function bootstrap(){
+ assert.equal(await json(`select to_jsonb(current_database()='inkquest_test' and session_user='postgres');`),true);
+ assert.equal(await json(`select count(*)::int from pg_tables where schemaname not in ('pg_catalog','information_schema');`),0,'Refusing a nonempty database');
+ await sql(`create role anon; create role authenticated; create role service_role bypassrls;
+ create schema auth; create schema storage; create schema extensions;
+ create extension pgcrypto with schema extensions;
+ create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb);
+ create function auth.uid() returns uuid language sql as 'select null::uuid';
+ create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);`);
+ for(const file of ['202608220001_generated_story_billing.sql','202608220002_generation_worker_rpc.sql',
+ '202608230001_generated_story_tts.sql','202608230002_fix_generation_digest_search_path.sql',
+ '202611060001_edge_generation_worker.sql','202611060002_generation_readiness.sql',
+ '202611100001_asset_dictionary_generation.sql','202611100002_incremental_enrichment_preparation.sql','202611100003_async_dictionary_enrichment.sql'])
+  await sql(await readFile(new URL(`../../../supabase/migrations/${file}`,import.meta.url),'utf8'));
+}
+async function fixture({commit=true,tts=false}={}){
+ const user=randomUUID();await sql(`insert into auth.users(id) values(${quote(user)});`);
+ await sql(rpc('grant_credits',{p_user_id:user,p_amount:100,p_source_type:'test',p_source_id:user,p_idempotency_key:`grant:${user}`}));
+ const costs=[{code:'scene_text',credits:20},...(tts?[{code:'scene_tts',credits:5}]:[])];
+ const row=await json(`select row_to_json(j) from public.create_generated_story_job(${quote(user)},'en','B1','Library',${quote(tts?'every_scene':'off')},${tts?25:20},'test',${quote(`request:${user}`)},${value(costs)},'{}') j;`);
+ const claim=await call('edge_claim_generation_job',{p_job_id:row.job_id,p_owner:'fixture-primary'});
+ const auth={p_job_id:row.job_id,p_owner:claim.lease.owner,p_epoch:claim.lease.epoch};
+ await sql(`update public.generation_edge_state set phase='commit' where job_id=${quote(row.job_id)};`);
+ const text='Alice reads a mysterious letter in the library.';
+ const tokens=[{word:'Alice',reading:null,level:null,tier:'base',meaning:null,start:0,end:10},{word:text.slice(5),reading:null,level:null,tier:'base',meaning:null,start:10,end:20}];
+ const input={title:'Library',text,textSegments:tokens,choices:['Read','Wait','Leave'].map(label=>({label,intent:label})),summary:'A letter',stateSnapshot:{},promptVersion:'test',modelMetadata:{},ttsDeferred:tts,enrichmentDeferred:true,enrichment:{scene:{text},fingerprint:{dictionaryVersion:'fixture',segmentationVersion:'segments-v1'},enrichmentProgress:{version:'fixture',input:JSON.stringify({text}),spans:tokens.map(t=>({word:t.word,base:true})),prepareCursor:text.length,resolved:[],entries:[],rendered:[],renderCursor:0}}};
+ const primary=rpc('edge_commit_generated_text',{...auth,p_input:input});
+ if(commit)await sql(primary);
+ const id=quote(row.job_id);
+ const claimEnrich=()=>call('enrichment_claim_job',{p_job_id:row.job_id,p_owner:randomUUID()});
+ const eauth=lease=>({p_job_id:row.job_id,p_owner:lease.owner,p_epoch:lease.epoch});
+ async function commitLease(){let {lease}=await claimEnrich();for(const next of ['gloss','commit']){await sql(rpc('enrichment_checkpoint_stage',{...eauth(lease),p_next:next,p_output:{}}));({lease}=await claimEnrich());}return lease;}
+ const lexical=tokens.map(t=>({...t,tier:'normal',meaning:'meaning',reading:'reading',start:999,end:999}));
+ const gloss=lease=>rpc('enrichment_commit',{...eauth(lease),p_tokens:lexical});
+ const node=()=>json(`select row_to_json(n) from public.story_nodes n where created_by_job_id=${id};`);
+ const billing=()=>json(`select jsonb_build_object('status',j.status,'amount',r.settled_amount,'settles',(select count(*) from public.credit_ledger where reservation_id=r.id and entry_type='settle'),'nodes',(select count(*) from public.story_nodes where created_by_job_id=j.id)) from public.generation_jobs j join public.credit_reservations r on r.id=j.reservation_id where j.id=${id};`);
+ const ledger=()=>json(`select jsonb_agg(to_jsonb(l) order by l.id) from public.credit_ledger l where user_id=${quote(user)};`);
+ return {user,row,id,primary,auth,tokens,claimEnrich,eauth,commitLease,gloss,node,billing,ledger};
+}
+try{
+ await bootstrap();
+ await check('duplicate primary commit serializes with one node and settlement',async()=>{
+  const f=await fixture({commit:false});const {second}=await overlap(f.primary,f.primary);
+  assert.equal(second.ok,false);assert.match(second.error.message,/generation_lease_fenced/);
+  assert.deepEqual(await f.billing(),{status:'completed',amount:20,settles:1,nodes:1});
+ });
+ await check('concurrent enrichment claims elect exactly one owner',async()=>{
+  const f=await fixture();const {first,second}=await overlap(rpc('enrichment_claim_job',{p_job_id:f.row.job_id,p_owner:'claim-owner-one'}),rpc('enrichment_claim_job',{p_job_id:f.row.job_id,p_owner:'claim-owner-two'}));
+  assert.equal(JSON.parse(first).kind,'claimed');assert.equal(second.ok,true);assert.equal(JSON.parse(second.result).kind,'busy');
+  assert.equal(await json(`select epoch::int from public.generation_enrichment_jobs where job_id=${f.id};`),1);
+ });
+ await check('lease epoch rejects a stale writer waiting on replacement lease',async()=>{
+  const f=await fixture();const {lease:old}=await f.claimEnrich();
+  await sql(`update public.generation_enrichment_jobs set lease_expires_at=now()-interval '1 second' where job_id=${f.id}; select public.enrichment_recover_jobs();`);
+  const {first,second}=await overlap(rpc('enrichment_claim_job',{p_job_id:f.row.job_id,p_owner:'replacement-owner'}),rpc('enrichment_checkpoint_stage',{...f.eauth(old),p_next:'gloss',p_output:{}}));
+  assert.ok(JSON.parse(first).lease.epoch>old.epoch);assert.equal(second.ok,false);assert.match(second.error.message,/enrichment_lease_fenced/);
+  assert.equal(await json(`select to_jsonb(phase) from public.generation_enrichment_jobs where job_id=${f.id};`),'enrich');
+ });
+ await check('next branch can reserve while glossary remains pending',async()=>{
+  const f=await fixture();const choice=await json(`select to_jsonb(id) from public.story_choices where node_id=(select node_id from public.generation_jobs where id=${f.id}) limit 1;`);
+  await sql(`select * from public.create_story_branch_job(${quote(f.user)},${quote(f.row.story_id)},${quote(choice)},20,'test',${quote(randomUUID())},${value([{code:'scene_text',credits:20}])},'{}');`);
+  assert.equal(await json(`select to_jsonb(status) from public.generation_enrichment_jobs where job_id=${f.id};`),'queued');
+ });
+ for(const audioFirst of [true,false])await check(`overlapping audio and glossary preserve both (${audioFirst?'audio':'glossary'} commits first)`,async()=>{
+  const f=await fixture({tts:true});const lease=await f.commitLease();
+  const audioClaim=await call('edge_claim_generation_job',{p_job_id:f.row.job_id,p_owner:'fixture-audio'});
+  const timestamps=[{start:0,end:10},{start:10,end:20}];
+  const audio=rpc('edge_commit_generated_audio',{p_job_id:f.row.job_id,p_owner:audioClaim.lease.owner,p_epoch:audioClaim.lease.epoch,p_input:{provider:'fixture',voiceId:'voice',objectKey:'fixture.mp3',contentHash:'f'.repeat(64),durationMs:20,timestamps}});
+  const gloss=f.gloss(lease);const {second}=await overlap(audioFirst?audio:gloss,audioFirst?gloss:audio);assert.equal(second.ok,true,second.error?.message);
+  const node=await f.node();assert.equal(node.model_metadata.enrichmentStatus,'completed');assert.equal(node.text_segments[0].meaning,'meaning');assert.equal(node.text_segments[0].start,0);assert.equal(node.text_segments[1].end,20);
+  const asset=await json(`select row_to_json(a) from public.audio_assets a where created_by_job_id=${f.id};`);
+  assert.equal(asset.node_id,node.id);assert.equal(asset.node_version,node.node_version);assert.deepEqual(asset.timestamps,timestamps);
+  assert.deepEqual(await f.billing(),{status:'completed',amount:25,settles:2,nodes:1});
+  const before=await f.ledger();
+  assert.deepEqual(before.filter(x=>x.entry_type==='settle').map(x=>({item:x.metadata.line_item,amount:x.amount})).sort((a,b)=>a.item.localeCompare(b.item)),[{item:'scene_text',amount:-20},{item:'scene_tts',amount:-5}]);
+  await assert.rejects(sql(audio),/generation_lease_fenced/);await assert.rejects(sql(gloss),/enrichment_lease_fenced/);assert.deepEqual(await f.ledger(),before);
+ });
+ await check('terminal failure and unknown paid outcome replay never alter billing',async()=>{
+  for(const unknown of [false,true]){
+   const f=await fixture();let {lease}=await f.claimEnrich();const before=await f.ledger();
+   if(unknown){
+    await sql(rpc('enrichment_checkpoint_stage',{...f.eauth(lease),p_next:'gloss',p_output:{}}));({lease}=await f.claimEnrich());
+    await sql(rpc('enrichment_begin_stage',f.eauth(lease)));
+    await sql(`update public.generation_enrichment_jobs set lease_expires_at=now()-interval '1 second' where job_id=${f.id}; select public.enrichment_recover_jobs();`);
+   }else await sql(rpc('enrichment_fail_stage',{...f.eauth(lease),p_code:'missing_dictionary',p_retryable:false}));
+   assert.equal((await f.claimEnrich()).kind,'terminal');await assert.rejects(sql(f.gloss(lease)),/enrichment_lease_fenced/);
+   assert.deepEqual(await f.ledger(),before);assert.deepEqual(await f.billing(),{status:'completed',amount:20,settles:1,nodes:1});
+   if(unknown)assert.equal(await json(`select to_jsonb(error_code) from public.generation_enrichment_jobs where job_id=${f.id};`),'upstream_outcome_unknown');
+  }
+ });
+ await check('concurrent node rewrite fences blocked glossary overwrite',async()=>{
+  const f=await fixture();const lease=await f.commitLease();const before=await f.ledger();
+  const {second}=await overlap(`update public.story_nodes set text='Newer edited text',node_version=node_version+1 where created_by_job_id=${f.id};`,f.gloss(lease));
+  assert.equal(second.ok,true,second.error?.message);const node=await f.node();assert.equal(node.text,'Newer edited text');assert.equal(node.text_segments[0].meaning,null);
+  assert.equal(await json(`select to_jsonb(status) from public.generation_enrichment_jobs where job_id=${f.id};`),'stale');assert.deepEqual(await f.ledger(),before);
+ });
+ console.log(JSON.stringify({suite:'postgres-concurrency',status:'passed',tests:passed.length}));
+}catch(error){console.error(JSON.stringify({suite:'postgres-concurrency',status:'failed',completed:passed,error:error.message}));process.exitCode=1;}
+finally{for(const s of sessions)s.close();}

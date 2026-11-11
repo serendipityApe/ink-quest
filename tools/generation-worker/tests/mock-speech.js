@@ -8,8 +8,8 @@ const speechFixture = {async fetch(request,env){
     const name=url.pathname.split("/").at(-1);
     if(name==="lookup_generation_dictionary")return Response.json({version:"fixture-v1",ready:true,entries:[]});
     if(name==="edge_report_generation_readiness"){readiness=await request.json();return new Response(null,{status:204});}
-    if(name==="edge_recover_generation_jobs")return new Response(null,{status:204});
-    if(name==="edge_pending_generation_jobs")return Response.json([]);
+    if(name==="edge_recover_generation_jobs"||name==="enrichment_recover_jobs")return new Response(null,{status:204});
+    if(name==="edge_pending_generation_jobs"||name==="enrichment_pending_jobs")return Response.json([]);
     return new Response("Unexpected fixture RPC",{status:503});
   }
   if(url.pathname==="/readiness")return Response.json(readiness);

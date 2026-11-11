@@ -14,6 +14,8 @@ interface WordSegmentProps {
   isSaved: boolean;
   onToggleSave: (seg: TextSegment) => void;
   onReveal?: () => void;
+  /** Allow pronunciation-only help while generated definitions are pending. */
+  learningEnabled?: boolean;
 }
 
 interface TooltipPosition {
@@ -32,8 +34,12 @@ export default function WordSegment({
   isSaved,
   onToggleSave,
   onReveal,
+  learningEnabled = true,
 }: WordSegmentProps) {
-  const { word, reading, meaning, level, tier } = segment;
+  const { word, reading, meaning, level, tier: originalTier } = segment;
+  const hasReading = Boolean(reading?.trim());
+  // Pending definitions may still offer pinyin/pronunciation, including on touch.
+  const tier = !learningEnabled && hasReading && originalTier === "base" ? "normal" : originalTier;
   const [showTooltip, setShowTooltip] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
@@ -171,7 +177,7 @@ export default function WordSegment({
     };
   }, [showTooltip, hideTooltip, canHover]);
 
-  if (tier === "base") {
+  if (tier === "base" || (!learningEnabled && !hasReading)) {
     return (
       <span className={isAudioActive ? "word-audio-active" : ""}>{word}</span>
     );
@@ -250,7 +256,7 @@ export default function WordSegment({
               {level}
             </span>
           )}
-          <button
+          {learningEnabled && <button
             onClick={(e) => { e.stopPropagation(); onToggleSave(segment); }}
             className={`mt-1.5 flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 font-body text-[11px] font-bold uppercase tracking-wider ${
               isSaved
@@ -260,7 +266,7 @@ export default function WordSegment({
           >
             {isSaved ? <BookmarkCheck className="h-3 w-3" /> : <Bookmark className="h-3 w-3" />}
             {isSaved ? "Saved" : "Save"}
-          </button>
+          </button>}
           </span>
         </>
       )}

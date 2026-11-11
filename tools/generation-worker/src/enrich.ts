@@ -37,15 +37,36 @@ export function prepareEnrichmentChunk(input:EnrichSceneInput,segment:ChineseSeg
  return {spans:tokenizeSpans(text.slice(cursor,end),input.targetLang,segment),prepareCursor:end};
 }
 
+/** Lookups for base words cannot affect their hidden lexical fields. Plot
+ * overrides stay eligible, including base words explicitly used as clues. */
+export function dictionaryKeys(input: EnrichSceneInput, spans: EnrichmentSpan[]): string[] {
+  const plot = new Set(input.plotWords ?? []);
+  return [...new Set(spans.filter(span => !span.base || plot.has(span.word))
+    .map(span => input.targetLang === "en" ? span.word.toLowerCase() : span.word))];
+}
+
+/** Same frozen token boundaries before and after enrichment, without I/O. */
+export function initialSceneTokens(input: EnrichSceneInput, spans: EnrichmentSpan[]) {
+  const plot = new Set(input.plotWords ?? []);
+  return spans.map(({ word, base }) => {
+    const key = plot.has(word);
+    const tier = key ? "key" as const : base ? "base" as const : "normal" as const;
+    return { word, tier, candidates: [] as string[], level: null, meaning: null,
+      reading: input.targetLang === "zh" && tier !== "base"
+        ? pinyin(word, { toneType: "symbol", type: "string" }) || null : null,
+      ...(key ? { isPlotKeyword: true } : {}) };
+  });
+}
+
 export async function enrichSceneEdge(input: EnrichSceneInput, dictionary: DictionaryReader,
   version: string, segmentChinese: ChineseSegmenter, preparedSpans?: EnrichmentSpan[]): Promise<EnrichSceneResult & { dictionaryVersion: string }> {
   if (!version) throw new EdgeConfigurationError("A verified dictionary version is required.");
   if (input.text.length > 12_000) throw new EdgeConfigurationError("Scene exceeds the bounded enrichment size.");
   const spans = preparedSpans ?? prepareEnrichmentSpans(input, segmentChinese);
   if (spans.length > 2000) throw new EdgeConfigurationError("Scene exceeds the bounded token count.");
-  const keys = [...new Set(spans.map(s => input.targetLang === "en" ? s.word.toLowerCase() : s.word))];
+  const keys = dictionaryKeys(input, spans);
   const entries = new Map<string, DictionaryEntry>();
-  for (let index = 0; index < Math.max(1, keys.length); index += 100) {
+  for (let index = 0; index < keys.length; index += 100) {
     const batch = await dictionary.lookup(input.targetLang, keys.slice(index, index + 100), version);
     if (!batch.ready || batch.version !== version) throw new EdgeConfigurationError("Dictionary is unavailable or its version does not match.");
     for (const entry of batch.entries) {
@@ -56,10 +77,10 @@ export async function enrichSceneEdge(input: EnrichSceneInput, dictionary: Dicti
   const plotWords = new Set(input.plotWords ?? []);
   const tokens = spans.map(({ word, base }) => {
     const entry = entries.get(input.targetLang === "en" ? word.toLowerCase() : word);
-    const token: EnrichedToken = { word, baseGuess: base,
-      reading: input.targetLang === "zh" ? (base ? null : pinyin(word, { toneType: "symbol", type: "string" }) || null) : entry?.reading ?? null,
-      candidates: entry?.candidates ?? [], level: entry?.level ?? null };
     const key = plotWords.has(word);
+    const token: EnrichedToken = { word, baseGuess: base && !key,
+      reading: input.targetLang === "zh" ? (base && !key ? null : pinyin(word, { toneType: "symbol", type: "string" }) || null) : entry?.reading ?? null,
+      candidates: entry?.candidates ?? [], level: entry?.level ?? null };
     const tier = key ? "key" : decideTier(token, input.targetLang);
     return { word, tier, candidates: token.candidates,
       reading: tier === "base" ? null : token.reading, level: tier === "base" ? null : token.level,

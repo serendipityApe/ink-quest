@@ -16,7 +16,7 @@ await build({entryPoints:[join(root,"tests/runtime-entry.ts")],outfile:join(out,
   inject:[join(root,"src/speech-websocket.ts")],define:{"process.env.NODE_ENV":'"production"'},
   plugins:[{name:"wasm",setup(b){b.onResolve({filter:/\.wasm$/},()=>({path:"./jieba.wasm",external:true}));}}]});
 await copyFile(join(root,"vendor/jieba-wasm/jieba_rs_wasm_bg.wasm"),join(out,"jieba.wasm"));
-const mf=new Miniflare({workers:[
+const mf=new Miniflare({cf:false,workers:[
   {name:"generation",modulesRoot:out,modules:[{type:"ESModule",path:join(out,"worker.js")},{type:"CompiledWasm",path:join(out,"jieba.wasm")}],compatibilityDate:"2026-07-21",outboundService:"external-fixture"},
   {name:"external-fixture",modules:true,script:await readFile(join(root,"tests/mock-speech.js"),"utf8"),compatibilityDate:"2026-07-21",
     outboundService:()=>{throw new Error("Network disabled for runtime tests");}},
@@ -25,7 +25,10 @@ const request=async body=>{const response=await mf.dispatchFetch("http://isolate
 try{
   assert.deepEqual((await request({mode:"disabled"})).body,{acks:0,retries:1});
   const heartbeat=await request({mode:"heartbeat"});assert.equal(heartbeat.status,200);
-  assert.deepEqual(heartbeat.body,{p_dictionary_version:"fixture-v1",p_capabilities:{text_zh:true,text_en:true,audio_zh:false,audio_en:false}});
+  assert.deepEqual(heartbeat.body,{p_dictionary_version:"fixture-v1",p_capabilities:{text_zh:true,text_en:true,audio_zh:false,audio_en:false,async_dictionary:false}});
+  const asyncHeartbeat=await request({mode:"heartbeat-async"});assert.equal(asyncHeartbeat.status,200);
+  assert.equal(asyncHeartbeat.body.p_capabilities.text_zh,true);assert.equal(asyncHeartbeat.body.p_capabilities.text_en,true);
+  assert.equal(asyncHeartbeat.body.p_capabilities.async_dictionary,true);
   assert.deepEqual((await request({mode:"canary"})).body,{acks:6});
   const text="小明今天来到图书馆，认真寻找一本关于宇宙的书。管理员微笑着告诉他，探索未知需要勇气和耐心。";
   const segmented=await request({mode:"segment",text});assert.equal(segmented.status,200);

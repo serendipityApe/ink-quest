@@ -18,6 +18,9 @@ permissions:
 jobs:
   offline-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_CF_FETCH_ENABLED: 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,13 +33,75 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm --filter @inkquest/generation-worker typecheck
       - run: pnpm exec tsc --noEmit
-      - run: node --test tests/generator-reveal.test.mjs
+      - run: node --test tests/generator-reveal.test.mjs tests/word-segment-enrichment.test.mjs
       - run: pnpm test:billing
       - run: pnpm --filter @inkquest/generation-worker test
       - run: pnpm --filter @inkquest/generation-worker build
       - run: pnpm --filter @inkquest/generation-worker build:canary
       - run: pnpm --filter @inkquest/generation-worker test:runtime
       - run: pnpm --filter @inkquest/generation-worker test:queue
+      - run: pnpm --filter @inkquest/generation-worker test:queue:async
       - run: pnpm --filter @inkquest/story-pipeline test:llm
       - run: pnpm --filter @inkquest/story-pipeline test:tts
       # No Cloudflare account/token, deploy, secrets, production Queue or model I/O.
+
+  full-web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_SUPABASE_URL: https://fixture.invalid
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: isolated-build-fixture-not-a-secret
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Complete production web build without production credentials
+        run: pnpm build
+      # Build only. No deploy command, Cloudflare token, model key or live database.
+
+  postgres-concurrency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: inkquest_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d inkquest_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: isolated-test-only
+      PGDATABASE: inkquest_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify isolated PostgreSQL client and server
+        run: |
+          psql --version
+          psql -X -A -t -c 'select current_database(), version();'
+      - name: Exercise independent PostgreSQL sessions and transaction races
+        run: node tools/generation-worker/tests/postgres-concurrency.mjs
+      # Every migration applies only to this throwaway loopback service container.

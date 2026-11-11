@@ -16,8 +16,9 @@ const testHarness = {async fetch(request:Request){
       await worker.scheduled({},{});
       return Response.json({acks,retries});
     }
-    if(input.mode==="heartbeat"){
+    if(input.mode==="heartbeat" || input.mode==="heartbeat-async"){
       await worker.scheduled({},{GENERATION_ENABLED:"true",GENERATION_QUEUE:{async send(){throw new Error("Unexpected canary dispatch");}},
+        ...(input.mode==='heartbeat-async'?{GENERATION_ASYNC_DICTIONARY:'true',DICTIONARY:{async lookup(){throw Error('dictionary unavailable');}},GENERATION_DICTIONARY_MANIFEST_SHA256:'invalid'}:{}),
         SUPABASE_URL:"https://database.invalid",SUPABASE_SERVICE_ROLE_KEY:"fixture-key",GENERATION_DICTIONARY_VERSION:"fixture-v1",
         LLM_PROVIDER:"openai",OPENAI_API_KEY:"fixture-key",OPENAI_MODEL:"fixture-model"});
       return await fetch("https://fixture.invalid/readiness");
