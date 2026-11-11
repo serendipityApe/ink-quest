@@ -10,6 +10,7 @@
   "routes": [],
   "vars": {
     "GENERATION_ENABLED": "true",
+    "GENERATION_ASYNC_DICTIONARY": "true",
     "SUPABASE_URL": "https://irzfnntlixbtccdfjcpm.supabase.co",
     "LLM_PROVIDER": "openai",
     "OPENAI_MODEL": "gpt-6-luna",

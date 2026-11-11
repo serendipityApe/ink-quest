@@ -1,6 +1,6 @@
 # Text-first dictionary enrichment
 
-Prepared for rollout. This change has not been migrated, deployed, or enabled in production.
+Use the rollout and verification steps below. Source code alone does not establish the current production state.
 
 ## Behavior
 
@@ -19,7 +19,7 @@ The existing optional narration job and its credit settlement are unchanged. Its
 
 1. Apply `supabase/migrations/202611100003_async_dictionary_enrichment.sql` under the production change authorization. It adds the independent job table, private service-role RPCs, node status metadata, and preparation/version validation. No dictionaries are deleted and no historical jobs are rewritten.
 2. Deploy the worker and frontend only after the migration is verified. The frontend now selects `story_nodes.model_metadata`; it is not compatible with an unmigrated schema. New background recovery RPCs also require the migration.
-3. Enable `GENERATION_ASYNC_DICTIONARY=true` on the worker after verification. The checked-in production Wrangler setting is intentionally unchanged. The readiness heartbeat still requires a functioning story provider, but dictionary service failure no longer closes text readiness in this mode.
+3. Enable `GENERATION_ASYNC_DICTIONARY=true` on the worker after verification. The production Wrangler setting must match the reviewed activation request. The readiness heartbeat still requires a functioning story provider, but dictionary service failure no longer closes text readiness in this mode.
 4. Verify one explicitly authorized live text-only generation and its single credit settlement before wider rollout. A local mock benchmark is not production latency or Cloudflare CPU evidence.
 
 Mode is pinned in each job's fingerprint. Enabling the flag mid-job preserves an existing legacy job's path. Disabling it stops selecting async mode for new jobs but the new worker continues processing/recovering existing async jobs. Roll back new-job selection with the flag; do not roll back the migration or replace the worker with a version that cannot understand pending background jobs.
@@ -40,4 +40,4 @@ PGlite has one session; its checks do not establish multi-session native Postgre
 
 The existing development-branch verification workflow also prepares a full `pnpm build` with synthetic Supabase settings and a separate PostgreSQL 17 service. Neither job references production secrets, changes the production database, or deploys anything.
 
-`node tools/generation-worker/tests/postgres-concurrency.mjs` exercises eighteen transaction cases using independent psql processes and verified `pg_blocking_pids` barriers. It refuses non-loopback hosts, any database name other than `inkquest_test`, and nonempty databases. CI owns the disposable service lifecycle. Local syntax validation is not a concurrency result. Require successful `postgres-concurrency` and `full-web-build` jobs for the exact development-branch commit before treating these checks as passed.
+`node tools/generation-worker/tests/postgres-concurrency.mjs` exercises nineteen transaction and privilege cases using independent psql processes and verified `pg_blocking_pids` barriers. It refuses non-loopback hosts, any database name other than `inkquest_test`, and nonempty databases. CI owns the disposable service lifecycle. Local syntax validation is not a concurrency result. Require successful `postgres-concurrency` and `full-web-build` jobs for the exact development-branch commit before treating these checks as passed.

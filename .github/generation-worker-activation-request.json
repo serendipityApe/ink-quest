@@ -1,18 +1,20 @@
 {
-  "purpose": "Deploy verified 512-span dictionary lookup optimization while preserving the active text service",
+  "purpose": "Enable verified text-first background dictionary enrichment after production migration and compatible frontend deployment",
   "mode": "compatible_latency_update",
+  "previousAsyncDictionary": false,
+  "asyncDictionary": true,
   "dictionaryVersion": "assets-lex-244056cfff1d40670ec63f7b-6b262d70369a",
   "readerVersion": "47b49ee7-7858-47d6-9373-504fd330f11a",
-  "verifiedCommit": "21dfdd88d81e60157978307a80d23613d94d9935",
-  "offlineVerificationRun": 42817124822,
-  "cpuVerificationRun": 42817124620,
-  "cpuCandidateVersion": "3136b4fe-ab2c-47d7-9926-fe7e9a511232",
-  "verifiedFixtures": 18,
+  "verifiedCommit": "195f0a709c5d8a52cdc5a38fc9e1d461fcf7a198",
+  "offlineVerificationRun": 42949494730,
+  "postgresChecks": 19,
+  "migration": "202611100003",
+  "migrationSourceSha256": "e00c5512e3fa7ea1213cb8df40a5bee0fae4847a6622e64311c10a11bf842ed8",
+  "frontendDeploymentRun": 42949869333,
   "creationEntry": "preserve active text-only flags",
-  "frontendDeployment": false,
   "tts": false,
   "newModelTests": 0,
   "runtimeLimitsChanged": false,
   "databaseWrites": false,
-  "requestedAt": "2026-11-10T12:47:08.553Z"
+  "requestedAt": "2026-11-11T03:03:34.553473+00:00"
 }

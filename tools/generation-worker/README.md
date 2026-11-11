@@ -1,6 +1,6 @@
 # InkQuest generation Worker — prepared, inactive
 
-The new [text-first dictionary mode](ASYNC-DICTIONARY.md) is implemented and tested locally, but requires migration 003 and explicit rollout before enabling `GENERATION_ASYNC_DICTIONARY=true`. It retains the dictionary and the legacy mode.
+The new [text-first dictionary mode](ASYNC-DICTIONARY.md) is implemented with verified cloud build and native PostgreSQL concurrency checks; migration 003 and explicit rollout are prerequisites for `GENERATION_ASYNC_DICTIONARY=true`. It retains the dictionary and the legacy mode.
 
 This implementation stays on ordinary Cloudflare Workers and the existing
 Supabase project. It does not require Containers, GCP, R2, D1, KV or a plan
