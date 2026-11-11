@@ -179,7 +179,7 @@ begin
  if not found then raise exception 'user_not_found'; end if;
  if v_confirmed is null then raise exception 'email_verification_required'; end if;
  if v_created<(select starter_eligible_from from credit_program_settings where singleton) then
-   return expire_credit_lots(p_user_id);
+   raise exception 'starter_ineligible';
  end if;
  insert into credit_accounts(user_id) values(p_user_id) on conflict do nothing;
  perform 1 from credit_accounts where user_id=p_user_id for update;
@@ -549,9 +549,11 @@ begin
  update creem_checkout_intents set status='expired' where user_id=p_user_id and status='pending' and expires_at<=now() and provider_checkout_id is null and provider_request_started_at is null;
  if p_product_code='generation_monthly' then
    if exists(select 1 from creem_subscriptions where user_id=p_user_id and (status in ('active','trialing','paused','unpaid','past_due','scheduled_cancel') or current_period_end>now())) then raise exception 'subscription_already_exists'; end if;
-   select * into v_intent from creem_checkout_intents where user_id=p_user_id and product_code=p_product_code and status='pending' order by created_at desc limit 1;
-   if found then return to_jsonb(v_intent)||jsonb_build_object('reused',true); end if;
  end if;
+ -- An uncertain external result must not create a second payable checkout,
+ -- including one-time packs after a page refresh/new client request ID.
+ select * into v_intent from creem_checkout_intents where user_id=p_user_id and product_code=p_product_code and status='pending' order by created_at desc limit 1;
+ if found then return to_jsonb(v_intent)||jsonb_build_object('reused',true); end if;
  insert into creem_checkout_intents(id,user_id,product_code) values(coalesce(p_request_id,gen_random_uuid()),p_user_id,p_product_code) returning * into v_intent;
  return to_jsonb(v_intent)||jsonb_build_object('reused',false);
 end $$;

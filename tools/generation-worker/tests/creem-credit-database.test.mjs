@@ -40,7 +40,8 @@ test('purchase order idempotent, ownership-bound, old signup excluded',async()=>
   await intent(d);await pay(d);await pay(d);
   assert.equal((await balance(d)).available,500);
   await assert.rejects(d.exec(`select fulfill_creem_payment('bad','bad','${other}','credits_500','${request}');`),/checkout_intent_mismatch/);
-  await d.exec(`update auth.users set created_at=now()-interval '1 year' where id='${other}'; select claim_starter_credits('${other}','${risk}');`);
+  await d.exec(`update auth.users set created_at=now()-interval '1 year' where id='${other}';`);
+  await assert.rejects(d.exec(`select claim_starter_credits('${other}','${risk}');`),/starter_ineligible/);
   assert.equal((await one(d,`select available from credit_accounts where user_id='${other}'`)).available,0);
  }finally{await d.close();}
 });
@@ -164,5 +165,14 @@ test('pending remote checkout cannot expire locally and cause a second subscript
   await d.exec(`update creem_checkout_intents set expires_at=now()-interval '1 hour',provider_request_started_at=now() where id='${request}';`);
   const next=(await one(d,`select create_creem_checkout_intent('${user}','generation_monthly','44444444-4444-4444-8444-444444444444') as x`)).x;
   assert.equal(next.id,request);assert.equal(next.reused,true);
+ }finally{await d.close();}
+});
+test('one-time pack pending checkout survives refresh but a completed order permits a new pack',async()=>{
+ const d=await db();try{
+  await intent(d);await d.exec(`update creem_checkout_intents set provider_request_started_at=now() where id='${request}';`);
+  const next=(await one(d,`select create_creem_checkout_intent('${user}','credits_500','44444444-4444-4444-8444-444444444444') as x`)).x;
+  assert.equal(next.id,request);await pay(d);
+  const after=(await one(d,`select create_creem_checkout_intent('${user}','credits_500','44444444-4444-4444-8444-444444444444') as x`)).x;
+  assert.equal(after.id,'44444444-4444-4444-8444-444444444444');assert.equal(after.reused,false);
  }finally{await d.close();}
 });

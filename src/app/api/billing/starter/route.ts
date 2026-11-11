@@ -14,6 +14,8 @@ export async function POST(request: Request) {
   try {
     const { data, error } = await createAdminClient().rpc("claim_starter_credits", { p_user_id: user.id, p_risk_key: riskKey });
     if (error) throw error;
+    const balance = await createAdminClient().rpc("get_credit_balance", { p_user_id: user.id });
+    if (balance.error || !balance.data?.starterClaimed) return Response.json({ error: "starter_ineligible" }, { status: 409 });
     return Response.json({ available: data }, { headers: { "Cache-Control": "no-store" } });
   } catch { return Response.json({ error: "starter_unavailable_or_ineligible" }, { status: 409 }); }
 }
