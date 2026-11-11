@@ -17,7 +17,7 @@ create table public.generation_enrichment_jobs (
  updated_at timestamptz not null default now(), error_code text
 );
 alter table public.generation_enrichment_jobs enable row level security;
-revoke all on public.generation_enrichment_jobs from public,anon,authenticated;
+revoke all on public.generation_enrichment_jobs from public,anon,authenticated,service_role;
 grant select on public.generation_enrichment_jobs to service_role;
 -- JS preparation cursors use UTF-16 code units after ECMAScript String.trim(),
 -- not PostgreSQL code-point length or its space-only default trim.

@@ -14,7 +14,7 @@ export async function isolatedDatabase({includeEdge=true,includeAssets=false,ser
     "202611060002_generation_readiness.sql",...(includeAssets?["202611100001_asset_dictionary_generation.sql","202611100002_incremental_enrichment_preparation.sql","202611100003_async_dictionary_enrichment.sql"]:[])]){
     if(!includeEdge && file.startsWith("20261106"))continue;
     if(serviceRoleFunctionDefaults && file==="202611100003_async_dictionary_enrichment.sql"){
-      await db.exec("alter default privileges in schema public grant execute on functions to service_role;");
+      await db.exec("alter default privileges in schema public grant execute on functions to service_role; alter default privileges in schema public grant all on tables to service_role;");
     }
     const sql=await readFile(new URL(`../../../supabase/migrations/${file}`,import.meta.url),"utf8");
     await db.exec(sql.replace("create extension if not exists pgcrypto;",""));

@@ -36,10 +36,14 @@ jobs:
         run: |
           # Only this exact marker mode opts into preserving already-active flags.
           MODE=$(node --input-type=module -e 'import {readFileSync} from "node:fs"; import {gateArgsForRequest} from "./tools/generation-worker/activation_checks.mjs"; console.log(gateArgsForRequest(JSON.parse(readFileSync(".github/generation-worker-activation-request.json","utf8"))).join(" "));')
+          PRE_ASYNC=$(node --input-type=module -e 'import {readFileSync} from "node:fs"; import {asyncGateArgsForRequest} from "./tools/generation-worker/activation_checks.mjs"; console.log(asyncGateArgsForRequest(JSON.parse(readFileSync(".github/generation-worker-activation-request.json","utf8")),{postDeploy:false}).join(" "));')
+          POST_ASYNC=$(node --input-type=module -e 'import {readFileSync} from "node:fs"; import {asyncGateArgsForRequest} from "./tools/generation-worker/activation_checks.mjs"; console.log(asyncGateArgsForRequest(JSON.parse(readFileSync(".github/generation-worker-activation-request.json","utf8")),{postDeploy:true}).join(" "));')
           if [ "$MODE" = "--keep-active" ]; then
-            node tools/generation-worker/activation_checks.mjs after --keep-active
+            node tools/generation-worker/activation_checks.mjs after --keep-active $PRE_ASYNC
             pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc
-            node tools/generation-worker/activation_checks.mjs after --keep-active --post-deploy
+            # One Cron heartbeat after a mode change; never retry a denied gate.
+            if [ "$PRE_ASYNC" != "$POST_ASYNC" ]; then sleep 65; fi
+            node tools/generation-worker/activation_checks.mjs after --keep-active --post-deploy $POST_ASYNC
           else
             node tools/generation-worker/activation_checks.mjs after
             pnpm exec wrangler deploy --config tools/generation-worker/wrangler.jsonc

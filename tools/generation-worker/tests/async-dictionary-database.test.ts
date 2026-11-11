@@ -195,16 +195,21 @@ test('background writers acquire parent before enrichment/node locks, including 
  const f=await fixture();try{assert.equal((await f.db.query("select has_function_privilege('service_role','public.enrichment_lock_parent(uuid)','execute') allowed")).rows[0].allowed,false);}finally{await f.db.close();}
 });
 
-test('Supabase-style default function grants cannot expose private helpers; service RPCs still run owner-only helpers and triggers',async()=>{
+test('Supabase-style default grants cannot expose helpers or direct writes; service RPCs still run owner-only helpers and triggers',async()=>{
  const f=await fixture(false,false,true);try{
  // Prove this database actually grants service_role access to new functions.
  await f.db.exec("create function public.test_default_grant() returns integer language sql as 'select 1';");
  assert.equal((await f.db.query("select has_function_privilege('service_role','public.test_default_grant()','execute') allowed")).rows[0].allowed,true);
+ await f.db.exec('create table public.test_default_table_grant(id integer);');
+ assert.equal((await f.db.query("select has_table_privilege('service_role','public.test_default_table_grant','UPDATE') allowed")).rows[0].allowed,true);
+ const tableGrants=(await f.db.query("select has_table_privilege('service_role','public.generation_enrichment_jobs','SELECT') read, has_table_privilege('service_role','public.generation_enrichment_jobs','INSERT') insert, has_table_privilege('service_role','public.generation_enrichment_jobs','UPDATE') update, has_table_privilege('service_role','public.generation_enrichment_jobs','DELETE') delete, has_table_privilege('service_role','public.generation_enrichment_jobs','TRUNCATE') truncate")).rows[0];
+ assert.deepEqual(tableGrants,{read:true,insert:false,update:false,delete:false,truncate:false});
  const helpers=['enrichment_fence','enrichment_wake','enrichment_words','enrichment_node_status','enrichment_prepared_length','enrichment_lock_parent'];
  const grants=(await f.db.query(`select p.proname,has_function_privilege('service_role',p.oid,'execute') service,has_function_privilege('anon',p.oid,'execute') anon,has_function_privilege('authenticated',p.oid,'execute') authenticated from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'enrichment_%'`)).rows;
  assert.equal(grants.filter((r:any)=>helpers.includes(r.proname)).length,helpers.length);
  for(const row of grants){assert.equal(row.service,!helpers.includes(row.proname),row.proname);assert.equal(row.anon,false);assert.equal(row.authenticated,false);}
  await f.db.exec('set role service_role');
+ await assert.rejects(f.db.exec("update public.generation_enrichment_jobs set status='completed'"),/permission denied/);
  await assert.rejects(f.rpc('enrichment_lock_parent',{p_job_id:f.row.job_id}),/permission denied/);
  // Primary commit inserts enrichment and runs the status trigger as the owner.
  await f.rpc('edge_commit_generated_text',{...f.auth,p_input:f.input});

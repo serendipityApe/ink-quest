@@ -19,6 +19,12 @@ export function parseGateArgs(args){
   return {phase,options:{keepActive,postDeploy,asyncDictionary}};
 }
 export function gateArgsForRequest(request){return request?.mode==='compatible_latency_update'?['--keep-active']:[];}
+export function asyncGateArgsForRequest(request,{postDeploy=false}={}){
+  assert.equal(typeof postDeploy,'boolean','invalid_post_deploy_option');
+  for(const key of ['previousAsyncDictionary','asyncDictionary'])assert.ok(request?.[key]===undefined||typeof request[key]==='boolean','invalid_async_dictionary_request');
+  assert.ok(!(request?.previousAsyncDictionary||request?.asyncDictionary)||request?.mode==='compatible_latency_update','async_dictionary_requires_compatible_mode');
+  return (postDeploy?request?.asyncDictionary:request?.previousAsyncDictionary)?['--async-dictionary']:[];
+}
 export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,asyncDictionary=false,now=Date.now()}={}){
   assert.ok(['before','after'].includes(phase),'invalid_phase');
   assert.equal(typeof asyncDictionary,'boolean');assert.ok(!asyncDictionary||keepActive,'async_dictionary_requires_keep_active');
