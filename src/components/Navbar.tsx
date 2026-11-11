@@ -40,7 +40,7 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
       const sequence = ++balanceSequence;
       setUser(nextUser);
       setCredits(null);
-      if (nextUser) fetch("/api/billing/status", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(data => {
+      if (nextUser) (nextUser.email_confirmed_at ? fetch("/api/billing/starter", { method: "POST" }).catch(() => null) : Promise.resolve()).then(() => fetch("/api/billing/status", { cache: "no-store" })).then(r => r.ok ? r.json() : null).then(data => {
         if (alive && sequence === balanceSequence) setCredits(data?.credits?.available ?? null);
       }).catch(() => {});
     };

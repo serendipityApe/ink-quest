@@ -13,8 +13,8 @@ export default function TermsPage() {
     <LegalPage
       eyebrow="Legal · InkQuest"
       title="Terms of Service"
-      summary="These terms govern access to InkQuest, including its interactive Chinese-learning stories and Founding Reader subscription."
-      effectiveDate="November 6, 2026"
+      summary="These terms govern access to InkQuest, including its interactive Chinese-learning stories generation credits, and legacy Founding Reader subscriptions."
+      effectiveDate="November 11, 2026"
     >
       <section>
         <h2>1. About InkQuest</h2>
@@ -34,9 +34,11 @@ export default function TermsPage() {
 
       <section>
         <h2>4. Subscriptions, billing, and renewal</h2>
-        <p>The Founding Reader plan is a digital subscription billed monthly in U.S. dollars at the price shown on the pricing and checkout pages. It renews automatically each month until canceled. Any taxes and the final amount due are displayed at checkout.</p>
-        <p>Paddle acts as Merchant of Record and authorized reseller for paid InkQuest subscriptions. Paddle processes the transaction, payment method, tax, invoice, cancellation, and refund workflow. By purchasing, you also agree to the applicable <a href="https://www.paddle.com/legal/buyer-terms" target="_blank" rel="noreferrer">Paddle Buyer Terms</a>.</p>
-        <p>You may cancel at any time through the buyer portal linked in Paddle’s purchase or subscription emails. Cancellation normally takes effect at the end of the current billing period, and access continues until then. See our <Link href="/refund">Refund Policy</Link> for refund information.</p>
+        <p>Story Creator costs USD $6 per month and grants 1,000 generation credits after each successful payment. Unused monthly credits expire at the end of that paid billing period and do not roll over. The USD $5 credit pack grants 500 credits once, with no recurring charge or expiry date. Canceling a subscription does not remove separately purchased credit-pack balances.</p>
+        <p>Eligible new accounts may receive 100 starter credits once after email verification, without a card or automatic subscription. Free grants are subject to abuse prevention and capacity limits. Generation costs are shown before submission. Credits are not currency, cannot be transferred or redeemed for cash, and are used only within InkQuest. Failed generation releases reserved credits; expired or refunded credits cannot be reactivated by a failed request.</p>
+        <p>Creem is the Merchant of Record for new generation-credit purchases. Applicable taxes and the final amount appear at checkout. Creem’s <a href="https://www.creem.io/buyer-terms" target="_blank" rel="noreferrer">Buyer Terms</a> also apply to purchases through Creem.</p>
+        <p>Monthly subscriptions renew automatically until canceled. Use Manage subscription on the pricing page or the portal in your receipt to cancel future renewals. Paid monthly credits remain usable until their stated expiry. Cancellation does not itself refund an earlier payment. See our <Link href="/refund">Refund Policy</Link>.</p>
+        <p>These generation products do not include legacy Founding Reader library membership. Existing membership purchases retain their original benefits and billing terms; use the provider identified on your original receipt.</p>
       </section>
 
       <section>

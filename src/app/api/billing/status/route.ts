@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getBillingStatus, type BillingDiagnostic } from "@/lib/billing/status";
 
@@ -19,7 +20,7 @@ export async function GET() {
         const [profile, subscriptions, account] = await Promise.all([
           supabase.from("profiles").select("is_premium").eq("id", userId).maybeSingle(),
           supabase.from("billing_subscriptions").select("status,ends_at").eq("user_id", userId),
-          supabase.from("credit_accounts").select("available,reserved").eq("user_id", userId).maybeSingle(),
+          createAdminClient().rpc("get_credit_balance", { p_user_id: userId }).then(result => ({ ...result, data: result.data ? { available: result.data.available, reserved: result.data.reserved } : null })),
         ]);
         return { profile, subscriptions, account };
       },

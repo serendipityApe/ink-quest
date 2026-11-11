@@ -3,7 +3,6 @@
 import StoryCover from "@/components/StoryCover";
 import Link from "next/link";
 import StoryPolicyNotice from "@/components/StoryPolicyNotice";
-import FoundingReaderPrice from "@/components/FoundingReaderPrice";
 import { useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
@@ -174,9 +173,9 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
         <section className="hallmark-shell py-16 md:py-20" aria-labelledby="founding-reader-heading">
           <div className="grid gap-6 rounded-card border-2 border-ink bg-paper-2 p-6 shadow-card md:grid-cols-[1fr_auto] md:items-center md:p-10">
             <div>
-              <h2 id="founding-reader-heading" className="hallmark-display text-3xl">Founding Reader</h2>
-              <p className="mt-4 text-4xl font-bold"><FoundingReaderPrice /></p>
-              <p className="mt-4 max-w-[60ch] text-ink-2">{isZh ? "解锁会员阅读内容。按月自动续订，可随时取消；适用税费及最终金额在结账时显示。故事生成使用积分，提交前会显示所需积分。" : "Unlock premium reading content. Renews monthly; cancel anytime. Applicable taxes and the final total are shown at checkout. Story generation uses credits, quoted before submission."}</p>
+              <h2 id="founding-reader-heading" className="hallmark-display text-3xl">{isZh ? "创作积分" : "Story Creator credits"}</h2>
+              <p className="mt-4 text-4xl font-bold">US$6 <span className="text-base font-normal">{isZh ? "/ 月 · 1,000 积分" : "/ month · 1,000 credits"}</span></p>
+              <p className="mt-4 max-w-[60ch] text-ink-2">{isZh ? "用积分定制与续写故事。每月积分到期不结转，可取消续费；另有 $5/500 积分一次性补充包。税费及最终金额以结账为准。" : "Create and continue your own stories. Monthly credits expire without rollover; cancel future renewal anytime. Or buy 500 credits once for $5. Taxes and the final total appear at checkout."}</p>
             </div>
             <Link href="/subscribe" className="hallmark-btn w-fit">{isZh ? "查看订阅详情" : "View subscription details"}<span aria-hidden="true">→</span></Link>
           </div>

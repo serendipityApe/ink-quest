@@ -1,0 +1,24 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import vm from 'node:vm';
+import ts from 'typescript';
+import {createHmac} from 'node:crypto';
+const require=createRequire(import.meta.url);
+function load(path, overrides={}) { const source=readFileSync(new URL(path,import.meta.url),'utf8'); const module={exports:{}}; vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require:n=>overrides[n]??require(n),process,Buffer,URL,AbortSignal,Date,fetch,Request,Response,console}); return module.exports; }
+const creem=load('../src/lib/billing/creem.ts');
+const parser=load('../src/lib/billing/creem-events.ts',{'./creem':creem});
+const user='11111111-1111-4111-8111-111111111111';const req='22222222-2222-4222-8222-222222222222';
+const pack={code:'credits_500',id:'prod_pack',price:500,credits:500,recurring:false};const monthly={code:'generation_monthly',id:'prod_monthly',price:600,credits:1000,recurring:true};
+const checkout=()=>({id:'evt_1',eventType:'checkout.completed',object:{id:'ch_1',status:'completed',mode:'prod',product:'prod_pack',units:1,request_id:req,metadata:{supabase_user_id:user,product_code:'credits_500',request_id:req},order:{id:'ord_1',amount:500,currency:'USD',status:'paid'},customer:{id:'cust_1'}}});
+const subscription=()=>({id:'evt_2',eventType:'subscription.paid',object:{id:'sub_1',product:'prod_monthly',customer:'cust_1',metadata:{supabase_user_id:user,product_code:'generation_monthly',request_id:req},last_transaction:{id:'tx_1',order:'ord_2',amount:600,status:'paid',currency:'USD',period_start:1794355200000,period_end:1796947200000}}});
+test('signature validates raw body and rejects mutation/truncation/absent secret',()=>{const body='{"hello":1}'; const sig=createHmac('sha256','test-secret').update(body).digest('hex'); assert.equal(creem.verifyCreemSignature(body,sig,'test-secret'),true); for(const [b,s,k] of [[body+' ',sig,'test-secret'],[body,'bad','test-secret'],[body,sig,'']])assert.equal(creem.verifyCreemSignature(b,s,k),false);});
+test('checkout URL must be HTTPS Creem host, not credential or suffix spoof',()=>{assert.equal(creem.validCheckoutUrl('https://www.creem.io/test'),true); for(const u of ['https://creem.io.evil.test/pay','javascript:alert(1)','http://creem.io/pay','https://evil.test'])assert.equal(creem.validCheckoutUrl(u),false);});
+test('one-time paid checkout normalizes trusted transaction identity',()=>{const p=parser.normalizePayment(checkout(),pack); assert.equal(p.orderId,'ord_1');assert.equal(p.requestId,req);assert.equal(p.userId,user);assert.equal(p.subscriptionId,null);});
+test('subscription paid uses order and paid period, not event ID as credit key',()=>{const p=parser.normalizePayment(subscription(),monthly);assert.equal(p.orderId,'ord_2');assert.equal(p.subscriptionId,'sub_1');assert.equal(p.periodStart,new Date(1794355200000).toISOString());});
+test('subscription checkout completion never double grants with paid event',()=>{const e=checkout();assert.equal(parser.normalizePayment(e,monthly),null);});
+for(const [name,mutate] of [['unpaid',e=>e.object.order.status='pending'],['wrong price',e=>e.object.order.amount=1],['wrong currency',e=>e.object.order.currency='EUR'],['multiple units',e=>e.object.units=2],['forged product code',e=>e.object.metadata.product_code='generation_monthly'],['invalid account',e=>e.object.metadata.supabase_user_id='bad'],['invalid request',e=>e.object.metadata.request_id='bad']]) test(`reject ${name}`,()=>{const e=checkout();mutate(e);assert.throws(()=>parser.normalizePayment(e,pack));});
+test('subscription invalid period is rejected',()=>{const e=subscription();e.object.last_transaction.period_end=1;assert.throws(()=>parser.normalizePayment(e,monthly));});
+test('missing metadata never chooses account by customer email',()=>{const e=checkout();e.object.metadata={};e.object.customer.email='somebody@example.com';assert.throws(()=>parser.normalizePayment(e,pack));});
+test('cross origin writes rejected',()=>{assert.equal(creem.sameOrigin(new Request('https://inkquest.dev/api',{headers:{origin:'https://evil.test'}})),false);assert.equal(creem.sameOrigin(new Request('https://inkquest.dev/api',{headers:{origin:'https://inkquest.dev'}})),true);});

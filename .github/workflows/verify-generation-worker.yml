@@ -1,7 +1,7 @@
 name: Verify generation Worker offline
 on:
   push:
-    branches: [feat/generation-edge-worker-20261106]
+    branches: [feat/generation-edge-worker-20261106, feat/creem-generation-credits-20261111]
   pull_request:
     paths:
       - tools/generation-worker/**
@@ -37,6 +37,7 @@ jobs:
       - run: node --test tests/*.test.mjs
       - run: pnpm test:billing
       - run: pnpm --filter @inkquest/generation-worker test
+      - run: node --test tools/generation-worker/tests/creem-credit-database.test.mjs
       - run: pnpm --filter @inkquest/generation-worker build
       - run: pnpm --filter @inkquest/generation-worker build:canary
       - run: pnpm --filter @inkquest/generation-worker test:runtime
@@ -105,4 +106,6 @@ jobs:
           psql -X -A -t -c 'select current_database(), version();'
       - name: Exercise independent PostgreSQL sessions and transaction races
         run: node tools/generation-worker/tests/postgres-concurrency.mjs
+      - name: Exercise Creem credit-ledger transaction races
+        run: node tools/generation-worker/tests/creem-postgres-concurrency.mjs
       # Every migration applies only to this throwaway loopback service container.

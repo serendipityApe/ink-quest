@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Founding Reader Subscription & Pricing",
-  description: "Monthly Founding Reader membership, billing terms and subscription pricing for InkQuest.",
+  title: "Generation Credits & Pricing",
+  description: "Free starter credits, monthly story-generation credits and one-time credit packs for InkQuest.",
   alternates: { canonical: "/subscribe" },
 };
 

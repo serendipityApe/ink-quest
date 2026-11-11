@@ -25,7 +25,7 @@ export default function PrivacyPage() {
         <ul>
           <li><strong>Account information:</strong> email address, account identifier, and basic profile information received when you sign in by email or through Google.</li>
           <li><strong>Learning and content information:</strong> story selections, generation requests, generated stories, vocabulary activity, and membership or credit status.</li>
-          <li><strong>Billing information:</strong> Paddle customer, transaction, and subscription identifiers; purchase status; currency; amount; and related account email. Paddle processes full card or payment-account details, and InkQuest does not receive or store them.</li>
+          <li><strong>Billing information:</strong> Creem (or the provider on a legacy receipt) customer, transaction, and subscription identifiers; purchase status; currency; amount; and related account email. Creem (or the provider on a legacy receipt) processes full card or payment-account details, and InkQuest does not receive or store them.</li>
           <li><strong>Usage and technical information:</strong> pages and product events, referral source, first-party session identifiers, browser or device information, IP-derived security information, and server logs.</li>
           <li><strong>On-device information:</strong> reading position, visited passages, saved words, interface preferences, and similar progress data may be stored in your browser’s local storage.</li>
           <li><strong>Communications:</strong> information included when you contact us for help, billing questions, or feedback.</li>
@@ -47,7 +47,7 @@ export default function PrivacyPage() {
         <h2>5. Service providers and sharing</h2>
         <p>We share information only as needed to operate InkQuest, comply with law, protect rights and safety, or complete a business transfer. Relevant providers include:</p>
         <ul>
-          <li><strong>Paddle</strong> for checkout, payments, tax, invoices, subscriptions, fraud prevention, and refunds.</li>
+          <li><strong>Creem</strong> for checkout, payments, tax, invoices, subscriptions, fraud prevention, and refunds.</li>
           <li><strong>Supabase</strong> for authentication, databases, and file storage.</li>
           <li><strong>Cloudflare</strong> for hosting, delivery, queues, security, and operational logs.</li>
           <li><strong>Google</strong> when you choose Google sign-in.</li>
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
       <section>
         <h2>9. Your choices and rights</h2>
         <p>Depending on applicable law, you may have rights to access, correct, delete, restrict, or obtain a copy of personal information, or object to certain processing. You may also withdraw consent where processing relies on consent. Contact us to make a request. We may need to verify your identity before responding.</p>
-        <p>Billing and payment-data requests may need to be handled directly by Paddle. Canceling a subscription does not automatically delete your InkQuest account.</p>
+        <p>Billing and payment-data requests may need to be handled directly by Creem (or the provider on a legacy receipt). Canceling a subscription does not automatically delete your InkQuest account.</p>
       </section>
 
       <section>

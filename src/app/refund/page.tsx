@@ -4,7 +4,7 @@ import LegalPage from "@/components/LegalPage";
 
 export const metadata: Metadata = {
   title: "Refund Policy",
-  description: "Cancellation and refund information for InkQuest subscriptions purchased through Paddle.",
+  description: "Cancellation and refund information for InkQuest generation credits and subscriptions.",
   alternates: { canonical: "/refund" },
 };
 
@@ -13,43 +13,12 @@ export default function RefundPage() {
     <LegalPage
       eyebrow="Billing · InkQuest"
       title="Refund Policy"
-      summary="InkQuest subscriptions are digital products sold and billed by Paddle as Merchant of Record. This page explains cancellation and refund routes."
+      summary="Cancellation and refund routes for InkQuest generation credits purchased through Creem, with support for legacy purchases."
     >
-      <section>
-        <h2>1. Canceling a subscription</h2>
-        <p>You may cancel an InkQuest subscription at any time through the Paddle buyer portal linked in your purchase or subscription email. Cancellation normally takes effect at the end of your current billing period. You will keep access until that period ends and will not be charged for the next period.</p>
-        <p>Canceling stops future renewals; it does not automatically refund a charge already processed.</p>
-      </section>
-
-      <section>
-        <h2>2. Refund eligibility</h2>
-        <p>Refunds are handled by Paddle under the <a href="https://www.paddle.com/legal/refund-policy" target="_blank" rel="noreferrer">Paddle Refund Policy</a>, the <a href="https://www.paddle.com/legal/buyer-terms" target="_blank" rel="noreferrer">Paddle Buyer Terms</a>, and mandatory consumer-protection law. Nothing in this policy limits rights that cannot legally be waived.</p>
-        <p>Eligibility may depend on your country, when the request is made, whether digital access has been used, and whether the service was defective, unavailable, or materially different from its description. Paddle may reject requests involving fraud or refund abuse.</p>
-      </section>
-
-      <section>
-        <h2>3. Technical or access problems</h2>
-        <p>If a technical issue prevents or unreasonably delays access to paid InkQuest content, contact us so we can try to restore access. Where the issue cannot be resolved, you may be entitled to a replacement or refund in accordance with Paddle’s policies and applicable law.</p>
-      </section>
-
-      <section>
-        <h2>4. How to request a refund</h2>
-        <ol>
-          <li>Visit <a href="https://paddle.net" target="_blank" rel="noreferrer">paddle.net</a> and use Paddle’s buyer support flow; or</li>
-          <li>Email <a href="mailto:xiaowangtongxuehhh@gmail.com">xiaowangtongxuehhh@gmail.com</a> with the email used at checkout, the transaction or order reference, and a short description of the issue.</li>
-        </ol>
-        <p>Do not send full card details. Because Paddle is the seller of record, approved refunds are issued by Paddle to the original payment method. Processing time depends on Paddle, the payment network, and your financial institution.</p>
-      </section>
-
-      <section>
-        <h2>5. Plan changes and unused time</h2>
-        <p>Unless required by law or approved under Paddle’s policy, we do not provide automatic prorated refunds for unused time after cancellation or for a change of mind after digital access has been used.</p>
-      </section>
-
-      <section>
-        <h2>6. Contact</h2>
-        <p>For product-access or service questions, contact <a href="mailto:xiaowangtongxuehhh@gmail.com">xiaowangtongxuehhh@gmail.com</a>. For payment, invoice, cancellation, or refund processing, Paddle buyer support is usually the fastest route. See our <Link href="/terms">Terms of Service</Link> for the subscription terms.</p>
-      </section>
+      <section><h2>1. Canceling renewal</h2><p>Cancel future monthly renewals through Manage subscription on our pricing page or the Creem customer portal linked in your receipt. Cancellation does not automatically refund an earlier charge. Paid monthly credits expire at the end of their billing period. Separately purchased credit packs are not removed merely because you cancel.</p></section>
+      <section><h2>2. Refund requests</h2><p>If a purchase or service has a problem, contact <a href="mailto:xiaowangtongxuehhh@gmail.com">xiaowangtongxuehhh@gmail.com</a> with your checkout email, order reference, and a description. Do not send card numbers. We review requests individually, including unused credits, delivery failures, duplicate charges, and applicable consumer rights. Cancellation alone does not promise a prorated refund.</p><p>For Creem purchases, approved refunds are processed through Creem to the original payment method. If an issue cannot be resolved with us, use the customer portal or <a href="https://www.creem.io/contact" target="_blank" rel="noreferrer">Creem support</a>. Creem’s <a href="https://www.creem.io/buyer-terms" target="_blank" rel="noreferrer">Buyer Terms</a> and mandatory consumer protections apply. Nothing here limits rights that cannot legally be waived.</p></section>
+      <section><h2>3. Credits and refunds</h2><p>A confirmed refund reverses the corresponding credit entitlement, including a proportional adjustment for a partial refund. Credits already used cannot be used again. If a refund or dispute involves spent credits, further generation may be paused for review; contact us to resolve it. Refunds do not delete your stories.</p></section>
+      <section><h2>4. Earlier purchases</h2><p>For an earlier Founding Reader membership or a purchase through another provider, use the provider and support details on your original receipt. Its original benefits and billing terms remain unchanged. See our <Link href="/terms">Terms</Link>.</p></section>
     </LegalPage>
   );
 }

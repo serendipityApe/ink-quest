@@ -1,129 +1,68 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { Check, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import FoundingReaderPrice from "@/components/FoundingReaderPrice";
-import Link from "next/link";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-
-function SubscribeContent() {
-  const router = useRouter();
-  const { lang } = useTranslations();
-  const isZh = lang === "zh";
-  const supabaseConfigured = isSupabaseConfigured();
-  const [isCheckoutReturn, setIsCheckoutReturn] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(supabaseConfigured);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutError, setCheckoutError] = useState("");
-  const [verifiedPremium, setVerifiedPremium] = useState(false);
-  const [verifyingPayment, setVerifyingPayment] = useState(false);
-
-  useEffect(() => {
-    if (!supabaseConfigured) return;
-
-    let cancelled = false;
-
-    const supabase = createClient();
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (cancelled) return;
-      setUser(user);
-      setLoading(false);
-      const checkoutReturned = new URLSearchParams(window.location.search).get("checkout") === "return";
-      setIsCheckoutReturn(checkoutReturned);
-      if (user && checkoutReturned) {
-        setVerifyingPayment(true);
-        for (let attempt = 0; attempt < 4; attempt++) {
-          const response = await fetch("/api/billing/status", { cache: "no-store" });
-          if (response.ok) {
-            const status = await response.json() as { premium?: boolean };
-            if (status.premium) {
-              if (cancelled) return;
-              setVerifiedPremium(true);
-              break;
-            }
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1200));
-        }
-      }
-      if (cancelled) return;
-      setVerifyingPayment(false);
-    });
-    return () => { cancelled = true; };
-  }, [supabaseConfigured]);
-
-  const handleCheckout = async () => {
-    if (!user) {
-      router.push("/login?next=/subscribe");
-      return;
-    }
-    setCheckoutLoading(true);
-    setCheckoutError("");
-    try {
-      const response = await fetch("/api/billing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productCode: "premium_monthly" }),
-      });
-      const body = await response.json() as { url?: string };
-      if (!response.ok || !body.url) throw new Error("checkout_unavailable");
-      window.location.assign(body.url);
-    } catch {
-      setCheckoutLoading(false);
-      setCheckoutError(isZh ? "暂时无法打开支付页面，请稍后再试。" : "Checkout is temporarily unavailable. Please try again.");
-    }
-  };
-
-  const benefits = isZh
-    ? ["解锁故事库的会员阅读内容", "带配套音频的故事朗读", "词义查询与生词收藏", "通过选项探索互动剧情"]
-    : ["Access to premium reading content in the library", "Narration for stories with available audio", "Word lookup and saved vocabulary", "Interactive choices to explore the story"];
-
-  return (
-    <>
-      <Navbar />
-      <main className="hallmark-shell grid min-h-[70vh] flex-grow place-items-center py-12 md:py-16">
-        <section className="w-full max-w-[560px] rounded-card border-[1.5px] border-ink bg-surface-container-lowest p-6 sm:p-10">
-          {verifiedPremium ? (
-            <div>
-              <CheckCircle2 className="size-10 text-accent-deep" aria-hidden="true" />
-              <h1 className="hallmark-display mt-6 text-[32px] md:text-[36px]">{isZh ? "欢迎加入！" : "Welcome to InkQuest!"}</h1>
-              <p className="mt-4 leading-relaxed text-ink-2">{isZh ? "你的订阅已生效，可以使用会员阅读功能。" : "Your subscription is active. Your member reading access is ready."}</p>
-              <button type="button" onClick={() => router.push("/stories")} className="hallmark-btn mt-8 w-full">{isZh ? "进入故事库" : "Enter the library"}</button>
-            </div>
-          ) : (
-            <>
-              <p className="hallmark-eyebrow text-muted">{isZh ? "会员" : "Membership"}</p>
-              <h1 className="hallmark-display mt-3 text-[32px] md:text-[36px]">{isZh ? "解锁完整冒险" : "Unlock the full adventure"}</h1>
-              <p className="mt-3 text-ink-2">{isZh ? "继续阅读会员剧情分支，解锁互动故事库的付费阅读内容。" : "Continue premium story branches and unlock paid reading content in the interactive story library."}</p>
-              <div className="mt-6 flex flex-wrap items-end justify-between gap-4 rounded-xl border border-rule bg-paper p-5">
-                <div><h2 className="font-bold">Founding Reader</h2><p className="mt-1 text-sm text-muted">{isZh ? "每月续费 · 美元结算" : "Billed monthly in USD"}</p></div>
-                <p className="text-3xl font-bold tabular-nums"><FoundingReaderPrice /></p>
-              </div>
-              <ul className="mt-7 grid gap-4">
-                {benefits.map(benefit => <li key={benefit} className="flex gap-3 text-sm leading-relaxed text-ink-2"><Check className="mt-0.5 size-5 shrink-0 text-accent-deep" aria-hidden="true" /><span>{benefit}</span></li>)}
-              </ul>
-              <button type="button" onClick={handleCheckout} disabled={loading || checkoutLoading} aria-busy={checkoutLoading} className="hallmark-btn mt-8 w-full disabled:cursor-not-allowed disabled:opacity-50">
-                {loading ? (isZh ? "正在检查登录状态…" : "Checking sign-in…") : checkoutLoading ? (isZh ? "正在打开支付页面…" : "Opening checkout…") : user ? (isZh ? "立即订阅" : "Subscribe now") : (isZh ? "登录后订阅" : "Sign in to subscribe")}
-              </button>
-              {checkoutError && <p role="alert" className="mt-4 rounded-input bg-error-soft p-3 text-sm text-error">{checkoutError}</p>}
-              {isCheckoutReturn && !verifiedPremium && <p className="mt-4 text-sm text-muted">{verifyingPayment ? (isZh ? "正在确认会员状态…" : "Confirming membership…") : (isZh ? "已从支付页面返回，会员状态确认可能需要一点时间。" : "Checkout returned. Membership confirmation may take a moment.")}</p>}
-              <p className="mt-5 text-sm text-muted">{isZh ? "故事生成使用积分，提交前会显示所需积分。" : "Story generation uses credits; the required credits are shown before submission."}</p>
-              <p className="mt-4 text-xs leading-relaxed text-muted">{isZh ? "按月自动续订，取消后当前计费周期结束时停止续费。适用税费及最终金额在结账时显示。" : "Renews automatically each month until canceled. Cancellation takes effect at the end of the current billing period. Applicable taxes and the final total are shown at checkout."}</p>
-              <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm"><Link href="/terms" className="text-accent-deep underline underline-offset-4">{isZh ? "服务条款" : "Terms"}</Link><Link href="/refund" className="text-accent-deep underline underline-offset-4">{isZh ? "退款政策" : "Refund policy"}</Link><Link href="/acceptable-use" className="text-accent-deep underline underline-offset-4">{isZh ? "使用规则" : "Acceptable use"}</Link></p>
-            </>
-          )}
-        </section>
-      </main>
-      <Footer />
-    </>
-  );
-}
-
+interface Balance { available: number; reserved: number; monthly?: number; permanent?: number; nextExpiry?: string | null; starterEligible?: boolean; starterClaimed?: boolean }
 export default function SubscribePage() {
-  return <SubscribeContent />;
+  const { lang } = useTranslations(); const zh = lang === "zh"; const router = useRouter();
+  const [user, setUser] = useState<User | null>(null); const [loaded, setLoaded] = useState(false);
+  const [busy, setBusy] = useState(""); const [error, setError] = useState(""); const [message, setMessage] = useState("");
+  const [balance, setBalance] = useState<Balance | null>(null); const requests = useRef<Record<string, string>>({});
+  useEffect(() => {
+    let alive = true; const abort = new AbortController();
+    if (!isSupabaseConfigured()) { return; }
+    const supabase = createClient();
+    async function load(nextUser: User | null) {
+      if (!alive) return; setUser(nextUser); setLoaded(true); setBalance(null); requests.current = {};
+      if (!nextUser) return;
+      const result = await fetch("/api/billing/credits", { cache: "no-store", signal: abort.signal }).then(r => r.ok ? r.json() : null).catch(() => null);
+      if (alive) setBalance(result);
+    }
+    supabase.auth.getUser().then(({data}) => load(data.user));
+    const {data: {subscription}} = supabase.auth.onAuthStateChange((_, session) => { void load(session?.user ?? null); });
+    const params = new URLSearchParams(window.location.search); const requestId = params.get("requestId");
+    if (params.get("checkout") === "return" && requestId) {
+      queueMicrotask(() => { if(alive) setMessage(zh ? "正在核对支付结果，返回页面本身不代表支付成功。" : "Checking payment. Returning here does not by itself confirm payment."); });
+      void (async () => { for (let i = 0; i < 8 && alive; i++) {
+        const res = await fetch(`/api/billing/receipt?requestId=${encodeURIComponent(requestId)}`, { cache: "no-store", signal: abort.signal }).catch(() => null);
+        const data = res?.ok ? await res.json() : null;
+        if (data?.paid) { if (alive) { setMessage(zh ? "支付已确认，积分已到账。" : "Payment confirmed. Your credits are ready."); const b = await fetch("/api/billing/credits", {cache:"no-store"}).then(r => r.ok ? r.json() : null); if(alive) setBalance(b); } return; }
+        await new Promise(r => setTimeout(r, 1500));
+      } if (alive) setMessage(zh ? "支付尚未确认，请稍后刷新；请勿重复付款。" : "Payment is not confirmed yet. Refresh shortly; please do not pay again."); })();
+    }
+    return () => { alive = false; abort.abort(); subscription.unsubscribe(); };
+  }, [zh]);
+  const action = async (code: string) => {
+    if (!user) { router.push("/login?next=/subscribe"); return; }
+    if (busy) return; setBusy(code); setError("");
+    try {
+      if (code === "starter") {
+        const res = await fetch("/api/billing/starter", { method: "POST" }); if (!res.ok) throw new Error("starter");
+        const b = await fetch("/api/billing/credits", {cache:"no-store"}); if(b.ok) setBalance(await b.json());
+        setMessage(zh ? "新用户积分已领取。" : "Your starter credits are ready."); setBusy(""); return;
+      }
+      const requestId = requests.current[code] ||= crypto.randomUUID();
+      const res = await fetch(code === "portal" ? "/api/billing/portal" : "/api/billing/checkout", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({productCode:code,requestId})});
+      const data = await res.json(); if(!res.ok || !data.url) throw new Error(data.error || "checkout");
+      window.location.assign(data.url);
+    } catch (e) { setBusy(""); const key = e instanceof Error ? e.message : "";
+      setError(key === "subscription_already_active" ? (zh ? "你已有有效订阅，请使用管理订阅。" : "You already have a subscription. Use Manage subscription.") : key === "checkout_pending_confirmation" ? (zh ? "结账请求仍待确认，请稍后重试，不要重复付款。" : "Checkout is awaiting confirmation. Retry shortly; do not pay twice.") : key === "no_subscription" ? (zh ? "当前账号暂无 Creem 订阅。" : "This account has no Creem subscription.") : code === "starter" ? (zh ? "暂时无法领取。请确认邮箱已验证且账号符合新用户资格，或稍后重试。" : "Unable to claim. Verify your email and new-account eligibility, or retry later.") : (zh ? "暂时无法打开支付页面，请稍后重试。" : "Checkout is temporarily unavailable. Please retry shortly.")); }
+  };
+  const plans = [
+    {code:"starter", title:zh?"免费体验":"Start exploring", price:"$0", amount:"100", label:zh?"一次性新用户积分":"One-time starter credits", description:zh?"新注册并验证邮箱的账号可领取，无需绑卡，不会自动订阅。":"For newly registered, email-verified accounts. No card. No automatic subscription.", button:balance?.starterClaimed?(zh?"已领取":"Claimed"):(zh?"免费领取":"Claim free credits")},
+    {code:"generation_monthly", title:zh?"创作月订阅":"Story Creator", price:"$6", amount:"1,000", label:zh?"每月积分":"Credits per billing month", description:zh?"每次成功扣款发放。未用月度积分在该计费周期结束时到期，不结转。":"Granted after each successful payment. Unused monthly credits expire at the end of that billing period, without rollover.", button:zh?"每月 $6 订阅":"Subscribe for $6/month"},
+    {code:"credits_500", title:zh?"积分补充包":"Keep the story going", price:"$5", amount:"500", label:zh?"一次性购买积分":"One-time purchased credits", description:zh?"不自动续费，不设到期日；取消订阅不会清空购买积分。":"No recurring charge or expiry. Purchased credits remain when you cancel a subscription.", button:zh?"一次购买 $5":"Buy once for $5"},
+  ];
+  return <><Navbar creditBalance={balance?.available}/><main className="hallmark-shell flex-grow py-12 md:py-16">
+    <header className="max-w-2xl"><p className="hallmark-eyebrow text-muted">{zh?"积分与订阅":"Credits & plans"}</p><h1 className="hallmark-display mt-3 text-4xl">{zh?"让下一个故事继续":"Make room for your next story"}</h1><p className="mt-4 leading-relaxed text-ink-2">{zh?"按需生成故事。提交前会显示具体积分，失败的生成会释放预留积分。":"Generate stories on your terms. Review the exact credit cost before submitting. Failed generations release their reserved credits."}</p></header>
+    {user && <section className="mt-7 rounded-xl border border-rule bg-paper p-5"><p>{zh?"可用积分":"Available credits"}: <strong>{balance?.available?.toLocaleString() ?? "—"}</strong>{balance ? ` · ${zh?"处理中预留":"Reserved"} ${balance.reserved}` : ""}</p>{balance && <p className="mt-2 text-sm text-muted">{zh?"月度":"Monthly"}: {balance.monthly ?? 0} · {zh?"非到期积分":"Non-expiring"}: {balance.permanent ?? 0}{balance.nextExpiry ? ` · ${zh?"下次到期":"Next expiry"}: ${new Date(balance.nextExpiry).toLocaleDateString()}`:""}</p>}<button type="button" className="mt-3 underline" disabled={!!busy} onClick={()=>action("portal")}>{zh?"管理订阅 / 取消续费":"Manage subscription / cancel renewal"}</button></section>}
+    {message && <p role="status" className="mt-6 rounded-xl border border-rule p-4">{message}</p>}{error && <p role="alert" className="mt-6 rounded-xl bg-error-soft p-4 text-error">{error}</p>}
+    <section className="mt-8 grid gap-5 md:grid-cols-3">{plans.map(p=><article key={p.code} className="flex flex-col rounded-card border-[1.5px] border-ink bg-surface-container-lowest p-6"><h2 className="text-xl font-bold">{p.title}</h2><p className="mt-5 text-4xl font-bold">{p.price}<span className="ml-1 text-sm font-normal text-muted">{p.code==="generation_monthly"?(zh?"/ 月":"/ month"):(zh?"一次性":"once")}</span></p><p className="mt-6 text-3xl font-bold">{p.amount}</p><p className="mt-1 text-sm text-muted">{p.label}</p><p className="mt-5 flex-grow text-sm leading-relaxed text-ink-2">{p.description}</p><button type="button" disabled={!!busy || !loaded || (p.code==="starter" && !!balance?.starterClaimed)} aria-busy={busy===p.code} onClick={()=>action(p.code)} className="hallmark-btn mt-7 w-full disabled:opacity-50">{busy===p.code?(zh?"处理中…":"Working…"):p.button}</button></article>)}</section>
+    <div className="mt-8 max-w-3xl space-y-3 text-sm leading-relaxed text-muted"><p>{zh?"价格以美元计。适用税费和最终金额在 Creem 结账时显示。月订阅自动续费，可在客户门户取消下一期续费。":"Prices are in USD. Applicable taxes and the final amount appear at Creem checkout. Monthly plans renew automatically; cancel future renewal in the customer portal."}</p><p>{zh?"以上商品用于故事生成，不包含旧 Founding Reader 的故事库会员权益；已有会员权益不变。免费赠送限符合条件的新账号一次，并受反滥用与服务容量限制。":"These plans fund story generation, not the legacy Founding Reader library membership. Existing membership terms remain unchanged. Free credits are limited to one eligible new account and subject to abuse and capacity safeguards."}</p><p><Link href="/terms" className="underline">{zh?"服务条款":"Terms"}</Link> · <Link href="/refund" className="underline">{zh?"退款政策":"Refund policy"}</Link> · <Link href="/acceptable-use" className="underline">{zh?"使用规则":"Acceptable use"}</Link></p></div>
+  </main><Footer/></>;
 }
