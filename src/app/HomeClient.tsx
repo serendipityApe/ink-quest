@@ -3,7 +3,7 @@
 import StoryCover from "@/components/StoryCover";
 import Link from "next/link";
 import StoryPolicyNotice from "@/components/StoryPolicyNotice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -36,10 +36,12 @@ interface HomeProps {
 
 export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: HomeProps) {
   const [demoChoice, setDemoChoice] = useState<number | null>(null);
+  const [languageIndex, setLanguageIndex] = useState(0);
 
   const { play, stop, isPlaying, activeSegmentIndex } = useAudioSync();
   const { lang } = useTranslations();
   const isZh = lang === "zh";
+  const rotatingLanguages = isZh ? ["中文", "英文"] : ["Chinese", "English"];
 
   const demoEndMs = demoTimestamps[demoTimestamps.length - 1]?.end;
 
@@ -59,13 +61,21 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
 
 
 
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const interval = window.setInterval(() => {
+      setLanguageIndex((current) => (current + 1) % 2);
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <>
       <Navbar />
       <main>
         <section className="hallmark-shell grid gap-12 py-12 md:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] md:items-center md:gap-16 md:py-14 lg:py-16">
           <div className="min-w-0">
-            <h1 className="hallmark-display max-w-[14ch] text-[32px] md:text-[52px]">{isZh ? <>由你抉择，在故事中读懂<span className="text-accent-deep">中英文</span>。</> : <>Learn <span className="text-accent-deep">Chinese & English</span> by living the story.</>}</h1>
+            <h1 className="hallmark-display max-w-[14ch] text-[32px] md:text-[52px]">{isZh ? <>由你抉择，在故事中读懂<span className="sr-only">{rotatingLanguages[languageIndex]}</span><span aria-hidden="true" className="language-roller min-w-[2ch] text-accent-deep"><span className="language-roller__track" style={{ transform: `translateY(-${languageIndex * 1.18}em)` }}>{rotatingLanguages.map((language) => <span key={language} className="language-roller__word">{language}</span>)}</span></span>。</> : <><span className="whitespace-nowrap">Learn <span className="sr-only">{rotatingLanguages[languageIndex]}</span><span aria-hidden="true" className="language-roller min-w-[7ch] text-accent-deep"><span className="language-roller__track" style={{ transform: `translateY(-${languageIndex * 1.18}em)` }}>{rotatingLanguages.map((language) => <span key={language} className="language-roller__word">{language}</span>)}</span></span></span> by living the story.</>}</h1>
             <p className="mt-7 max-w-[54ch] text-[19px] leading-relaxed text-ink-2">
               {isZh
                 ? "专为语言学习者打造的分级互动小说。随时点词看注音、听地道发音，让剧情随着你的每一次决定向前推进。"
