@@ -80,6 +80,7 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
           <Link href="/stories" aria-current={pathname.startsWith("/stories") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.stories")}</Link>
           <Link href="/generate" aria-current={pathname.startsWith("/generate") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.create")}</Link>
+          {user && <Link href="/my-stories" aria-current={pathname === "/my-stories" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{lang === "zh" ? "我的故事" : "My stories"}</Link>}
           {user && <Link href="/saved-words" aria-current={pathname === "/saved-words" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.learning")}</Link>}
         </nav>
         <div className="hidden items-center justify-self-end gap-2 lg:flex">
@@ -99,6 +100,7 @@ export default function Navbar({ onSubscribeClick, variant = "default", readerTi
           <div className="flex flex-col">
             <Link href="/stories" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.stories")}</Link>
             <Link href="/generate" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.create")}</Link>
+            {user && <Link href="/my-stories" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{lang === "zh" ? "我的故事" : "My stories"}</Link>}
             {user && <Link href="/saved-words" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.learning")}</Link>}
             <span className="[&>a]:flex [&>a]:min-h-12 [&>a]:items-center [&>a]:border-b [&>a]:border-rule [&>a]:font-semibold [&>a]:whitespace-nowrap [&>button]:flex [&>button]:min-h-12 [&>button]:w-full [&>button]:items-center [&>button]:border-b [&>button]:border-rule [&>button]:font-semibold [&>button]:whitespace-nowrap">{membershipAction}</span>
             <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="flex min-h-12 items-center gap-2 border-b border-rule font-semibold whitespace-nowrap"><Globe className="size-4" /> {lang === "zh" ? t("lang.en") : t("lang.zh")}</button>

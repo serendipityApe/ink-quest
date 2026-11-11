@@ -581,6 +581,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
       <Navbar />
       <main className="grid min-h-[calc(100vh-var(--nav-height))] min-w-0 bg-paper lg:grid-cols-[18.5rem_minmax(0,1fr)] xl:grid-cols-[18.5rem_minmax(0,1fr)_20rem]">
         <aside className="min-w-0 border-b-2 border-ink bg-paper-2 p-4 lg:border-r lg:border-b-0 lg:border-r-rule-2 lg:p-6">
+          <Link href="/my-stories" className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline underline-offset-4">← {isZh ? "我的故事 · 自动保存" : "My stories · Autosaved"}</Link>
           <div className="mb-7 flex items-center justify-between gap-4">
             <div><p className="hallmark-eyebrow text-muted">Quick start</p><h1 className="mt-1 text-lg font-bold">{isZh ? "快速开局" : "Quick opening"}</h1></div>
             <button type="button" onClick={randomizeAll} className="grid size-11 place-items-center rounded-full border-2 border-ink bg-paper shadow-[0_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none" aria-label={isZh ? "全部随机" : "Randomize all"}><RefreshCw className="size-4" /></button>
