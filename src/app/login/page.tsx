@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/i18n/I18nProvider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -9,6 +10,8 @@ import { sanitizeRedirectPath } from "@/lib/auth/redirect";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { lang } = useTranslations();
+  const isZh = lang === "zh";
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -26,7 +29,7 @@ export default function LoginPage() {
 
     if (!isSupabaseConfigured()) {
       setLoading(false);
-      setError("Authentication is not configured yet.");
+      setError(isZh ? "登录服务暂不可用，请稍后重试。" : "Sign-in is unavailable. Please try again later.");
       return;
     }
 
@@ -42,33 +45,34 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     if (!isSupabaseConfigured()) {
-      setError("Authentication is not configured yet.");
+      setError(isZh ? "登录服务暂不可用，请稍后重试。" : "Sign-in is unavailable. Please try again later.");
       return;
     }
 
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: getCallbackUrl() },
     });
+    if (error) setError(error.message);
   };
 
   return (
     <>
       <Navbar />
-      <main className="flex-grow flex items-center justify-center pt-24 pb-section-gap px-reading-inset min-h-[70vh]">
-        <div className="w-full max-w-sm flex flex-col gap-6 p-8 bg-surface/40 rounded-3xl border border-white/20 glass-panel shadow-xl">
-          <h1 className="font-story-title-lg text-2xl text-on-surface text-center">Sign in to InkQuest</h1>
+      <main className="flex-grow flex items-center justify-center py-16 px-4 min-h-[70vh]">
+        <div className="w-full max-w-md flex flex-col gap-6 p-8 bg-surface-container-lowest rounded-card border-[1.5px] border-ink">
+          <h1 className="font-display font-bold text-3xl text-on-surface text-center">{isZh ? "登录 InkQuest" : "Sign in to InkQuest"}</h1>
 
           {sent ? (
             <p className="font-ui-body text-sm text-secondary text-center leading-relaxed">
-              Check your email — we sent a magic link to <span className="text-primary font-medium">{email}</span>.
+              {isZh ? "登录链接已发送，请检查邮箱：" : "Check your email — we sent a sign-in link to "}<span className="text-primary font-medium">{email}</span>.
             </p>
           ) : (
             <>
               <button
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-surface-container-high/40 rounded-full font-button-text text-sm text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+                className="iq-secondary w-full"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -76,33 +80,38 @@ export default function LoginPage() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Continue with Google
+                {isZh ? "使用 Google 继续" : "Continue with Google"}
               </button>
 
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-surface-container-high/40" />
-                <span className="font-ui-pinyin-sm text-xs text-secondary">or</span>
+                <span className="font-ui-pinyin-sm text-xs text-secondary">{isZh ? "或使用邮箱" : "or use email"}</span>
                 <div className="flex-1 h-px bg-surface-container-high/40" />
               </div>
 
               <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
+                <label htmlFor="login-email" className="text-sm font-semibold">{isZh ? "邮箱地址" : "Email address"}</label>
                 <input
+                  id="login-email"
+                  autoComplete="email"
+                  aria-describedby="email-hint"
                   type="email"
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-surface-container-low border border-surface-container-high/40 focus:border-primary focus:outline-none rounded-lg px-4 py-2.5 font-ui-body text-sm placeholder:text-on-surface-variant/40 transition-colors"
+                  className="min-h-12 w-full bg-surface-container-lowest border border-rule rounded-input px-4 text-sm"
                 />
-                {error && <p className="text-xs text-error">{error}</p>}
+                {error && <p role="alert" className="text-sm text-error">{error}</p>}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 px-4 bg-primary text-white font-button-text text-sm uppercase tracking-widest rounded-full hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="hallmark-btn w-full"
                 >
                   {loading && <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />}
-                  Send Magic Link
+                  {loading ? (isZh ? "正在发送…" : "Sending…") : (isZh ? "发送登录链接" : "Send sign-in link")}
                 </button>
+                <p id="email-hint" className="text-sm leading-relaxed text-muted">{isZh ? "我们会把一次性登录链接发送到这个邮箱。" : "We’ll email you a one-time sign-in link."}</p>
               </form>
             </>
           )}
@@ -111,7 +120,7 @@ export default function LoginPage() {
             onClick={() => router.back()}
             className="font-ui-pinyin-sm text-xs text-secondary hover:text-on-surface transition-colors text-center"
           >
-            ← Back
+            ← {isZh ? "返回" : "Back"}
           </button>
         </div>
       </main>

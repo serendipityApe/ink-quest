@@ -22,15 +22,20 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
   useEffect(() => {
     if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
 
     if (isSupabaseConfigured()) {
       const supabase = createClient();
       supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
     }
 
-    return () => { document.body.style.overflow = "unset"; };
-  }, [isOpen]);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", handleKeyDown); };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -58,16 +63,17 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
-      <div className="absolute inset-0 bg-ink/45" onClick={onClose} />
-      <div className="relative z-10 flex w-full max-w-md flex-col items-center rounded-card border-2 border-ink bg-paper p-8 text-center shadow-[0.75rem_0.75rem_0_var(--color-ink)] md:p-12">
+      <div className="absolute inset-0 bg-ink/45" onClick={onClose} aria-hidden="true" />
+      <div role="dialog" aria-modal="true" aria-labelledby="subscribe-modal-title" className="relative z-10 flex max-h-[90dvh] w-full max-w-md flex-col items-center overflow-y-auto rounded-card border border-rule bg-surface-container-lowest p-8 text-center shadow-soft md:p-12">
         <button onClick={onClose} className="absolute right-4 top-4 grid size-11 place-items-center rounded-full border border-ink hover:bg-paper-3" aria-label={isZh ? "关闭" : "Close modal"}>
           <X className="h-5 w-5" />
         </button>
 
-        <div className="mb-6 grid size-16 place-items-center rounded-full border-2 border-ink bg-accent-soft">
+        <div className="mb-6 grid size-16 place-items-center rounded-full border-[1.5px] border-ink bg-accent-soft">
           <Lock className="h-8 w-8" />
         </div>
-        <h2 className="hallmark-display mb-4 text-3xl">Founding Reader</h2>
+        <p className="font-outlier text-xs uppercase tracking-[0.08em] text-muted">Founding Reader</p>
+        <h2 id="subscribe-modal-title" className="hallmark-display mb-4 mt-3 text-3xl">{isZh ? "继续这条支线。" : "Continue this branch."}</h2>
         <p className="mb-8 font-body leading-relaxed text-ink-2">
           {isZh ? "继续阅读会员剧情分支，解锁互动故事库的付费阅读内容。" : "Continue premium story branches and unlock paid reading content in the interactive story library."}
           <br />

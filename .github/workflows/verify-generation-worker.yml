@@ -34,7 +34,7 @@ jobs:
       - run: node --test tools/generation-worker/tests/activation-checks.test.mjs
       - run: pnpm --filter @inkquest/generation-worker typecheck
       - run: pnpm exec tsc --noEmit
-      - run: node --test tests/generator-reveal.test.mjs tests/word-segment-enrichment.test.mjs tests/reading-layout.test.mjs tests/story-library.test.mjs
+      - run: node --test tests/*.test.mjs
       - run: pnpm test:billing
       - run: pnpm --filter @inkquest/generation-worker test
       - run: pnpm --filter @inkquest/generation-worker build

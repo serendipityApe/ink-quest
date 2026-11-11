@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Globe, LogOut, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ArrowLeft, Coins, Globe, LogOut, Menu, UserRound, X } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { DEFAULT_STORY_HREF, WITHDRAWN_STORY_IDS } from "@/lib/stories/entry-points";
@@ -14,100 +14,121 @@ interface NavbarProps {
   variant?: "default" | "reader";
   readerTitle?: string;
   readerLevel?: string;
+  readerActions?: ReactNode;
+  creditBalance?: number | null;
 }
 
-export default function Navbar({ onSubscribeClick, variant = "default", readerTitle, readerLevel }: NavbarProps) {
+export default function Navbar({ onSubscribeClick, variant = "default", readerTitle, readerLevel, readerActions, creditBalance }: NavbarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
   const [resumeStoryId, setResumeStoryId] = useState<string | null>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const { t, lang, setLang } = useTranslations();
+  const isZh = lang === "zh";
 
   useEffect(() => {
-    if (variant === "reader") return;
-    if (!isSupabaseConfigured()) return;
+    if (variant === "reader" || !isSupabaseConfigured()) return;
+    let alive = true;
+    let balanceSequence = 0;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user: nextUser } }) => setUser(nextUser));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setUser(session?.user ?? null));
-    return () => subscription.unsubscribe();
+    const update = (nextUser: User | null) => {
+      if (!alive) return;
+      const sequence = ++balanceSequence;
+      setUser(nextUser);
+      setCredits(null);
+      if (nextUser) fetch("/api/billing/status", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(data => {
+        if (alive && sequence === balanceSequence) setCredits(data?.credits?.available ?? null);
+      }).catch(() => {});
+    };
+    supabase.auth.getUser().then(({ data }) => update(data.user)).catch(() => update(null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => update(session?.user ?? null));
+    return () => { alive = false; subscription.unsubscribe(); };
   }, [variant]);
 
   useEffect(() => {
-    if (variant === "reader" || typeof window === "undefined") return;
-    queueMicrotask(() => {
-      const resumeKey = Object.keys(localStorage).find((key) => {
-        if (!key.startsWith("cm_pos_")) return false;
-        const storyId = key.slice("cm_pos_".length);
-        return storyId && !WITHDRAWN_STORY_IDS.has(storyId) && localStorage.getItem(key);
-      });
-      setResumeStoryId(resumeKey?.slice("cm_pos_".length) ?? null);
+    if (variant === "reader") return;
+    const frame = requestAnimationFrame(() => {
+      const key = Object.keys(localStorage).find(key => key.startsWith("cm_pos_") && !WITHDRAWN_STORY_IDS.has(key.slice(7)) && localStorage.getItem(key));
+      setResumeStoryId(key?.slice(7) ?? null);
     });
+    return () => cancelAnimationFrame(frame);
   }, [pathname, variant]);
 
-  const handleSignOut = async () => {
-    if (!isSupabaseConfigured()) return;
-    await createClient().auth.signOut();
-  };
+  useEffect(() => {
+    if (!isOpen && !accountOpen) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setIsOpen(false); setAccountOpen(false); (isOpen ? menuButton.current : accountRef.current?.querySelector("button"))?.focus(); }
+    };
+    const outside = (event: PointerEvent) => {
+      if (!accountRef.current?.contains(event.target as Node)) setAccountOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", outside);
+    const previous = document.body.style.overflow;
+    if (isOpen) document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", close); document.removeEventListener("pointerdown", outside); document.body.style.overflow = previous; };
+  }, [isOpen, accountOpen]);
 
-  if (variant === "reader") {
-    return (
-      <header className="sticky top-0 z-50 bg-paper">
-        <div className="hallmark-shell relative flex min-h-12 items-center justify-between gap-4 md:min-h-14">
-          <Link href="/stories" className="inline-flex size-10 items-center justify-center rounded-full border border-ink text-ink transition-colors hover:bg-accent-soft md:size-auto md:min-h-11 md:gap-2 md:rounded-none md:border-0 md:font-semibold md:whitespace-nowrap md:hover:bg-transparent md:hover:text-primary" aria-label={t("reader.backToLibrary")}>
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            <span className="hidden md:inline">{t("reader.backToLibrary")}</span>
-          </Link>
-          <div className="absolute left-1/2 min-w-0 max-w-[58%] -translate-x-1/2 text-center md:static md:max-w-[58%] md:translate-x-0 md:text-right">
-            <p className="truncate text-sm font-semibold leading-tight">{readerTitle}</p>
-            {readerLevel && <p className="mt-0.5 font-outlier text-[10px] leading-tight text-muted">{readerLevel}</p>}
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => { setIsOpen(false); setAccountOpen(false); });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeMobileMenu = () => { if (desktop.matches) setIsOpen(false); };
+    desktop.addEventListener("change", closeMobileMenu);
+    return () => desktop.removeEventListener("change", closeMobileMenu);
+  }, []);
+
+  const signOut = async () => { await createClient().auth.signOut(); setIsOpen(false); setAccountOpen(false); };
+  const membership = () => { setIsOpen(false); setAccountOpen(false); onSubscribeClick?.(); };
+  const navItems = [
+    { href: "/stories", label: t("nav.stories") },
+    { href: "/generate", label: t("nav.create") },
+    ...(user ? [{ href: "/my-stories", label: isZh ? "我的故事" : "My stories" }] : []),
+    { href: "/saved-words", label: t("savedWords.title") },
+  ];
+  const displayedCredits = creditBalance === undefined ? credits : creditBalance;
+  const resumeHref = resumeStoryId ? `/stories/${resumeStoryId}` : DEFAULT_STORY_HREF;
+
+  if (variant === "reader") return <header className="sticky top-0 z-40 border-b border-rule bg-paper">
+    <div className="hallmark-shell grid min-h-16 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 md:grid-cols-[1fr_auto_1fr]">
+      <Link href="/stories" className="iq-quiet justify-self-start" aria-label={t("reader.backToLibrary")}><ArrowLeft className="size-4" /><span className="hidden md:inline">{isZh ? "故事库" : "Library"}</span></Link>
+      <div className="min-w-0 text-center md:flex md:max-w-md md:items-center md:gap-3"><p className="truncate text-sm font-bold">{readerTitle}</p>{readerLevel && <span className="text-xs text-muted md:iq-badge">{readerLevel}</span>}</div>
+      <div className="hidden items-center justify-self-end gap-2 md:flex">{readerActions}</div>
+    </div>
+  </header>;
+
+  return <header className="sticky top-0 z-50 border-b border-rule bg-paper">
+    <div className="hallmark-shell flex min-h-[var(--nav-height)] items-center justify-between gap-3">
+      <Link href="/" className="inline-flex shrink-0 items-center gap-2.5 font-display text-[22px] font-bold tracking-tight"><span className="grid size-9 place-items-center rounded-full border-2 border-ink bg-accent font-outlier text-xs" aria-hidden="true">IQ</span>InkQuest</Link>
+      <nav className="mx-auto hidden items-center gap-1 lg:flex" aria-label={isZh ? "主导航" : "Primary navigation"}>{navItems.map(item => <Link key={item.href} href={item.href} aria-current={pathname.startsWith(item.href) ? "page" : undefined} className="iq-nav-link">{item.label}</Link>)}</nav>
+      <div className="hidden items-center gap-1 lg:flex">
+        <button type="button" onClick={() => setLang(isZh ? "en" : "zh")} className="iq-quiet" aria-label={isZh ? "切换为英文界面" : "Switch interface to Chinese"}><Globe className="size-4" />{isZh ? "EN" : "中文"}</button>
+        {user ? <>
+          <Link href="/subscribe" className="iq-quiet" aria-label={`${displayedCredits ?? "—"} ${isZh ? "积分" : "credits"}`}><Coins className="size-4" /><span className="tabular-nums">{displayedCredits?.toLocaleString() ?? "—"}</span></Link>
+          <div ref={accountRef} className="relative"><button type="button" className="iq-quiet" aria-label={isZh ? "账户菜单" : "Account menu"} aria-expanded={accountOpen} aria-controls="account-menu" onClick={() => setAccountOpen(!accountOpen)}><UserRound className="size-5" /></button>
+            {accountOpen && <div id="account-menu" className="absolute right-0 top-full mt-2 min-w-44 rounded-xl border border-rule bg-surface-container-lowest p-2 shadow-soft">
+              {onSubscribeClick ? <button type="button" className="iq-quiet w-full justify-start" onClick={membership}>{t("nav.pricing")}</button> : <Link href="/subscribe" onClick={membership} className="iq-quiet w-full justify-start">{t("nav.pricing")}</Link>}
+              <button type="button" onClick={signOut} className="iq-quiet w-full justify-start"><LogOut className="size-4" />{t("nav.signOut")}</button>
+            </div>}
           </div>
-        </div>
-      </header>
-    );
-  }
-
-  const membershipAction = onSubscribeClick ? (
-    <button type="button" onClick={onSubscribeClick}>{t("nav.pricing")}</button>
-  ) : <Link href="/subscribe">{t("nav.pricing")}</Link>;
-
-  return (
-    <header className="sticky top-0 z-50 border-b border-rule bg-paper">
-      <div className="hallmark-shell grid min-h-[var(--nav-height)] grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[1fr_auto_1fr]">
-        <Link href="/" className="group inline-flex min-h-11 w-fit items-center gap-3 whitespace-nowrap font-display text-xl font-bold tracking-[-0.045em]">
-          <span className="grid size-9 place-items-center rounded-full border-2 border-ink bg-accent font-outlier text-xs shadow-[0_3px_0_var(--color-ink)] transition-transform duration-200 group-hover:-rotate-6" aria-hidden="true">IQ</span>
-          <span>InkQuest</span>
-        </Link>
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
-          <Link href="/stories" aria-current={pathname.startsWith("/stories") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.stories")}</Link>
-          <Link href="/generate" aria-current={pathname.startsWith("/generate") ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.create")}</Link>
-          {user && <Link href="/my-stories" aria-current={pathname === "/my-stories" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{lang === "zh" ? "我的故事" : "My stories"}</Link>}
-          {user && <Link href="/saved-words" aria-current={pathname === "/saved-words" ? "page" : undefined} className="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap aria-[current=page]:bg-accent-soft hover:bg-paper-3">{t("nav.learning")}</Link>}
-        </nav>
-        <div className="hidden items-center justify-self-end gap-2 lg:flex">
-          <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="grid size-11 place-items-center rounded-full border border-rule bg-paper text-xs font-semibold hover:bg-paper-3" aria-label="Switch interface language">{lang === "zh" ? "中" : "EN"}</button>
-          {user ? (
-            <button type="button" onClick={handleSignOut} className="inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold whitespace-nowrap hover:text-primary"><LogOut className="size-4" /> {t("nav.signOut")}</button>
-          ) : <Link href="/login" className="inline-flex min-h-11 items-center px-3 text-sm font-semibold whitespace-nowrap hover:text-primary">{t("nav.signIn")}</Link>}
-          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : DEFAULT_STORY_HREF} className="hallmark-btn">{resumeStoryId ? (lang === "zh" ? "继续阅读" : "Continue reading") : (lang === "zh" ? "免费试读" : "Read free")}<span aria-hidden="true">→</span></Link>
-        </div>
-        <div className="flex items-center justify-self-end gap-2 lg:hidden">
-          <Link href={resumeStoryId ? `/stories/${resumeStoryId}` : DEFAULT_STORY_HREF} className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 text-sm font-bold text-paper whitespace-nowrap">{resumeStoryId ? (lang === "zh" ? "继续" : "Continue") : (lang === "zh" ? "试读" : "Read free")}</Link>
-          <button type="button" onClick={() => setIsOpen((open) => !open)} className="grid size-11 place-items-center rounded-full border-2 border-ink bg-paper" aria-expanded={isOpen} aria-controls="mobile-navigation" aria-label={isOpen ? "Close menu" : "Open menu"}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button>
-        </div>
+        </> : <><Link href="/subscribe" className="iq-quiet">{t("nav.pricing")}</Link><Link href="/login" className="iq-quiet">{t("nav.signIn")}</Link></>}
+        <Link href={resumeHref} className="hallmark-btn ml-2">{resumeStoryId ? (isZh ? "继续阅读" : "Continue reading") : (isZh ? "免费试读" : "Read free")}<span aria-hidden="true">→</span></Link>
       </div>
-      {isOpen && (
-        <nav id="mobile-navigation" className="border-b-[3px] border-ink bg-paper px-[var(--page-gutter)] pb-6 lg:hidden" aria-label="Mobile navigation">
-          <div className="flex flex-col">
-            <Link href="/stories" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.stories")}</Link>
-            <Link href="/generate" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.create")}</Link>
-            {user && <Link href="/my-stories" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{lang === "zh" ? "我的故事" : "My stories"}</Link>}
-            {user && <Link href="/saved-words" onClick={() => setIsOpen(false)} className="flex min-h-12 items-center border-b border-rule font-semibold whitespace-nowrap">{t("nav.learning")}</Link>}
-            <span className="[&>a]:flex [&>a]:min-h-12 [&>a]:items-center [&>a]:border-b [&>a]:border-rule [&>a]:font-semibold [&>a]:whitespace-nowrap [&>button]:flex [&>button]:min-h-12 [&>button]:w-full [&>button]:items-center [&>button]:border-b [&>button]:border-rule [&>button]:font-semibold [&>button]:whitespace-nowrap">{membershipAction}</span>
-            <button type="button" onClick={() => setLang(lang === "zh" ? "en" : "zh")} className="flex min-h-12 items-center gap-2 border-b border-rule font-semibold whitespace-nowrap"><Globe className="size-4" /> {lang === "zh" ? t("lang.en") : t("lang.zh")}</button>
-            {user ? <button type="button" onClick={handleSignOut} className="mt-4 inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-ink font-semibold whitespace-nowrap"><LogOut className="size-4" />{t("nav.signOut")}</button> : <Link href="/login" className="hallmark-btn mt-4">{t("nav.signIn")}</Link>}
-          </div>
-        </nav>
-      )}
-    </header>
-  );
+      <div className="flex items-center gap-1 lg:hidden"><Link href={resumeHref} className="iq-quiet text-sm">{resumeStoryId ? (isZh ? "继续" : "Continue") : (isZh ? "试读" : "Read free")}</Link><button ref={menuButton} type="button" onClick={() => setIsOpen(!isOpen)} className="iq-quiet" aria-expanded={isOpen} aria-controls="mobile-navigation" aria-label={isOpen ? (isZh ? "关闭菜单" : "Close menu") : (isZh ? "打开菜单" : "Open menu")}>{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}</button></div>
+    </div>
+    {isOpen && <nav id="mobile-navigation" className="fixed inset-x-0 bottom-0 top-[var(--nav-height)] overflow-y-auto bg-paper px-6 py-4 lg:hidden" aria-label={isZh ? "移动导航" : "Mobile navigation"}>
+      <div className="grid gap-1 border-b border-rule pb-5">{navItems.map(item => <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)} aria-current={pathname.startsWith(item.href) ? "page" : undefined} className="iq-nav-link min-h-14 text-lg">{item.label}</Link>)}</div>
+      <p className="mt-6 text-xs text-muted">{isZh ? "账户" : "Account"}</p><Link href="/subscribe" onClick={() => setIsOpen(false)} className="flex min-h-14 items-center justify-between font-semibold"><span>{t("nav.pricing")}</span>{user && <span className="flex items-center gap-2 text-sm"><Coins className="size-4" />{displayedCredits?.toLocaleString() ?? "—"} {isZh ? "积分" : "credits"}</span>}</Link>
+      <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-y border-rule"><span className="text-sm">{isZh ? "界面语言" : "Interface language"}</span><div className="iq-segment"><button type="button" className="iq-quiet" aria-pressed={isZh} onClick={() => setLang("zh")}>中文</button><button type="button" className="iq-quiet" aria-pressed={!isZh} onClick={() => setLang("en")}>EN</button></div></div>
+      {user ? <button type="button" onClick={signOut} className="iq-quiet mt-4"><LogOut className="size-4" />{t("nav.signOut")}</button> : <Link href="/login" onClick={() => setIsOpen(false)} className="hallmark-btn mt-6">{t("nav.signIn")}</Link>}
+      <div className="mt-10 flex flex-wrap gap-4 text-sm text-muted">{[["/terms",isZh ? "服务条款" : "Terms"],["/privacy",isZh ? "隐私政策" : "Privacy"],["/refund",isZh ? "退款政策" : "Refunds"]].map(([href,label]) => <Link key={href} href={href} onClick={() => setIsOpen(false)} className="inline-flex min-h-11 items-center">{label}</Link>)}</div>
+    </nav>}
+  </header>;
 }

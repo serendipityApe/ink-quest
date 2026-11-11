@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
+import StoryCover from "@/components/StoryCover";
 import Link from "next/link";
 import StoryPolicyNotice from "@/components/StoryPolicyNotice";
 import FoundingReaderPrice from "@/components/FoundingReaderPrice";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronRight, Volume2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -37,11 +37,11 @@ interface HomeProps {
 
 export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: HomeProps) {
   const [demoChoice, setDemoChoice] = useState<number | null>(null);
-  const [languageIndex, setLanguageIndex] = useState(0);
+
   const { play, stop, isPlaying, activeSegmentIndex } = useAudioSync();
   const { lang } = useTranslations();
   const isZh = lang === "zh";
-  const rotatingLanguages = isZh ? ["中文", "英文"] : ["Chinese", "English"];
+
   const demoEndMs = demoTimestamps[demoTimestamps.length - 1]?.end;
 
   const toggleDemoAudio = () => {
@@ -56,13 +56,9 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
     });
   };
 
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const interval = window.setInterval(() => {
-      setLanguageIndex((current) => (current + 1) % rotatingLanguages.length);
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, [rotatingLanguages.length]);
+
+
+
 
   return (
     <>
@@ -70,10 +66,8 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
       <main>
         <section className="hallmark-shell grid gap-12 py-12 md:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] md:items-center md:gap-16 md:py-14 lg:py-16">
           <div className="min-w-0">
-            <h1 className="hallmark-display max-w-[14ch] text-[clamp(2.75rem,5vw,4.75rem)] leading-[1.1]">
-              {isZh ? <>由你抉择，在未知的情节里<span className="whitespace-nowrap">读懂<span className="sr-only">{rotatingLanguages[languageIndex]}</span><span aria-hidden="true" className="language-roller min-w-[2ch] text-accent-deep"><span className="language-roller__track" style={{ transform: `translateY(-${languageIndex * 1.18}em)` }}>{rotatingLanguages.map((language) => <span key={language} className="language-roller__word">{language}</span>)}</span></span>。</span></> : <><span className="whitespace-nowrap">Learn <span className="sr-only">{rotatingLanguages[languageIndex]}</span><span aria-hidden="true" className="language-roller min-w-[7ch] text-accent-deep"><span className="language-roller__track" style={{ transform: `translateY(-${languageIndex * 1.18}em)` }}>{rotatingLanguages.map((language) => <span key={language} className="language-roller__word">{language}</span>)}</span></span></span> by Living the Story.</>}
-            </h1>
-            <p className="mt-7 max-w-[54ch] text-lg leading-relaxed text-ink-2 md:text-xl">
+            <h1 className="hallmark-display max-w-[14ch] text-[32px] md:text-[52px]">{isZh ? <>由你抉择，在故事中读懂<span className="text-accent-deep">中英文</span>。</> : <>Learn <span className="text-accent-deep">Chinese & English</span> by living the story.</>}</h1>
+            <p className="mt-7 max-w-[54ch] text-[19px] leading-relaxed text-ink-2">
               {isZh
                 ? "专为语言学习者打造的分级互动小说。随时点词看注音、听地道发音，让剧情随着你的每一次决定向前推进。"
                 : "Interactive web novels for language learners. Tap any word for instant definitions, listen with native audio, and shape the plot."}
@@ -89,7 +83,7 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
             <p className="mt-4 text-sm text-muted">{isZh ? "无需注册 · 免费章节 · 随时继续" : "No sign-up · Free chapters · Resume anytime"}</p>
           </div>
 
-          <article className="min-w-0 rounded-card border-2 border-ink bg-paper p-5 shadow-[0.7rem_0.7rem_0_var(--color-ink)] sm:p-7 md:p-8" aria-label={isZh ? "可操作的互动阅读示例" : "Interactive reading demo"}>
+          <article className="min-w-0 rounded-card border-[1.5px] border-ink bg-surface-container-lowest p-5 shadow-[4px_4px_0_var(--color-ink)] sm:p-7 md:p-8" aria-label={isZh ? "可操作的互动阅读示例" : "Interactive reading demo"}>
             <header className="flex items-center justify-between gap-4 border-b border-rule pb-4">
               <div className="min-w-0">
                 <strong className="block truncate font-display text-lg tracking-[-0.04em]">{isZh ? "借来的山门 1" : "The Borrowed Sect 1"}</strong>
@@ -140,9 +134,9 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
           </article>
         </section>
 
-        <section className="border-y-2 border-ink bg-ink py-14 text-paper md:py-20">
+        <section className="border-y border-rule bg-ink py-14 text-paper md:py-20">
           <div className="hallmark-shell grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:items-end">
-            <h2 className="hallmark-display max-w-[13ch] text-[clamp(2.5rem,5vw,4.75rem)]">{isZh ? "不用离开剧情，也能读懂中文。" : "Understand the Chinese without leaving the scene."}</h2>
+            <h2 className="hallmark-display max-w-[13ch] text-[26px] md:text-[36px]">{isZh ? "不用离开剧情，也能读懂中文。" : "Understand the Chinese without leaving the scene."}</h2>
             <div className="grid gap-5 text-paper-3 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-3">
               {(isZh ? [["点词", "拼音、释义和发音原地出现。"], ["听句", "自然语速与文字保持在一起。"], ["做选择", "词语在不同剧情结果里再次出现。"]] : [["Tap a word", "See pinyin, meaning, and pronunciation in place."], ["Hear the line", "Keep natural audio beside the text."], ["Make a choice", "Meet the same words inside new consequences."]]).map(([title, description]) => (
                 <div key={title} className="border-t border-paper/30 pt-4">
@@ -154,30 +148,26 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
           </div>
         </section>
 
-        <section className="hallmark-shell py-20 md:py-28" id="stories">
-          <header className="mb-12 grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,.75fr)] md:items-end">
-            <h2 className="hallmark-display max-w-[14ch] text-[clamp(2.5rem,5vw,4.5rem)]">{isZh ? "从一个免费章节开始。" : "Start with one free chapter."}</h2>
-            <p className="max-w-[58ch] text-ink-2 md:justify-self-end">{isZh ? "按题材和难度挑选，不需要先创建账户。读到第一个选择，就已经知道 InkQuest 是否适合你。" : "Choose by genre and level—no account required. By your first choice, you will know whether InkQuest is for you."}</p>
+        <section className="hallmark-shell py-12 md:py-16" id="stories">
+          <header className="mb-8 grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,.75fr)] md:items-end">
+            <h2 className="hallmark-display max-w-[14ch] text-[26px] md:text-[36px]">{isZh ? "从一个免费章节开始。" : "Start with one free chapter."}</h2>
+            <div><Link href="/stories" className="iq-quiet mb-2 px-0">{isZh ? "浏览全部故事" : "Browse all stories"} →</Link><p className="max-w-[58ch] text-ink-2 md:justify-self-end">{isZh ? "按题材和难度挑选，不需要先创建账户。读到第一个选择，就已经知道 InkQuest 是否适合你。" : "Choose by genre and level—no account required. By your first choice, you will know whether InkQuest is for you."}</p></div>
           </header>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,.65fr)_minmax(0,.75fr)]">
-            {featuredStories.map((story, index) => (
-              <Link key={story.id} href={`/stories/${story.id}`} className={`group flex min-w-0 flex-col overflow-clip rounded-card border-2 border-ink bg-paper-2 shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0.65rem_0.65rem_0_var(--color-ink)] ${index === 0 ? "md:row-span-2" : ""}`}>
-                <div className={`relative min-w-0 overflow-clip ${index === 0 ? "aspect-[4/3] lg:min-h-[24rem]" : "aspect-video"}`}>
-                  <Image src={`${COVER_BASE}${story.image}`} alt={`${isZh ? story.titleZh : story.titleEn} cover`} fill style={{ objectPosition: story.imagePosition }} sizes={index === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 30vw"} className="object-cover" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {featuredStories.map((story) => (
+              <Link key={story.id} href={`/stories/${story.id}`} className={`group flex min-w-0 flex-col overflow-clip rounded-card border-[1.5px] border-ink bg-surface-container-lowest shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:border-accent-deep `}>
+                <div className={`iq-cover relative min-w-0 overflow-clip aspect-video`}>
+                  <StoryCover src={`${COVER_BASE}${story.image}`} title={isZh ? story.titleZh : story.titleEn} position={story.imagePosition} sizes="(max-width: 768px) 100vw, 33vw" />
                 </div>
-                <div className={`${index === 0 ? "bg-accent-soft" : "bg-paper-2"} grid flex-1 gap-3 p-5 md:p-6`}>
+                <div className={`bg-surface-container-lowest grid flex-1 gap-3 p-5 md:p-6`}>
                   <div className="flex items-center justify-between gap-3"><span className="font-outlier text-xs uppercase tracking-[0.08em]">{story.genre}</span><span className="rounded-full border border-ink px-3 py-1 text-xs whitespace-nowrap">{story.level}</span></div>
-                  <h3 className="hallmark-display text-2xl md:text-3xl">{isZh ? story.titleZh : story.titleEn}</h3>
+                  <h3 className="font-display text-2xl font-bold leading-tight tracking-tight">{isZh ? story.titleZh : story.titleEn}</h3>
                   <p className="m-0 text-sm text-ink-2">{isZh ? story.descriptionZh : story.descriptionEn}</p>
                   <span className="font-bold whitespace-nowrap">{isZh ? "免费试读" : "Read free"} <span aria-hidden="true">→</span></span>
                 </div>
               </Link>
             ))}
-            <Link href="/stories" className="grid min-h-48 content-between gap-6 rounded-card border-2 border-ink bg-paper-3 p-6 shadow-card md:col-span-2 lg:col-span-2">
-              <div className="flex items-center justify-between gap-3"><span className="font-outlier text-xs uppercase tracking-[0.08em]">{isZh ? "更多世界" : "More worlds"}</span><span className="rounded-full border border-ink px-3 py-1 text-xs whitespace-nowrap">{isZh ? "持续更新" : "Ongoing"}</span></div>
-              <h3 className="hallmark-display max-w-[18ch] text-3xl">{isZh ? "仙侠、科幻、悬疑，下一条支线正在等你。" : "Xianxia, science fiction, mystery—the next branch is waiting."}</h3>
-              <span className="font-bold whitespace-nowrap">{isZh ? "浏览全部故事" : "Browse all stories"} <span aria-hidden="true">→</span></span>
-            </Link>
+
           </div>
         </section>
 
@@ -195,7 +185,7 @@ export default function Home({ demoAudioUrl, demoSegments, demoTimestamps }: Hom
         <section className="border-y-2 border-accent-deep bg-accent-soft py-16 md:py-20">
           <div className="hallmark-shell grid gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             <div>
-              <h2 className="hallmark-display max-w-[16ch] text-[clamp(2.5rem,5vw,4.5rem)]">{isZh ? "读过一次，再定制属于你的故事。" : "Read one first. Then make the next story yours."}</h2>
+              <h2 className="hallmark-display max-w-[16ch] text-[26px] md:text-[36px]">{isZh ? "读过一次，再定制属于你的故事。" : "Read one first. Then make the next story yours."}</h2>
               <p className="mt-5 max-w-[58ch] text-ink-2">{isZh ? "选择题材、身份和目标，让 InkQuest 按你的中文水平生成可以继续选择的剧情。" : "Choose a genre, identity, and motive. InkQuest builds an interactive story around your language level."}</p>
             </div>
             <div><StoryPolicyNotice /><Link href="/generate" className="hallmark-btn mt-4 w-fit">{isZh ? "定制故事" : "Customize a story"}<span aria-hidden="true">→</span></Link></div>

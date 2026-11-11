@@ -15,7 +15,7 @@ export const DICTS = {
   en: {
     "nav.stories": "Stories",
     "nav.create": "Customize",
-    "nav.pricing": "Pricing",
+    "nav.pricing": "Membership",
     "nav.signIn": "Sign In",
     "nav.signOut": "Sign Out",
     "nav.learning": "Learning",
@@ -35,7 +35,7 @@ export const DICTS = {
     "stories.clear": "Clear all filters",
     "stories.viewLibrary": "View Library",
     "reader.map": "Path Map",
-    "reader.listen": "Listen Narration",
+    "reader.listen": "Listen",
     "reader.stopListen": "Stop Listening",
     "reader.playSentence": "Play sentence",
     "reader.resumed": "Resumed your last reading position",
@@ -54,7 +54,7 @@ export const DICTS = {
   },
   zh: {
     "nav.stories": "故事库",
-    "nav.create": "定制",
+    "nav.create": "定制故事",
     "nav.pricing": "会员",
     "nav.signIn": "登录",
     "nav.signOut": "退出",

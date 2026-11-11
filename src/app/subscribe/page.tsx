@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, CheckCircle2 } from "lucide-react";
+import { Check, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -79,63 +79,45 @@ function SubscribeContent() {
     }
   };
 
+  const benefits = isZh
+    ? ["解锁故事库的会员阅读内容", "带配套音频的故事朗读", "词义查询与生词收藏", "通过选项探索互动剧情"]
+    : ["Access to premium reading content in the library", "Narration for stories with available audio", "Word lookup and saved vocabulary", "Interactive choices to explore the story"];
+
   return (
     <>
       <Navbar />
-      <main className="flex-grow flex flex-col items-center justify-center pt-24 pb-section-gap px-reading-inset max-w-container-max mx-auto w-full relative z-10 min-h-[70vh]">
-        <div className="max-w-md w-full flex flex-col items-center text-center p-8 md:p-12 bg-surface/40 rounded-3xl border border-white/20 glass-panel shadow-xl">
+      <main className="hallmark-shell grid min-h-[70vh] flex-grow place-items-center py-12 md:py-16">
+        <section className="w-full max-w-[560px] rounded-card border-[1.5px] border-ink bg-surface-container-lowest p-6 sm:p-10">
           {verifiedPremium ? (
-            <div className="flex flex-col items-center animate-in fade-in duration-500">
-              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-primary mb-8">
-                <CheckCircle2 className="h-8 w-8 text-primary" />
-              </div>
-              <h1 className="font-story-title-lg text-3xl text-on-surface mb-4">{isZh ? "欢迎加入！" : "Welcome to InkQuest!"}</h1>
-              <p className="font-ui-body text-ui-body text-secondary mb-8 leading-relaxed">
-                {isZh ? "你的订阅已生效，可以使用会员阅读功能。" : "Your subscription is active. Your member reading access is ready."}
-              </p>
-              <button
-                onClick={() => router.push("/stories")}
-                className="w-full bg-primary text-white font-button-text text-button-text uppercase tracking-widest hover:bg-primary/95 transition-all py-4 px-8 rounded-full flex items-center justify-center cursor-pointer active:scale-98"
-              >
-                {isZh ? "进入故事库" : "Enter the library"}
-              </button>
+            <div>
+              <CheckCircle2 className="size-10 text-accent-deep" aria-hidden="true" />
+              <h1 className="hallmark-display mt-6 text-[32px] md:text-[36px]">{isZh ? "欢迎加入！" : "Welcome to InkQuest!"}</h1>
+              <p className="mt-4 leading-relaxed text-ink-2">{isZh ? "你的订阅已生效，可以使用会员阅读功能。" : "Your subscription is active. Your member reading access is ready."}</p>
+              <button type="button" onClick={() => router.push("/stories")} className="hallmark-btn mt-8 w-full">{isZh ? "进入故事库" : "Enter the library"}</button>
             </div>
           ) : (
             <>
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-8 animate-bounce">
-                <Lock className="h-8 w-8" />
+              <p className="hallmark-eyebrow text-muted">{isZh ? "会员" : "Membership"}</p>
+              <h1 className="hallmark-display mt-3 text-[32px] md:text-[36px]">{isZh ? "解锁完整冒险" : "Unlock the full adventure"}</h1>
+              <p className="mt-3 text-ink-2">{isZh ? "继续阅读会员剧情分支，解锁互动故事库的付费阅读内容。" : "Continue premium story branches and unlock paid reading content in the interactive story library."}</p>
+              <div className="mt-6 flex flex-wrap items-end justify-between gap-4 rounded-xl border border-rule bg-paper p-5">
+                <div><h2 className="font-bold">Founding Reader</h2><p className="mt-1 text-sm text-muted">{isZh ? "每月续费 · 美元结算" : "Billed monthly in USD"}</p></div>
+                <p className="text-3xl font-bold tabular-nums"><FoundingReaderPrice /></p>
               </div>
-              <h1 className="font-story-title-lg text-3xl text-on-surface mb-4">Founding Reader</h1>
-              <p className="font-ui-body text-ui-body text-secondary mb-8 leading-relaxed">
-                {isZh ? "继续阅读会员剧情分支，解锁互动故事库的付费阅读内容。" : "Continue premium story branches and unlock paid reading content in the interactive story library."}
-                <span className="font-semibold text-on-surface-variant mt-3 block text-3xl"><FoundingReaderPrice /></span>
-              </p>
-              <ul className="text-left font-ui-body text-sm text-on-surface-variant/80 flex flex-col gap-3 mb-8 w-full border-t border-b border-surface-container-high/30 py-6 px-2">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /><span>{isZh ? "解锁故事库的会员阅读内容" : "Access to premium reading content in the library"}</span></li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /><span>{isZh ? "带配套音频的故事朗读" : "Narration for stories with available audio"}</span></li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /><span>{isZh ? "词义查询与生词收藏" : "Word lookup and saved vocabulary"}</span></li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-primary shrink-0" /><span>{isZh ? "通过选项探索互动剧情" : "Interactive choices to explore the story"}</span></li>
+              <ul className="mt-7 grid gap-4">
+                {benefits.map(benefit => <li key={benefit} className="flex gap-3 text-sm leading-relaxed text-ink-2"><Check className="mt-0.5 size-5 shrink-0 text-accent-deep" aria-hidden="true" /><span>{benefit}</span></li>)}
               </ul>
-              <button
-                onClick={handleCheckout}
-                disabled={loading || checkoutLoading}
-                aria-busy={checkoutLoading}
-                className="w-full font-button-text text-button-text text-primary uppercase tracking-widest hover:bg-primary hover:text-white transition-all py-4 px-8 border border-primary/20 rounded-full bg-primary/5 cursor-pointer active:scale-98 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              <button type="button" onClick={handleCheckout} disabled={loading || checkoutLoading} aria-busy={checkoutLoading} className="hallmark-btn mt-8 w-full disabled:cursor-not-allowed disabled:opacity-50">
                 {loading ? (isZh ? "正在检查登录状态…" : "Checking sign-in…") : checkoutLoading ? (isZh ? "正在打开支付页面…" : "Opening checkout…") : user ? (isZh ? "立即订阅" : "Subscribe now") : (isZh ? "登录后订阅" : "Sign in to subscribe")}
               </button>
-              {checkoutError && <p role="alert" className="mt-4 text-sm text-error">{checkoutError}</p>}
-              {isCheckoutReturn && !verifiedPremium && (
-                <p className="mt-4 text-sm text-secondary">
-                  {verifyingPayment ? (isZh ? "正在确认会员状态…" : "Confirming membership…") : (isZh ? "已从支付页面返回，会员状态确认可能需要一点时间。" : "Checkout returned. Membership confirmation may take a moment.")}
-                </p>
-              )}
-              <p className="mt-4 text-sm text-secondary">{isZh ? "故事生成使用积分，提交前会显示所需积分。" : "Story generation uses credits; the required credits are shown before submission."}</p>
-              <p className="font-ui-pinyin-sm text-[12px] text-secondary/70 mt-4">{isZh ? "按月自动续订，取消后当前计费周期结束时停止续费。适用税费及最终金额在结账时显示。" : "Renews automatically each month until canceled. Cancellation takes effect at the end of the current billing period. Applicable taxes and the final total are shown at checkout."}</p>
-              <p className="mt-4 text-sm"><Link href="/terms" className="underline">{isZh ? "服务条款" : "Terms"}</Link> · <Link href="/refund" className="underline">{isZh ? "退款政策" : "Refund policy"}</Link> · <Link href="/acceptable-use" className="underline">{isZh ? "使用规则" : "Acceptable use"}</Link></p>
+              {checkoutError && <p role="alert" className="mt-4 rounded-input bg-error-soft p-3 text-sm text-error">{checkoutError}</p>}
+              {isCheckoutReturn && !verifiedPremium && <p className="mt-4 text-sm text-muted">{verifyingPayment ? (isZh ? "正在确认会员状态…" : "Confirming membership…") : (isZh ? "已从支付页面返回，会员状态确认可能需要一点时间。" : "Checkout returned. Membership confirmation may take a moment.")}</p>}
+              <p className="mt-5 text-sm text-muted">{isZh ? "故事生成使用积分，提交前会显示所需积分。" : "Story generation uses credits; the required credits are shown before submission."}</p>
+              <p className="mt-4 text-xs leading-relaxed text-muted">{isZh ? "按月自动续订，取消后当前计费周期结束时停止续费。适用税费及最终金额在结账时显示。" : "Renews automatically each month until canceled. Cancellation takes effect at the end of the current billing period. Applicable taxes and the final total are shown at checkout."}</p>
+              <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm"><Link href="/terms" className="text-accent-deep underline underline-offset-4">{isZh ? "服务条款" : "Terms"}</Link><Link href="/refund" className="text-accent-deep underline underline-offset-4">{isZh ? "退款政策" : "Refund policy"}</Link><Link href="/acceptable-use" className="text-accent-deep underline underline-offset-4">{isZh ? "使用规则" : "Acceptable use"}</Link></p>
             </>
           )}
-        </div>
+        </section>
       </main>
       <Footer />
     </>

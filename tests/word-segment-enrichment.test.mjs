@@ -43,6 +43,7 @@ function harness(segment, learningEnabled, options = {}) {
       };
       if (name === "react/jsx-runtime") return require(name);
       if (name === "lucide-react") return new Proxy({}, { get: (_, key) => key });
+      if (name === "@/i18n/I18nProvider") return { useTranslations: () => ({ lang: "en" }) };
       if (name === "@/hooks/useSpeak") return { useSpeak: () => ({ speak() {}, supported: true }) };
       throw new Error(`Unexpected import ${name}`);
     },

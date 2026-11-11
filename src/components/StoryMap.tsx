@@ -75,7 +75,7 @@ export default function StoryMap({
       onClick={onClose}
     >
       <div
-        className="relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-card border-2 border-ink bg-paper shadow-[0.75rem_0.75rem_0_var(--color-ink)]"
+        role="dialog" aria-modal="true" aria-label={t("reader.map")} className="relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-card border border-rule bg-paper shadow-soft"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

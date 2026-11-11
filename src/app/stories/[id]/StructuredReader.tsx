@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Volume2, Square, Lock, Map, Loader2, Play, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { Bookmark, Volume2, Square, Lock, Map, Loader2, Play, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SubscribeModal from "@/components/SubscribeModal";
@@ -134,6 +135,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   // 已保存词的快速查询集合（避免每个 segment 都 includes）
   const savedSet = useMemo(() => new Set(savedWords.map((w) => w.word)), [savedWords]);
 
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -260,7 +262,7 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   const sentenceGroups = useMemo(() => toSentenceGroups(segments), [segments]);
   const bodyClass = manifest.target_lang === "en"
     ? "font-body text-[20px] md:text-[22px] text-ink leading-[1.85] break-words"
-    : "font-reading text-[22px] md:text-[26px] text-ink break-words tracking-[0.045em] leading-[2]";
+    : "font-reading text-[22px] text-ink break-words tracking-normal leading-[2]";
 
   const handleAudio = () => {
     if (!node) return;
@@ -372,19 +374,21 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
   };
 
   const primaryTitle = manifest.target_lang === "zh" ? manifest.title_cn : manifest.title_en;
+  const readerActions = <><button type="button" onClick={handleAudio} disabled={!node} className="iq-secondary disabled:opacity-50">{isPlaying ? <Square className="size-4" /> : <Volume2 className="size-4" />}<span>{isPlaying ? t("reader.stopListen") : t("reader.listen")}</span></button><button type="button" onClick={() => setIsMapOpen(true)} className="iq-quiet"><Map className="size-4" />{t("reader.map")}</button></>;
+
 
   return (
     <>
-      <Navbar variant="reader" readerTitle={primaryTitle} readerLevel={manifest.level} />
-      <main className="flex-grow bg-paper pb-14 md:pb-20">
+      <Navbar variant="reader" readerTitle={primaryTitle} readerLevel={manifest.level} readerActions={readerActions} />
+      <main className="flex-grow bg-paper pb-28 md:pb-12">
         {resumed && (
           <div className="fixed top-20 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-ink bg-accent px-4 py-2 font-outlier text-xs shadow-[0_2px_0_var(--color-ink)]">
             <Map className="h-3.5 w-3.5" />
             {t("reader.resumed")}
           </div>
         )}
-        <div className="hallmark-shell pt-7 md:pt-10">
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="hallmark-shell pt-6 md:pt-12">
+        <div className="mx-auto w-full max-w-[680px]">
         {onboardingStep === "word" && (
           <div className="mb-2 flex items-center justify-between gap-4 rounded-card border border-ink bg-accent-soft px-4 py-3 text-sm" role="status">
             <span><strong>{lang === "zh" ? "先试一下：" : "Try this first: "}</strong>{lang === "zh" ? "点一个有下划线的词，看拼音和释义。" : "Tap an underlined word to see its pinyin and meaning."}</span>
@@ -394,12 +398,17 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
         <article
           ref={articleRef}
           lang={manifest.target_lang === "zh" ? "zh-Hans" : "en"}
-          className={`relative min-h-[18rem] w-full py-8 md:py-12 ${mobileSentenceModeEnabled ? "select-none md:select-text" : ""}`}
+          className={`relative min-h-[18rem] w-full py-4 md:py-4 ${mobileSentenceModeEnabled ? "select-none md:select-text" : ""}`}
         >
           {node ? (
             <div className={bodyClass}>
               <div className={mobileSentenceModeEnabled ? "hidden md:block" : "block"}>
-                <p>{segments.map((seg, i) => renderSegment(seg, i, i === 0))}</p>
+                {Array.from({ length: Math.ceil(sentenceGroups.length / 3) }, (_, paragraphIndex) => {
+                  const group = sentenceGroups.slice(paragraphIndex * 3, paragraphIndex * 3 + 3);
+                  const start = group[0].start;
+                  const end = group[group.length - 1].end;
+                  return <p key={start} className="mb-6 last:mb-0">{segments.slice(start, end + 1).map((segment, offset) => renderSegment(segment, start + offset, offset === 0))}</p>;
+                })}
               </div>
               {mobileSentenceModeEnabled && (
                 <div className={mobileSentenceBreaksEnabled ? "flex flex-col gap-5 md:hidden" : "inline md:hidden"}>
@@ -438,30 +447,13 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
             </div>
           )}
 
-          <div className="mt-10 flex items-center justify-end gap-2">
-            {onboardingStep === "audio" && <span className="mr-auto text-sm font-semibold text-accent-deep">{lang === "zh" ? "现在听一遍这一段 →" : "Now listen to the scene →"}</span>}
-            <button
-              type="button"
-              onClick={handleAudio}
-              disabled={!node}
-              className={`inline-flex min-h-11 items-center gap-2 cursor-pointer rounded-full border border-ink px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${isPlaying ? "bg-ink text-paper" : "bg-paper hover:bg-accent-soft"}`}
-            >
-              {isPlaying ? <Square className="size-4 fill-current" /> : <Volume2 className="size-4" />}
-              <span>{isPlaying ? t("reader.stopListen") : t("reader.listen")}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsMapOpen(true)}
-              className="inline-flex min-h-11 items-center gap-2 cursor-pointer rounded-full border border-ink bg-paper px-4 text-sm font-bold whitespace-nowrap transition-transform duration-150 hover:bg-accent-soft active:translate-y-px"
-            >
-              <Map className="size-4" /> {t("reader.map")}
-            </button>
-          </div>
+          {onboardingStep === "audio" && <p className="mt-6 text-sm text-accent-deep">{lang === "zh" ? "使用朗读工具，听一遍这一段。" : "Use Listen to hear this scene."}</p>}
+
 
         </article>
 
-        <section className="flex w-full flex-col pt-2">
-          <div className="mb-2 flex items-end justify-between gap-4"><h2 className="text-sm font-bold text-ink-2">{lang === "zh" ? "接下来" : "Next"}</h2>{onboardingStep === "choice" && <span className="text-right text-sm font-semibold text-accent-deep">{lang === "zh" ? "选一个去向，看看剧情如何改变。" : "Choose a direction and change the story."}</span>}</div>
+        <section className="mt-8 flex w-full flex-col border-t border-rule pt-6">
+          <div className="mb-2 flex items-end justify-between gap-4"><h2 className="text-sm font-bold text-ink-2">{lang === "zh" ? "你会怎么做？" : "What do you do?"}</h2>{onboardingStep === "choice" && <span className="text-right text-sm font-semibold text-accent-deep">{lang === "zh" ? "选一个去向，看看剧情如何改变。" : "Choose a direction and change the story."}</span>}</div>
           {(node?.choices ?? manifest.nodes[currentNodeId]?.choices ?? []).map((choice, i) => {
             const choiceLabel = splitChoiceLabel(choice.text, i);
 
@@ -487,13 +479,18 @@ export default function StructuredReader({ storyId, manifest, startNode }: Props
         </div>
         </div>
       </main>
+      <nav aria-label={lang === "zh" ? "阅读工具" : "Reading tools"} className="iq-reader-tools fixed inset-x-0 bottom-0 z-30 flex items-center justify-around border-t border-rule bg-paper px-2 md:hidden">
+        <button type="button" onClick={handleAudio} disabled={!node} className="iq-quiet min-h-16 flex-col gap-1 text-xs disabled:opacity-50">{isPlaying ? <Square className="size-5" /> : <Volume2 className="size-5" />}{isPlaying ? (lang === "zh" ? "停止朗读" : "Stop") : (lang === "zh" ? "朗读全文" : "Listen")}</button>
+        <button type="button" onClick={() => setIsMapOpen(true)} className="iq-quiet min-h-16 flex-col gap-1 text-xs"><Map className="size-5" />{t("reader.map")}</button>
+        <Link href="/saved-words" className="iq-quiet min-h-16 flex-col gap-1 text-xs"><Bookmark className="size-5" />{t("savedWords.title")}</Link>
+      </nav>
 
       {/* 划词浮动按钮：选区上方 8px，居中。fixed 定位，scroll 时跟随选区（hook 已用 scrollY 算过）。 */}
       {selRange && selAnchor && (
         <button
           onClick={handlePlaySelection}
           aria-label="Play selected sentence"
-          className="absolute z-50 flex -translate-x-1/2 -translate-y-full cursor-pointer items-center gap-1.5 rounded-full border-2 border-ink bg-accent px-3 py-1.5 font-outlier text-xs shadow-[0_3px_0_var(--color-ink)]"
+          className="absolute z-50 flex -translate-x-1/2 -translate-y-full cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] border-ink bg-accent px-3 py-1.5 font-outlier text-xs shadow-[0_3px_0_var(--color-ink)]"
           style={{ top: `${selAnchor.top - 8}px`, left: `${selAnchor.left}px` }}
         >
           <Play className="h-3 w-3 fill-current" />

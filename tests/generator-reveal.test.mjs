@@ -729,7 +729,7 @@ for (const outcome of ["success", "failure", "network rejection"]) {
 }
 
 test('mobile sentence groups keep adjacent dialogue opening quotes with the next audio row', () => {
- const functionSource = source.slice(source.indexOf('function toSentenceGroups('), source.indexOf('function ControlLabel('));
+ const functionSource = source.slice(source.indexOf('function toSentenceGroups('), source.indexOf('function SegmentButton('));
  const group = vm.runInNewContext(ts.transpileModule(functionSource, {compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText + ';toSentenceGroups');
  for (const text of ['"Stop." "Go."', '“Stop.” “Go.”', 'Stop. "Go."']) {
   const words = [...new Intl.Segmenter('en', {granularity:'word'}).segment(text)].filter(s=>s.segment.trim()).map(s=>({word:s.segment}));

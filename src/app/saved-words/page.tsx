@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BookOpen, Trash2, Volume2 } from "lucide-react";
+import { Trash2, Volume2 } from "lucide-react";
+import { DEFAULT_STORY_HREF } from "@/lib/stories/entry-points";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SubscribeModal from "@/components/SubscribeModal";
@@ -11,13 +12,15 @@ import { loadSavedWords, removeWord, type SavedWord } from "@/lib/savedWords";
 import { useSpeak } from "@/hooks/useSpeak";
 
 export default function SavedWordsPage() {
-  const { t } = useTranslations();
+  const { t, lang: interfaceLang } = useTranslations();
+  const isZh = interfaceLang === "zh";
   const [words, setWords] = useState<SavedWord[]>([]);
   const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
   const { speak, supported: ttsSupported } = useSpeak();
 
   useEffect(() => {
-    setWords(loadSavedWords());
+    const frame = requestAnimationFrame(() => setWords(loadSavedWords()));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const handleRemove = (word: string) => {
@@ -31,86 +34,15 @@ export default function SavedWordsPage() {
     <>
       <Navbar onSubscribeClick={() => setIsSubscribeOpen(true)} />
 
-      <main className="flex-grow w-full max-w-container-max mx-auto px-reading-inset py-12 flex flex-col gap-10">
-        <header className="flex flex-col gap-2 border-b border-surface-container-high/30 pb-6">
-          <h1 className="font-story-title-lg text-4xl md:text-[48px] leading-tight text-on-background">
-            {t("savedWords.title")}
-          </h1>
-          <p className="font-ui-body text-ui-body text-secondary mt-2">
-            {words.length}
-          </p>
-        </header>
-
-        {words.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-6 py-24 text-center">
-            <BookOpen className="h-12 w-12 text-secondary/40" />
-            <p className="font-ui-body text-on-surface-variant">{t("savedWords.empty")}</p>
-            <Link
-              href="/stories"
-              className="font-button-text text-xs uppercase tracking-widest text-primary border border-primary/30 px-6 py-2.5 rounded-full hover:bg-primary/5 transition-colors"
-            >
-              {t("savedWords.browse")}
-            </Link>
-          </div>
-        ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sorted.map((entry) => {
-              const { word, reading, meaning, level, lang } = entry;
-              return (
-                <li
-                  key={word}
-                  className="flex flex-col gap-2 p-5 bg-surface-container-lowest rounded-xl border border-surface-container-high/15 hover:border-surface-container-high/30 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className={
-                          lang === "en"
-                            ? "font-ui-body text-2xl text-on-background leading-none break-words"
-                            : "font-story-body-cn text-2xl text-on-background leading-none"
-                        }
-                      >
-                        {word}
-                      </span>
-                      {ttsSupported && (
-                        <button
-                          onClick={() => speak(word, lang)}
-                          aria-label={`Pronounce ${word}`}
-                          className="text-primary/70 hover:text-primary transition-colors p-1 rounded-full hover:bg-primary/10 cursor-pointer shrink-0"
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleRemove(word)}
-                      aria-label={`Remove ${word}`}
-                      className="text-secondary/40 hover:text-rose-500 transition-colors shrink-0 mt-1"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {reading && (
-                    <span className="font-ui-pinyin-sm text-sm text-secondary">
-                      {reading}
-                    </span>
-                  )}
-                  {meaning && (
-                    <span className="font-ui-body text-sm text-on-surface-variant break-words">
-                      {meaning}
-                    </span>
-                  )}
-                  {level && (
-                    <span className="text-[10px] uppercase tracking-wider text-primary bg-primary-container/10 px-2 py-0.5 rounded-full self-start">
-                      {level}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+      <main className="hallmark-shell flex-grow py-12">
+        <header className="mb-8 flex flex-wrap items-end justify-between gap-3"><h1 className="hallmark-display text-[32px] md:text-[40px]">{t("savedWords.title")}</h1><p className="text-sm text-muted" aria-live="polite">{isZh ? `${words.length} 个生词` : `${words.length} ${words.length === 1 ? "word" : "words"}`}</p></header>
+        {words.length > 0 && <ul className="overflow-clip rounded-card border-[1.5px] border-ink bg-surface-container-lowest">
+          {sorted.map(({ word, reading, meaning, level, lang }) => <li key={word} className="flex flex-wrap items-center justify-between gap-4 border-b border-rule p-5 last:border-0 sm:p-6">
+            <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-3"><span lang={lang} className="break-words text-2xl font-bold">{word}</span>{level && <span className="iq-badge">{level}</span>}</div>{reading && <p className="mt-2 font-outlier text-sm text-muted">{reading}</p>}{meaning && <p className="mt-2 break-words text-ink-2">{meaning}</p>}</div>
+            <div className="flex gap-2"><button type="button" onClick={() => speak(word, lang)} disabled={!ttsSupported} aria-label={`${isZh ? "播放" : "Play"} ${word}`} className="iq-secondary disabled:opacity-50"><Volume2 className="size-4" />{isZh ? "播放" : "Play"}</button><button type="button" onClick={() => handleRemove(word)} aria-label={`${isZh ? "移除" : "Remove"} ${word}`} className="iq-quiet text-muted"><Trash2 className="size-4" />{isZh ? "移除" : "Remove"}</button></div>
+          </li>)}
+        </ul>}
+        <section className="mt-8 rounded-card border border-rule bg-paper-2 p-6 sm:p-8"><h2 className="text-xl font-bold">{isZh ? "边读边积累你的生词本" : "Build your list while you read"}</h2><p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{isZh ? "点击故事中有下划线的词，再选择收藏。它的读音和释义就会保存在这里。" : "Tap any underlined word in a story, then choose Save. It appears here with its pronunciation and meaning."}</p><Link href={DEFAULT_STORY_HREF} className="iq-secondary mt-5">{isZh ? "继续阅读" : "Continue reading"}<span aria-hidden="true">→</span></Link></section>
       </main>
 
       <Footer />

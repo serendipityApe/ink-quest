@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Bookmark, BookmarkCheck, Volume2 } from "lucide-react";
+import { Bookmark, BookmarkCheck, Volume2, X } from "lucide-react";
+import { useTranslations } from "@/i18n/I18nProvider";
 import type { TextSegment } from "@/types/story";
 import { useSpeak } from "@/hooks/useSpeak";
 
@@ -36,6 +37,8 @@ export default function WordSegment({
   onReveal,
   learningEnabled = true,
 }: WordSegmentProps) {
+  const { lang: interfaceLang } = useTranslations();
+  const isZh = interfaceLang === "zh";
   const { word, reading, meaning, level, tier: originalTier } = segment;
   const hasReading = Boolean(reading?.trim());
   // Pending definitions may still offer pinyin/pronunciation, including on touch.
@@ -137,19 +140,25 @@ export default function WordSegment({
       const viewportPadding = 8;
       const canPlaceAbove = triggerRect.top - tooltipRect.height - gap >= viewportPadding;
       const canPlaceBelow = triggerRect.bottom + tooltipRect.height + gap <= window.innerHeight - viewportPadding;
-      const top = canPlaceAbove || !canPlaceBelow
+      let top = canPlaceAbove || !canPlaceBelow
         ? triggerRect.top - tooltipRect.height - gap
         : triggerRect.bottom + gap;
-      const left = Math.min(
+      let left = Math.min(
         Math.max(triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2, viewportPadding),
         window.innerWidth - tooltipRect.width - viewportPadding,
       );
+      const article = triggerRef.current.closest("article")?.getBoundingClientRect();
+      const sidePlacement = Boolean(article && article.right + 40 + tooltipRect.width <= window.innerWidth - viewportPadding);
+      if (article && sidePlacement) {
+        left = article.right + 40;
+        top = Math.max(viewportPadding, Math.min(triggerRect.top, window.innerHeight - tooltipRect.height - viewportPadding));
+      }
       const bridgePadding = 24;
-      const bridgeLeft = Math.min(triggerRect.left, left) - bridgePadding;
-      const bridgeRight = Math.max(triggerRect.right, left + tooltipRect.width) + bridgePadding;
+      const bridgeLeft = sidePlacement ? triggerRect.right - 2 : Math.min(triggerRect.left, left) - bridgePadding;
+      const bridgeRight = sidePlacement ? left + 2 : Math.max(triggerRect.right, left + tooltipRect.width) + bridgePadding;
       const bridgeWidth = bridgeRight - bridgeLeft;
-      const bridgeTop = top < triggerRect.top ? top + tooltipRect.height : triggerRect.bottom;
-      const bridgeHeight = Math.abs(top < triggerRect.top
+      const bridgeTop = sidePlacement ? Math.min(top, triggerRect.top) : top < triggerRect.top ? top + tooltipRect.height : triggerRect.bottom;
+      const bridgeHeight = sidePlacement ? Math.max(top + tooltipRect.height, triggerRect.bottom) - bridgeTop : Math.abs(top < triggerRect.top
         ? triggerRect.top - bridgeTop
         : top - triggerRect.bottom);
 
@@ -191,6 +200,11 @@ export default function WordSegment({
     <span
       ref={triggerRef}
       className={`word-interactive relative ${lang === "en" ? "inline" : "inline-block"} ${baseClass} ${hoverClass} ${audioClass}`}
+      tabIndex={0}
+      role="button"
+      aria-expanded={showTooltip}
+      aria-label={`${word}: ${isZh ? "查看释义" : "definition"}`}
+      onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setShowTooltip(!showTooltip); onReveal?.(); } if (event.key === "Escape") hideTooltip(); }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
@@ -222,7 +236,7 @@ export default function WordSegment({
           )}
           <span
             ref={tooltipRef}
-            className={`fixed bottom-6 left-4 right-4 z-50 mx-auto flex max-w-sm flex-col gap-1.5 rounded-card border-2 border-ink bg-paper px-4 py-3 text-center shadow-[0.4rem_0.4rem_0_var(--color-ink)] pointer-events-auto md:bottom-auto md:right-auto md:left-[var(--tooltip-left)] md:top-[var(--tooltip-top)] md:z-70 md:mx-0 md:min-w-[180px] md:max-w-none ${tooltipPosition ? "md:visible" : "md:invisible"}`}
+            className={`fixed bottom-24 left-4 right-4 z-50 mx-auto flex max-w-sm flex-col gap-2 rounded-xl border border-rule bg-surface-container-lowest p-4 text-left text-ink shadow-soft pointer-events-auto md:bottom-auto md:right-auto md:left-[var(--tooltip-left)] md:top-[var(--tooltip-top)] md:z-70 md:mx-0 md:w-[260px] md:max-w-[calc(100vw-32px)] ${tooltipPosition ? "md:visible" : "md:invisible"}`}
             style={{
               "--tooltip-top": tooltipPosition ? `${tooltipPosition.top}px` : undefined,
               "--tooltip-left": tooltipPosition ? `${tooltipPosition.left}px` : undefined,
@@ -230,43 +244,10 @@ export default function WordSegment({
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
-          {/* 读音行：拼音/IPA + 喇叭按钮（TTS）。即便 reading 为空也保留按钮，
-              确保任何带释义/级别的词都能听到读音。 */}
-          <span className="flex items-center justify-center gap-2">
-            {reading && (
-              <span className="font-outlier text-sm font-medium text-ink-2">
-                {reading}
-              </span>
-            )}
-            {ttsSupported && (
-              <button
-                onClick={(e) => { e.stopPropagation(); speak(word, lang); }}
-                aria-label={`Pronounce ${word}`}
-                className="grid size-9 place-items-center rounded-full border border-ink bg-accent-soft hover:bg-accent"
-              >
-                <Volume2 className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </span>
-          {meaning && (
-            <span className="block whitespace-normal font-body text-sm text-ink-2">{meaning}</span>
-          )}
-          {level && (
-            <span className="mx-auto inline-block rounded-full border border-ink px-2 py-0.5 font-outlier text-[10px] uppercase tracking-wider">
-              {level}
-            </span>
-          )}
-          {learningEnabled && <button
-            onClick={(e) => { e.stopPropagation(); onToggleSave(segment); }}
-            className={`mt-1.5 flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 font-body text-[11px] font-bold uppercase tracking-wider ${
-              isSaved
-                ? "bg-accent text-ink"
-                : "bg-paper-2 text-ink hover:bg-accent-soft"
-            }`}
-          >
-            {isSaved ? <BookmarkCheck className="h-3 w-3" /> : <Bookmark className="h-3 w-3" />}
-            {isSaved ? "Saved" : "Save"}
-          </button>}
+          <span className="flex items-center gap-2"><span className="font-reading text-[26px] leading-tight">{word}</span>{reading && <span className="font-body text-sm text-muted">{reading}</span>}<button type="button" onClick={(event) => { event.stopPropagation(); hideTooltip(); triggerRef.current?.focus(); }} className="iq-quiet ml-auto" aria-label={isZh ? "关闭释义" : "Close definition"}><X className="size-4" /></button></span>
+          <span className="flex items-center justify-between gap-3 font-body text-sm leading-normal"><span>{meaning}</span>{level && <span className="iq-badge">{level}</span>}</span>
+          <span className="mt-2 flex gap-2 font-body">{learningEnabled && <button type="button" onClick={(event) => { event.stopPropagation(); onToggleSave(segment); }} aria-pressed={isSaved} className="iq-secondary flex-1">{isSaved ? <BookmarkCheck className="size-4" /> : <Bookmark className="size-4" />}{isSaved ? (isZh ? "已收藏" : "Saved") : (isZh ? "收藏" : "Save")}</button>}<button type="button" aria-label={`Pronounce ${word}`} disabled={!ttsSupported} onClick={(event) => { event.stopPropagation(); speak(word, lang); }} className="iq-quiet flex-1 disabled:opacity-50"><Volume2 className="size-4" />{isZh ? "播放" : "Play"}</button></span>
+
           </span>
         </>
       )}

@@ -6,7 +6,7 @@
 import Link from "next/link";
 import StoryPolicyNotice from "@/components/StoryPolicyNotice";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Coins, LockKeyhole, RefreshCw, Sparkles, Square, Volume2 } from "lucide-react";
+import { ChevronDown, LockKeyhole, RefreshCw, Sparkles, Square, Volume2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import WordSegment from "@/components/WordSegment";
 import { readingLayout } from "@/lib/generation/reading-layout";
@@ -239,6 +239,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
     }).then(async (response) => {
       if (!response.ok) throw new Error("pricing_unavailable");
       setQuote(await response.json() as Quote);
+      setPricingError(false);
     }).catch((reason) => {
       if (reason instanceof DOMException && reason.name === "AbortError") return;
       setQuote(null);
@@ -578,60 +579,46 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
 
   return (
     <>
-      <Navbar />
-      <main className="grid min-h-[calc(100vh-var(--nav-height))] min-w-0 bg-paper lg:grid-cols-[18.5rem_minmax(0,1fr)] xl:grid-cols-[18.5rem_minmax(0,1fr)_20rem]">
-        <aside className="min-w-0 border-b-2 border-ink bg-paper-2 p-4 lg:border-r lg:border-b-0 lg:border-r-rule-2 lg:p-6">
-          <Link href="/my-stories" className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline underline-offset-4">← {isZh ? "我的故事 · 自动保存" : "My stories · Autosaved"}</Link>
-          <div className="mb-7 flex items-center justify-between gap-4">
-            <div><p className="hallmark-eyebrow text-muted">Quick start</p><h1 className="mt-1 text-lg font-bold">{isZh ? "快速开局" : "Quick opening"}</h1></div>
-            <button type="button" onClick={randomizeAll} className="grid size-11 place-items-center rounded-full border-2 border-ink bg-paper shadow-[0_3px_0_var(--color-ink)] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none" aria-label={isZh ? "全部随机" : "Randomize all"}><RefreshCw className="size-4" /></button>
-          </div>
-
-          <div className="grid gap-7">
-            <ControlLabel title={isZh ? "阅读语言" : "Reading language"} marker="01" />
-            <div className="-mt-5 grid grid-cols-2 rounded-full border border-rule-2 bg-paper p-1">
-              {(["zh", "en"] as TargetLanguage[]).map((target) => <SegmentButton key={target} active={targetLanguage === target} onClick={() => chooseTarget(target)}>{target === "zh" ? "中文" : "English"}</SegmentButton>)}
-            </div>
-
-            <ControlLabel title={isZh ? "语言等级" : "Learner level"} marker="02" />
-            <select value={learnerLevel} onChange={(event) => setLearnerLevel(event.target.value)} className="-mt-5 min-h-11 rounded-input border border-rule-2 bg-paper px-3 outline-2 outline-transparent outline-offset-1 focus:outline-focus">
-              {(targetLanguage === "zh" ? ["HSK 1", "HSK 2", "HSK 3", "HSK 4", "HSK 5", "HSK 6", "HSK 7", "HSK 8", "HSK 9"] : ["A1", "A2", "B1", "B2", "C1", "C2"]).map((level) => <option key={level}>{level}</option>)}
-            </select>
-
-            <div>
-              <ControlLabel title={isZh ? "语音朗读" : "Narration"} marker="TTS" />
-              <div className="mt-3 grid grid-cols-2 rounded-full border border-rule-2 bg-paper p-1">
-                <SegmentButton active={ttsMode === "off"} onClick={() => chooseTtsMode("off")}>{isZh ? "暂不需要" : "Text only"}</SegmentButton>
-                <SegmentButton active={ttsMode === "every_scene"} onClick={() => chooseTtsMode("every_scene")}>{isZh ? "每段生成" : "Every scene"}</SegmentButton>
+      <Navbar creditBalance={credits} />
+      <main className="hallmark-shell py-10 pb-32 md:pb-16">
+        <Link href="/my-stories" className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline underline-offset-4">← {isZh ? "我的故事 · 自动保存" : "My stories · Autosaved"}</Link>
+        {phase === "intro" && <>
+          <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-3xl"><p className="hallmark-eyebrow text-muted">Your next story starts here</p><h1 className="hallmark-display mt-2 text-[32px] md:text-[40px]">{isZh ? "抽一张开局，走进你的故事。" : "Draw an opening. Step into your story."}</h1><p className="mt-3 max-w-[40em] text-ink-2">{isZh ? "不必先写完整大纲。选三个关键设定，读一个开场，再让故事跟着你的选择继续生长。" : "No complete outline required. Pick three anchors, read the opening, then let each choice grow the story."}</p></div>
+            <button type="button" onClick={randomizeAll} className="iq-quiet text-accent-deep"><RefreshCw className="size-4" />{isZh ? "全部随机" : "Shuffle all"}</button>
+          </header>
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:gap-12">
+            <div className="min-w-0 space-y-6">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                <fieldset className="col-span-2 min-w-0 md:col-span-1"><legend className="mb-3 text-sm font-bold"><span className="mr-2 font-outlier text-xs text-muted">01</span>{isZh ? "阅读语言" : "Reading language"}</legend><div className="iq-segment">{(["zh", "en"] as TargetLanguage[]).map((target) => <SegmentButton key={target} active={targetLanguage === target} onClick={() => chooseTarget(target)}>{target === "zh" ? "中文" : "English"}</SegmentButton>)}</div></fieldset>
+                <fieldset className="min-w-0"><legend className="mb-3 text-sm font-bold"><span className="mr-2 font-outlier text-xs text-muted">02</span><label htmlFor="learner-level">{isZh ? "语言等级" : "Learner level"}</label></legend><div className="relative"><select id="learner-level" value={learnerLevel} onChange={(event) => setLearnerLevel(event.target.value)} className="min-h-12 w-full appearance-none rounded-input border border-rule bg-surface-container-lowest pl-3 pr-11">{(targetLanguage === "zh" ? ["HSK 1", "HSK 2", "HSK 3", "HSK 4", "HSK 5", "HSK 6", "HSK 7", "HSK 8", "HSK 9"] : ["A1", "A2", "B1", "B2", "C1", "C2"]).map((level) => <option key={level}>{level}</option>)}</select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-2" strokeWidth={1.75} /></div></fieldset>
+                <fieldset className="min-w-0"><legend className="mb-3 text-sm font-bold"><span className="mr-2 font-outlier text-xs text-muted">03</span><label htmlFor="mobile-narration">{isZh ? "语音朗读" : "Narration"}</label></legend><div className="relative md:hidden"><select id="mobile-narration" value={ttsMode} onChange={event => chooseTtsMode(event.target.value as TtsMode)} className="min-h-12 w-full appearance-none rounded-input border border-rule bg-surface-container-lowest pl-3 pr-11"><option value="off">{isZh ? "纯文字" : "Text only"}</option><option value="every_scene">{isZh ? "每段朗读（额外积分）" : "Every scene (+credits)"}</option></select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-2" strokeWidth={1.75} /></div><div className="iq-segment hidden md:flex"><SegmentButton active={ttsMode === "off"} onClick={() => chooseTtsMode("off")}>{isZh ? "纯文字" : "Text only"}</SegmentButton><SegmentButton active={ttsMode === "every_scene"} onClick={() => chooseTtsMode("every_scene")}>{isZh ? "每段朗读" : "Every scene"}</SegmentButton></div><p className="mt-2 hidden text-xs leading-relaxed text-muted md:block">{isZh ? "每段朗读包含音频与词级时间轴，需额外积分" : "Every scene adds audio + word timing · extra credits"}</p></fieldset>
               </div>
-              <p className="mt-2 flex items-center justify-between gap-3 text-xs text-muted"><span>{isZh ? "音频与词级时间轴" : "Audio + word timing"}</span><strong className="text-accent-deep">{isZh ? "额外积分" : "Extra credits"}</strong></p>
+              {(["genre", "identity", "motive"] as OptionGroup[]).map((group, groupIndex) => <fieldset key={group} className="min-w-0">
+                <legend className="mb-3 w-full"><span className="flex items-center justify-between"><span className="text-sm font-bold"><span className="mr-2 font-outlier text-xs text-muted">0{groupIndex + 4}</span>{isZh ? ["题材", "开局身份", "核心动机"][groupIndex] : ["Genre", "Identity", "Motive"][groupIndex]}</span><button type="button" onClick={() => randomizeGroup(group)} className="iq-quiet text-sm text-accent-deep">{isZh ? "换一个" : "Shuffle"}</button></span></legend>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">{OPTIONS[group].map((option, index) => <label key={option.name} lang="zh" className="iq-option"><input type="radio" name={group} checked={selected[group] === index} onChange={() => setSelected((previous) => ({ ...previous, [group]: index }))} /><strong>{option.name}</strong><span>{option.hint}</span></label>)}</div>
+              </fieldset>)}
+              <section className="border-y border-rule"><button type="button" onClick={() => setCustomOpen((open) => !open)} aria-expanded={customOpen} aria-controls="custom-direction" className="flex min-h-14 w-full items-center justify-between gap-3 text-left font-semibold"><span>{isZh ? "写下你的想法" : "Add your own direction"}</span><span className="text-sm font-normal text-muted">{customOpen ? "−" : isZh ? "选填 +" : "Optional +"}</span></button>{customOpen && <div id="custom-direction" className="pb-4"><label htmlFor="custom-story-prompt" className="sr-only">{isZh ? "自定义故事想法" : "Custom story direction"}</label><textarea id="custom-story-prompt" value={customPrompt} onChange={(event) => setCustomPrompt(event.target.value)} maxLength={3000} placeholder={isZh ? "例如：一座每天会遗忘一小时的城市。" : "For example: a city that forgets one hour every day."} className="min-h-32 w-full rounded-input border border-rule bg-surface-container-lowest p-4" /></div>}</section>
             </div>
-
-            {(["genre", "identity", "motive"] as OptionGroup[]).map((group, groupIndex) => (
-              <section key={group}>
-                <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-sm font-bold">{isZh ? ["题材", "开局身份", "核心动机"][groupIndex] : ["Genre", "Identity", "Motive"][groupIndex]}</h2><button type="button" onClick={() => randomizeGroup(group)} className="min-h-8 font-outlier text-xs text-ink-2 hover:text-accent-deep">{isZh ? "换一个" : "Shuffle"}</button></div>
-                <div className="grid grid-cols-3 gap-2">
-                  {OPTIONS[group].map((option, index) => <button key={option.name} type="button" aria-pressed={selected[group] === index} onClick={() => setSelected((previous) => ({ ...previous, [group]: index }))} className="min-h-20 min-w-0 cursor-pointer rounded-input border border-rule-2 bg-paper p-2 text-left transition-colors hover:border-ink active:bg-paper-2 aria-pressed:border-ink aria-pressed:bg-accent-soft"><span className="block [overflow-wrap:anywhere] text-xs font-bold leading-tight">{option.name}</span><span className="mt-1 block text-[10px] leading-tight text-muted">{option.hint}</span></button>)}
+            <aside className="min-w-0 space-y-5 lg:sticky lg:top-24">
+              <section className="iq-summary rounded-card border-[1.5px] border-ink bg-surface-container-lowest p-6">
+                <p className="hallmark-eyebrow text-muted">{isZh ? "你的开场组合" : "Your opening mix"}</p><p lang="zh" className="mt-4 text-xl font-bold leading-normal md:text-2xl">{premise}</p><p className="mt-4 hidden text-sm text-muted md:block">{isZh ? "三个选择会分别保留调查、冒险与人物关系的空间。" : "Three choices will preserve room for investigation, risk, and relationships."}</p>
+                <div className="mt-4 flex flex-wrap gap-2">{[targetLanguage === "zh" ? "中文" : "English", learnerLevel, ttsMode === "off" ? (isZh ? "纯文字" : "Text only") : (isZh ? "每段朗读" : "Every scene")].map(value => <span key={value} className="iq-badge">{value}</span>)}</div>
+                <div className="iq-generation-action mt-4 border-t border-rule pt-4">
+                  <dl className="mb-4 grid grid-cols-2 gap-y-2 text-sm"><dt className="text-muted">{isZh ? "第一章" : "Chapter one"}</dt><dd className="text-right font-bold" aria-live="polite">{quote ? `${quote.total} ${isZh ? "积分" : "credits"}` : pricingError ? (isZh ? "报价暂不可用" : "Quote unavailable") : "…"}</dd><dt className="text-muted">{isZh ? "可用积分" : "Your balance"}</dt><dd className="text-right">{credits?.toLocaleString() ?? "—"}</dd></dl>
+                  {balanceState === "unavailable" && <button type="button" onClick={() => { void refreshBalance(); }} className="mb-3 min-h-8 underline" aria-label={isZh ? "重新读取积分余额" : "Retry loading credits"}>{isZh ? "余额暂不可用 · 重试" : "Balance unavailable · Retry"}</button>}
+                  {balanceState === "unauthorized" && <Link className="mb-3 block min-h-8 underline" href={`/login?next=${encodeURIComponent(initialStoryId ? `/generate?story=${initialStoryId}` : "/generate")}`}>{isZh ? "重新登录" : "Sign in"}</Link>}
+                  <button type="button" onClick={startOpening} disabled={!quote || Boolean(activeJob) || (credits !== null && quote.total > credits)} className="hallmark-btn min-h-13 w-full"><Sparkles className="size-4" />{isZh ? "生成第一章" : "Generate chapter one"}</button>
+                  {quote && credits !== null && quote.total > credits && <p role="status" className="mt-3 text-sm text-error">{isZh ? "积分不足，请调整设置后重试。" : "Not enough credits. Adjust your settings to continue."}</p>}
                 </div>
+                {error && <div className="mt-4"><ErrorNotice message={error} /></div>}
               </section>
-            ))}
-
-            <section>
-              <button type="button" onClick={() => setCustomOpen((open) => !open)} aria-expanded={customOpen} className="flex min-h-12 w-full items-center justify-between border-y border-rule-2 text-left text-sm font-bold"><span>{isZh ? "写下你的想法" : "Add your own direction"}</span><span className="font-outlier">{customOpen ? "−" : "+"}</span></button>
-              {customOpen && <div className="pt-4"><label className="sr-only" htmlFor="custom-story-prompt">{isZh ? "自定义故事想法" : "Custom story direction"}</label><textarea id="custom-story-prompt" value={customPrompt} onChange={(event) => setCustomPrompt(event.target.value)} maxLength={3000} placeholder={isZh ? "例如：故事发生在一座每天会遗忘一小时的城市。" : "For example: the city forgets one hour every day."} className="min-h-32 w-full resize-y rounded-input border border-ink bg-paper p-4 outline-2 outline-transparent outline-offset-1 placeholder:text-muted focus:outline-focus" /><p className="mt-2 text-xs text-muted">{isZh ? "可输入主题、大纲或提示；留空也能生成。" : "Theme, outline, or prompt. Leaving it blank also works."}</p></div>}
-            </section>
+              <section className="iq-control-room rounded-xl border border-rule bg-paper-2 p-5"><div className="flex flex-wrap items-center gap-2"><LockKeyhole className="size-4" /><h2 className="text-base font-bold">{isZh ? "剧情操控室" : "Story control room"}</h2><span className="iq-badge text-accent-deep">{isZh ? "Pro · 即将开放" : "Pro · Coming later"}</span></div><p className="mt-3 text-sm leading-relaxed text-muted">{isZh ? "暂停故事，调整人物关系、世界规则和剧情分支。" : "Pause the story and steer what comes next. Edit relationships, world rules, and branches."}</p><div className="mt-3 flex flex-wrap gap-2">{[isZh ? "增加张力" : "Raise tension", isZh ? "改变关系" : "Shift a relationship", isZh ? "降低难度" : "Lower difficulty"].map(label => <span key={label} className="rounded-full border border-rule px-3 py-1 text-xs text-muted">{label}</span>)}</div></section>
+            </aside>
           </div>
-            <StoryPolicyNotice />
-        </aside>
 
-        <section className="min-w-0 bg-paper p-4 sm:p-8 lg:p-10">
-          {phase === "intro" && <div className="mx-auto grid min-h-[68vh] w-full max-w-3xl content-center gap-10 py-8">
-            <header className="grid gap-4"><p className="hallmark-eyebrow text-muted">A story in ten seconds</p><h2 className="hallmark-display max-w-[12ch] text-[clamp(2.7rem,7vw,5.5rem)]">{isZh ? "抽一张开局，走进你的故事。" : "Draw an opening. Step into your story."}</h2><p className="max-w-2xl text-lg leading-relaxed text-ink-2">{isZh ? "不必先写完整大纲。选三个关键设定，先交付可读的开场，再让故事跟着你的选择继续生长。" : "No complete outline required. Pick three anchors, read the opening, then let each choice grow the story."}</p></header>
-            <article className="grid gap-6 rounded-card border-2 border-ink bg-paper-2 p-6 shadow-card sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:p-8"><div><p className="hallmark-eyebrow text-muted">{isZh ? "你的开场组合" : "Your opening mix"}</p><h3 className="mt-3 max-w-[22ch] text-3xl font-bold tracking-[-0.045em]">{premise}</h3><p className="mt-4 max-w-2xl text-ink-2">{isZh ? "三个选择会分别保留调查、冒险与人物关系的空间。" : "Three choices will preserve room for investigation, risk, and relationships."}</p></div><div className="grid size-24 place-items-center rounded-full border-2 border-ink bg-accent font-outlier text-xs font-semibold text-center -rotate-6">READY<br />TO OPEN</div></article>
-            <div className="flex flex-wrap items-center gap-4"><button type="button" onClick={startOpening} disabled={!quote || Boolean(activeJob)} className="hallmark-btn"><Sparkles className="size-4" />{isZh ? "生成第一章" : "Generate chapter one"}</button><span className="font-outlier text-xs text-muted">{quote ? `${quote.total} ${isZh ? "积分" : "credits"}` : pricingError ? (isZh ? "价格尚未配置" : "Pricing is not configured") : (isZh ? "正在报价…" : "Getting quote…")}</span></div>
-            {error && <ErrorNotice message={error} />}
-          </div>}
-
+            <StoryPolicyNotice />        </>}
+        <section className="min-w-0">
           {phase === "generating" && <GeneratingPanel label={generatingLabel} tts={ttsMode === "every_scene"} isZh={isZh} />}
 
           {phase === "reader" && storyData && <div className="mx-auto w-full max-w-3xl pb-20">
@@ -756,13 +743,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
           </div>}
         </section>
 
-        <aside className="hidden min-w-0 border-l border-rule-2 bg-paper-3 p-6 xl:block"><div className="sticky top-[calc(var(--nav-height)+1.5rem)]"><span className="inline-flex min-h-8 items-center rounded-full border border-ink bg-accent-soft px-3 font-outlier text-[10px] font-semibold">DIRECTOR MODE · PRO</span><h2 className="mt-5 text-2xl font-bold tracking-[-0.04em]">{isZh ? "剧情操控室" : "Story control room"}</h2><p className="mt-3 text-sm leading-relaxed text-ink-2">{isZh ? "暂停一下，告诉故事接下来应当倾向哪里。高级功能上线后可编辑关系、世界规则与回溯分支。" : "Pause the story and steer what comes next. Edit relationships, world rules, and branches with the premium control room."}</p><div className="mt-6 grid gap-3">{[isZh ? "增加张力" : "Raise tension", isZh ? "改变关系" : "Shift a relationship", isZh ? "降低难度" : "Lower difficulty"].map((label) => <button key={label} type="button" disabled className="min-h-11 rounded-full border border-rule-2 bg-paper px-4 text-left text-sm font-semibold opacity-60">{label}</button>)}</div><div className="mt-8 rounded-card border border-rule-2 bg-paper p-5"><LockKeyhole className="size-5" /><p className="mt-4 text-sm font-bold">{isZh ? "付费功能，稍后开放" : "Premium controls coming later"}</p></div></div></aside>
       </main>
-      <div className="fixed right-4 bottom-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-ink bg-accent-soft px-4 font-outlier text-xs shadow-[0_3px_0_var(--color-ink)]">
-        <Coins className="size-4" /><span>{isZh ? "积分" : "Credits"}</span><strong aria-live="polite">{credits ?? "—"}</strong>
-        {balanceState === "unavailable" && <button type="button" onClick={() => { void refreshBalance(); }} className="min-h-8 underline" aria-label={isZh ? "重新读取积分余额" : "Retry loading credits"}>{isZh ? "重试" : "Retry"}</button>}
-        {balanceState === "unauthorized" && <a className="min-h-8 content-center underline" href={`/login?next=${encodeURIComponent(initialStoryId ? `/generate?story=${initialStoryId}` : "/generate")}`}>{isZh ? "重新登录" : "Sign in"}</a>}
-      </div>
     </>
   );
 }
@@ -803,16 +784,12 @@ function toSentenceGroups(segments: TextSegment[], finalizeLast: boolean, prefix
   return groups;
 }
 
-function ControlLabel({ title, marker }: { title: string; marker: string }) {
-  return <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-bold">{title}</h2><span className="hallmark-eyebrow text-muted">{marker}</span></div>;
-}
-
 function SegmentButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return <button type="button" aria-pressed={active} onClick={onClick} className="min-h-9 cursor-pointer rounded-full px-2 text-sm font-bold whitespace-nowrap active:bg-paper-3 aria-pressed:bg-ink aria-pressed:text-paper">{children}</button>;
+  return <button type="button" aria-pressed={active} onClick={onClick} className="min-h-11 min-w-0 flex-1 cursor-pointer rounded-full px-2 text-sm font-bold whitespace-nowrap active:bg-paper-3 aria-pressed:bg-ink aria-pressed:text-paper">{children}</button>;
 }
 
 function GeneratingPanel({ label, tts, isZh }: { label: string; tts: boolean; isZh: boolean }) {
-  return <div className="mx-auto grid min-h-[68vh] w-full max-w-2xl place-items-center"><div className="w-full"><div className="relative mb-8 size-20 rounded-full border-2 border-ink bg-accent-soft after:absolute after:inset-2 after:animate-spin after:rounded-full after:border-2 after:border-accent-deep after:border-r-transparent" /><p className="hallmark-eyebrow text-muted">Generating story</p><h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">{label}</h2><p className="mt-4 text-ink-2">{isZh ? "先完成可读正文，再独立处理语音；语音失败不会影响故事内容。" : "Text is committed first, then narration is processed independently without risking the scene."}</p><ol className="mt-8 grid gap-3 text-sm"><li className="font-bold text-ink">● {label}</li><li className="text-muted">○ {isZh ? "准备三个去向" : "Prepare three choices"}</li><li className="text-muted">○ {isZh ? "检查语言难度" : "Check learner level"}</li>{tts && <li className="flex items-center gap-2 text-muted"><Volume2 className="size-4" />{isZh ? "生成语音与词级时间轴" : "Generate narration and word timing"}</li>}</ol></div></div>;
+  return <div className="mx-auto grid min-h-[68vh] w-full max-w-2xl place-items-center"><div className="w-full"><div className="relative mb-8 size-20 rounded-full border-[1.5px] border-ink bg-accent-soft after:absolute after:inset-2 after:animate-spin after:rounded-full after:border-2 after:border-accent-deep after:border-r-transparent" /><p className="hallmark-eyebrow text-muted">Generating story</p><h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">{label}</h2><p className="mt-4 text-ink-2">{isZh ? "先完成可读正文，再独立处理语音；语音失败不会影响故事内容。" : "Text is committed first, then narration is processed independently without risking the scene."}</p><ol className="mt-8 grid gap-3 text-sm"><li className="font-bold text-ink">● {label}</li><li className="text-muted">○ {isZh ? "准备三个去向" : "Prepare three choices"}</li><li className="text-muted">○ {isZh ? "检查语言难度" : "Check learner level"}</li>{tts && <li className="flex items-center gap-2 text-muted"><Volume2 className="size-4" />{isZh ? "生成语音与词级时间轴" : "Generate narration and word timing"}</li>}</ol></div></div>;
 }
 
 function ErrorNotice({ message }: { message: string }) {
