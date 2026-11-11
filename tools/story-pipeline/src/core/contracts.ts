@@ -17,6 +17,11 @@ export interface StoryPlan {
   openingIntent: string;
 }
 
+export interface OpeningDraft {
+  plan: StoryPlan;
+  scene: SceneDraft;
+}
+
 export interface SceneGenerationInput {
   storyId: string;
   targetLang?: TargetLang;
@@ -56,6 +61,7 @@ export interface ResolvedGloss {
 
 export interface LlmProvider {
   planStory(input: StoryPlanInput): Promise<StoryPlan>;
+  generateOpening?(input: StoryPlanInput): Promise<OpeningDraft>;
   writeScene(input: SceneGenerationInput): Promise<SceneDraft>;
   resolveGlosses(input: GlossResolutionInput): Promise<ResolvedGloss[]>;
 }

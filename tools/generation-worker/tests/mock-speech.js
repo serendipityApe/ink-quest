@@ -16,8 +16,14 @@ const speechFixture = {async fetch(request,env){
   if(url.pathname==="/stats")return Response.json(stats);
   if(url.hostname==="api.openai.com"){
     const body=await request.json();const payload=JSON.parse(body.input);let result;
-    if(payload.task.startsWith("Plan")){stats.plan++;result={title:"Library",worldBible:{},characters:[],openingIntent:"Explore"};}
-    else if(payload.task.startsWith("Write")){stats.write++;result={text:"Hello world. Alice opens the library door and finds a mysterious letter beside a silver key.",summary:"A letter",plotWords:[],
+    if(payload.task.startsWith("Create a story plan")){
+      stats.opening=(stats.opening??0)+1;
+      result={plan:{title:"Library",worldBible:{},characters:[],openingIntent:"Explore"},
+        scene:{text:"Alice opens the library door and finds a mysterious letter.\n\nBeside the letter, a silver key begins to shine.",summary:"A letter",plotWords:[],
+          choices:["Read","Listen","Leave"].map(label=>({label,intent:label,branchSeed:{}})),stateDelta:{}}};
+    }
+    else if(payload.task.startsWith("Plan")){stats.plan++;result={title:"Library",worldBible:{},characters:[],openingIntent:"Explore"};}
+    else if((payload.task.startsWith("Write") || payload.task.startsWith("Continue"))){stats.write++;result={text:"Hello world. Alice opens the library door and finds a mysterious letter beside a silver key.",summary:"A letter",plotWords:[],
       choices:["Read","Listen","Leave"].map(label=>({label,intent:label,branchSeed:{}})),stateDelta:{}};}
     else{stats.gloss++;result={resolutions:payload.input.unresolvedTokenIndexes.map(tokenIndex=>({tokenIndex,meaning:"测试释义"}))};}
     return Response.json({status:"completed",output:[{type:"message",content:[{type:"output_text",text:JSON.stringify(result)}]}]});

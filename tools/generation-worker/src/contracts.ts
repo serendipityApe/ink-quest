@@ -8,6 +8,7 @@ import type { EnrichmentProgress } from './enrich-step.js';
 
 export type Phase = "plan" | "write" | "prepare" | "enrich" | "gloss" | "commit" | "audio";
 export interface Outputs {
+  openingMode?: "single-call-v1";
   plan?: StoryPlan; scene?: SceneDraft; enriched?: EnrichSceneResult & { dictionaryVersion: string };
   fingerprint?: { provider: string; model: string; promptVersion: string; dictionaryVersion: string; segmentationVersion?: string };
   preparation?: Preparation; initialTokens?: EnrichedTokenItem[];

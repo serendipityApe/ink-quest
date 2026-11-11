@@ -39,7 +39,7 @@ for (const provider of ["openai", "gemini"]) {
         tasks.push(payload.task);
         let result: unknown;
         if (payload.task.startsWith("Plan")) result = { title: "The Library", worldBible: { location: "library" }, characters: ["Mia"], openingIntent: "Enter" };
-        else if (payload.task.startsWith("Write")) {
+        else if ((payload.task.startsWith("Write") || payload.task.startsWith("Continue"))) {
           assert.equal(payload.input.targetLang, job.targetLanguage);
           assert.equal(payload.input.learnerLevel, job.learnerLevel);
           result = {

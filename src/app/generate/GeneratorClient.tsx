@@ -9,6 +9,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Coins, LockKeyhole, RefreshCw, Sparkles, Square, Volume2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import WordSegment from "@/components/WordSegment";
+import { readingLayout } from "@/lib/generation/reading-layout";
 import { useAudioSync } from "@/hooks/useAudioSync";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { fromSegment, loadSavedWords, toggleSaved, type SavedWord } from "@/lib/savedWords";
@@ -644,14 +645,15 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
             <article>
               {storyData.nodes.map((node, index) => {
                 const segments = node.text_segments ?? [];
-                const sentenceGroups = toSentenceGroups(segments, true);
+                const layout = readingLayout(node.text, segments, storyData.story.target_language);
+                const sentenceGroups = toSentenceGroups(segments, true, layout.prefixes);
                 const wholeNodeActive = playingNodeId === node.id && playingSentence === null;
                 const bodyClass = storyData.story.target_language === "en"
                   ? "font-body text-[20px] text-ink leading-[1.85] break-words md:text-[22px]"
                   : "font-reading text-[22px] text-ink break-words tracking-[0.045em] leading-[2] md:text-[26px]";
-                const renderSegment = (segment: TextSegment, segmentIndex: number, isFirst: boolean) => (
+                const renderSegment = (segment: TextSegment, segmentIndex: number, isFirst: boolean, withPrefix = true) => (
                   <span key={`${node.id}-${segmentIndex}`}>
-                    {shouldPrefixSpace(segment.word, storyData.story.target_language, isFirst) ? " " : ""}
+                    {withPrefix && !isFirst ? layout.prefixes[segmentIndex]?.replace(/\s+/gu, " ") : ""}
                     <WordSegment
                       segment={segment}
                       learningEnabled={!node.model_metadata?.enrichmentStatus || Boolean(segment.meaning?.trim())}
@@ -669,9 +671,15 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
                     <div className={bodyClass}>
                       {segments.length ? (
                         <>
-                          <p className="hidden whitespace-pre-wrap md:block">
-                            {segments.map((segment, segmentIndex) => renderSegment(segment, segmentIndex, segmentIndex === 0))}
-                          </p>
+                          <div className="hidden space-y-6 md:block" data-reading-paragraphs>
+                            {layout.paragraphs.map((paragraph) => (
+                              <p key={paragraph.start} className="whitespace-normal">
+                                {paragraph.runs.map((run, runIndex) => run.tokenIndex === undefined
+                                  ? <span key={`space-${runIndex}`}>{run.text}</span>
+                                  : renderSegment(segments[run.tokenIndex], run.tokenIndex, false, false))}
+                              </p>
+                            ))}
+                          </div>
                           <div className="flex flex-col gap-5 md:hidden">
                             {sentenceGroups.map((sentence) => {
                               const sentenceKey = `${node.id}:${sentence.start}-${sentence.end}`;
@@ -694,7 +702,7 @@ export default function GeneratorClient({ initialStoryId }: { initialStoryId: st
                             })}
                           </div>
                         </>
-                      ) : <p className="whitespace-pre-wrap">{node.text}</p>}
+                      ) : <div className="space-y-6">{layout.paragraphs.map((paragraph) => <p key={paragraph.start} className="whitespace-normal">{paragraph.runs.map(run => run.text).join("")}</p>)}</div>}
                     </div>
 
                     {isEnrichmentPending(node) && <p className="mt-4 text-xs text-muted" role="status">
@@ -769,16 +777,18 @@ function joinSegments(segments: TextSegment[], lang: TargetLanguage) {
   }, "");
 }
 
-function toSentenceGroups(segments: TextSegment[], finalizeLast: boolean) {
+function toSentenceGroups(segments: TextSegment[], finalizeLast: boolean, prefixes: string[]) {
   const groups: SentenceGroup[] = [];
   let start = 0;
 
-  segments.forEach((segment, index) => {
-    if (/[.!?。！？…]$/.test(segment.word)) {
+  for (let index = 0; index < segments.length; index++) {
+    if (/[.!?。！？…][”’"')\]」』】]*$/u.test(segments[index].word)) {
+      // Keep closing dialogue punctuation with its sentence, not the next audio row.
+      while (index + 1 < segments.length && !prefixes[index + 1] && /^[”’"')\]」』】]+$/u.test(segments[index + 1].word)) index++;
       groups.push({ start, end: index, segments: segments.slice(start, index + 1), complete: true });
       start = index + 1;
     }
-  });
+  }
 
   if (start < segments.length) {
     groups.push({

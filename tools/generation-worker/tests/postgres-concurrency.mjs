@@ -90,6 +90,7 @@ async function bootstrap(){
  // Freeze a genuinely in-progress legacy job before replacing the checkpoint RPC.
  const legacy=await preparationFixture(false);
  await sql(await readFile(new URL('../../../supabase/migrations/202611110004_combine_preparation_checkpoints.sql',import.meta.url),'utf8'));
+ await sql(await readFile(new URL('../../../supabase/migrations/202611110005_single_call_opening.sql',import.meta.url),'utf8'));
  return legacy;
 }
 async function fixture({commit=true,tts=false}={}){
@@ -142,6 +143,23 @@ async function preparationFixture(combined=true){
 }
 try{
  const legacy=await bootstrap();
+ await check('single-call opening checkpoint fences concurrent stale delivery and preserves reservation',async()=>{
+  const f=await fixture({commit:false});
+  await sql(`update public.generation_edge_state set phase='plan',outputs='{}' where job_id=${f.id};`);
+  await sql(rpc('edge_begin_generation_stage',f.auth));
+  const output={openingMode:'single-call-v1',plan:{title:'Library',worldBible:{},characters:[],openingIntent:'Explore'},
+   scene:{text:f.input.text,summary:'Opening',plotWords:[],choices:['Read','Wait','Leave'].map(label=>({label,intent:label,branchSeed:{}})),stateDelta:{}},
+   fingerprint:{provider:'fixture',model:'fixture',promptVersion:'fixture',dictionaryVersion:'fixture',segmentationVersion:'segments-v1'},preparation:emptyPreparation()};
+  const statement=checkpoint(f.auth,'prepare',output);
+  const raced=await overlap(statement,statement);
+  assert.equal(raced.second.ok,false,'stale duplicate cannot checkpoint a paid result twice');
+  assert.deepEqual(await json(`select jsonb_build_object('phase',phase,'mode',outputs->>'openingMode','revision',revision) from public.generation_edge_state where job_id=${f.id};`),{phase:'prepare',mode:'single-call-v1',revision:1});
+  const billing=await f.billing();assert.equal(billing.nodes,0);assert.equal(billing.settles,0);assert.equal(billing.amount,0);
+  const lease=await primaryLease(f);
+  assert.notEqual(lease.p_epoch,f.auth.p_epoch);
+  await assert.rejects(sql(statement),/lease|epoch|fence/i);
+ });
+
  await check('default function grants cannot expose private enrichment helpers',async()=>{
   // PUBLIC has no access to the probe, proving the service grant is explicit.
   assert.equal(await json(`select to_jsonb(has_function_privilege('service_role','public.test_default_grant()','execute'));`),true);

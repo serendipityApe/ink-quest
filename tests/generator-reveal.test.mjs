@@ -8,6 +8,8 @@ import ts from "typescript";
 // Execute the actual component with deterministic hooks and local-only I/O.
 // No DOM library, network, speech synthesis, model calls, or real timers are used.
 const require = createRequire(import.meta.url);
+const layoutModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../src/lib/generation/reading-layout.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { module: layoutModule, exports: layoutModule.exports, Intl });
 const source = readFileSync(new URL("../src/app/generate/GeneratorClient.tsx", import.meta.url), "utf8");
 const stateNames = [...source.matchAll(/const \[(\w+), \w+\] = useState/g)].map((match) => match[1]);
 const compiled = ts.transpileModule(source, {
@@ -69,6 +71,7 @@ function harness(data, reducedMotion = false, options = {}) {
     module: compiledModule, exports: compiledModule.exports, AbortController, DOMException, crypto, queueMicrotask,
     require(name) {
       if (name === "react") return hooks;
+      if (name === "@/lib/generation/reading-layout") return layoutModule.exports;
       if (name === "react/jsx-runtime") return require(name);
       if (name === "@/hooks/useAudioSync") return { useAudioSync: () => ({ isPlaying: false, activeSegmentIndex: -1, stop: () => calls.stopped++, play: (args) => calls.played.push(args) }) };
       if (name === "@/i18n/I18nProvider") return { useTranslations: () => ({ lang: "en" }) };
@@ -209,7 +212,7 @@ test("reader controls retain native keyboard semantics and accessible complete c
   const scene = all.find((element) => element.props?.["aria-label"] === "Story scene 1");
   assert.ok(scene);
   assert.equal(elements(scene).some((element) => element.props?.["aria-hidden"]), false);
-  const desktop = elements(scene).find((element) => element.type === "p" && element.props.className.includes("md:block"));
+  const desktop = elements(scene).find((element) => element.props?.["data-reading-paragraphs"] !== undefined);
   const mobile = elements(scene).find((element) => element.type === "div" && element.props.className.includes("md:hidden"));
   for (const layout of [desktop, mobile]) {
     assert.deepEqual(elements(layout).filter((element) => element.props?.segment).map((element) => element.props.segment.word), data.nodes[0].text_segments.map((segment) => segment.word));
@@ -724,3 +727,17 @@ for (const outcome of ["success", "failure", "network rejection"]) {
     assert.equal(h.calls.history.length, 0);
   });
 }
+
+test('mobile sentence groups keep adjacent dialogue opening quotes with the next audio row', () => {
+ const functionSource = source.slice(source.indexOf('function toSentenceGroups('), source.indexOf('function ControlLabel('));
+ const group = vm.runInNewContext(ts.transpileModule(functionSource, {compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText + ';toSentenceGroups');
+ for (const text of ['"Stop." "Go."', '“Stop.” “Go.”', 'Stop. "Go."']) {
+  const words = [...new Intl.Segmenter('en', {granularity:'word'}).segment(text)].filter(s=>s.segment.trim()).map(s=>({word:s.segment}));
+  const layout = layoutModule.exports.readingLayout(text, words, 'en');
+  const groups = group(words, true, layout.prefixes);
+  assert.equal(groups.length, 2);
+  assert.equal(groups[1].segments.map(s=>s.word).join(''), text.includes('“') ? '“Go.”' : '"Go."');
+  assert.equal(groups[0].end + 1, groups[1].start);
+  assert.equal(groups[1].end, words.length - 1);
+ }
+});

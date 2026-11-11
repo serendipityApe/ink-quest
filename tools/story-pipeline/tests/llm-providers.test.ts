@@ -230,3 +230,42 @@ test('usage diagnostics preserve HTTP status without exposing upstream error bod
  const logs:unknown[][]=[];t.mock.method(console,'log',(...args:unknown[])=>{logs.push(args);});mockFetch(t,()=>Response.json({error:{code:'invalid_request',message:'private prompt and credential'}},{status:400}));
  await assert.rejects(createLlmProvider({...openai,LLM_USAGE_TELEMETRY:'true',LLM_REQUEST_ATTEMPTS:'1'}).resolveGlosses(glossInput));const value=JSON.parse(String(logs[0][0]));assert.equal(value.httpStatus,400);assert.equal(value.failureKind,'http_error');assert.equal(value.inputTokens,null);assert.doesNotMatch(JSON.stringify(value),/private prompt|credential|test-openai-only/);
 });
+
+test('single-call opening preserves original setup, paragraphs, plan and scene with one request', async t => {
+  const input = { ...planInput, setup: { tone: 'mysterious', character: 'Mia' } };
+  const openingScene = { ...scene, text: 'Mia opens the library door. A letter waits on the desk.\n\n“Who left this here?” she asks.\n\nThe key turns by itself.' };
+  const logs: unknown[][] = []; t.mock.method(console, 'log', (...args: unknown[]) => { logs.push(args); });
+  const fetch = mockFetch(t, (_url, request) => {
+    const body = JSON.parse(String(request.body)); const payload = JSON.parse(body.input);
+    assert.equal(payload.task, 'Create a story plan and its opening scene together.');
+    assert.deepEqual(payload.input, input);
+    assert.match(payload.requirements.join(' '), /paragraphs.*newline/);
+    assert.match(payload.requirements.join(' '), /Do not shorten/);
+    assert.equal(body.max_output_tokens, 6000);
+    return responses({ plan, scene: openingScene });
+  });
+  assert.deepEqual(await createLlmProvider({ ...openai, LLM_USAGE_TELEMETRY: 'true' }).generateOpening(input), { plan, scene: openingScene });
+  assert.equal(fetch.mock.callCount(), 1);
+  assert.equal(JSON.parse(String(logs[0][0])).stage, 'opening');
+});
+
+for (const invalid of [{ scene }, { plan }, { plan, scene: { ...scene, choices: [] } }, { plan: { ...plan, worldBible: undefined }, scene }]) {
+  test('invalid combined opening never falls back to a second paid request', async t => {
+    const fetch = mockFetch(t, () => responses(invalid));
+    await assert.rejects(createLlmProvider({ ...openai, LLM_REQUEST_ATTEMPTS: '1' }).generateOpening(planInput), isProviderError(false));
+    assert.equal(fetch.mock.callCount(), 1);
+  });
+}
+
+test('continuation prompts keep selected choice and prior state, with write telemetry', async t => {
+  const logs: unknown[][] = []; t.mock.method(console, 'log', (...args: unknown[]) => { logs.push(args); });
+  const input = { ...sceneInput, selectedChoice: { label: 'Take the key' }, state: { ...sceneInput.state, currentNodeId: 'parent', snapshot: { worldBible: 'library' } } };
+  const fetch = mockFetch(t, (_url, request) => {
+    const payload = JSON.parse(JSON.parse(String(request.body)).input);
+    assert.match(payload.task, /^Continue the selected branch/);
+    assert.deepEqual(payload.input, input);
+    return responses(scene);
+  });
+  assert.deepEqual(await createLlmProvider({ ...openai, LLM_USAGE_TELEMETRY: 'true' }).writeScene(input), scene);
+  assert.equal(fetch.mock.callCount(), 1); assert.equal(JSON.parse(String(logs[0][0])).stage, 'write');
+});

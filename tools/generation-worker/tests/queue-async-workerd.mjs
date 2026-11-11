@@ -21,7 +21,7 @@ let databaseCalls=0;
 const mf=new Miniflare({cf:false,workers:[
   {name:"generation",modulesRoot:join(root,"dist"),modules:[{type:"ESModule",path:join(root,"dist/worker.js")},
     {type:"CompiledWasm",path:join(root,"dist/jieba.wasm")}],compatibilityDate:"2026-07-21",outboundService:"external-fixture",
-    bindings:{GENERATION_ENABLED:"true",GENERATION_ASYNC_DICTIONARY:"true",SUPABASE_URL:"https://database.invalid",SUPABASE_SERVICE_ROLE_KEY:"fixture-key",
+    bindings:{GENERATION_ENABLED:"true",GENERATION_ASYNC_DICTIONARY:"true",GENERATION_SINGLE_CALL_OPENING:"true",SUPABASE_URL:"https://database.invalid",SUPABASE_SERVICE_ROLE_KEY:"fixture-key",
       GENERATION_DICTIONARY_VERSION:"fixture-v1",LLM_PROVIDER:"openai",OPENAI_API_KEY:"fixture-key",OPENAI_MODEL:"mock-v1",
       AZURE_SPEECH_KEY:"fixture-key",AZURE_SPEECH_REGION:"fixture",AZURE_TTS_VOICE_EN:"mock-complete"},
     queueProducers:{GENERATION_QUEUE:"isolated-generation"},queueConsumers:{"isolated-generation":{maxBatchSize:1,maxBatchTimeout:0,maxRetries:3}}},
@@ -74,7 +74,7 @@ try{
   const account=(await db.query("select available,reserved from public.credit_accounts where user_id=$1",[userId])).rows[0];
   assert.deepEqual(account,{available:955,reserved:0});
   const external=await mf.getWorker("external-fixture");const stats=await (await external.fetch("http://fixture.invalid/stats")).json();
-  assert.deepEqual(stats,{plan:2,write:2,gloss:2,audio:1});
+  assert.deepEqual(stats,{plan:0,write:0,gloss:2,audio:1,opening:2});
   console.log(JSON.stringify({result:"passed",runtime:"text-first local workerd Queues + isolated PostgreSQL",jobs:2,
     initialDuplicateDeliveries:2,providerCalls:stats,databaseCalls,account,externalNetworkCalls:0,productionMessages:0}));
 }finally{await mf.dispose();await db.close();}

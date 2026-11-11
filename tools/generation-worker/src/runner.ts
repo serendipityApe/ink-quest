@@ -14,6 +14,7 @@ export interface Services {
   preflight(lease: Lease): Promise<void>;
   incrementalDictionary?: boolean;
   asyncDictionary?: boolean;
+  singleCallOpening?: boolean;
   enrichmentStore?: EdgeStore;
   audio(lease: Lease): Promise<CommitGeneratedAudioInput>;
 }
@@ -101,8 +102,16 @@ async function execute(lease: Lease, s: Services): Promise<OutboxItem | null> {
   switch (phase) {
     case "plan": {
       await s.store.begin(lease);
-      const plan = await provider.planStory({ premise: job.premise, targetLang: job.targetLanguage,
-        learnerLevel: job.learnerLevel, setup: record(job.input.setup) });
+      const input = { premise: job.premise, targetLang: job.targetLanguage,
+        learnerLevel: job.learnerLevel, setup: record(job.input.setup) };
+      // Only new text-first openings opt in. Persist the complete paid result
+      // before any subsequent work; legacy plan-only checkpoints still write.
+      if (job.jobType === "opening" && s.singleCallOpening && fingerprint.segmentationVersion && provider.generateOpening) {
+        const { plan, scene } = await provider.generateOpening(input);
+        return checkpoint("prepare", { plan, scene, fingerprint, openingMode: "single-call-v1",
+          preparation: initialPreparation() });
+      }
+      const plan = await provider.planStory(input);
       return checkpoint("write", { plan, fingerprint });
     }
     case "write": {
@@ -175,7 +184,8 @@ async function execute(lease: Lease, s: Services): Promise<OutboxItem | null> {
           timelineSummary: [...(Array.isArray(job.stateSnapshot.timelineSummary) ? job.stateSnapshot.timelineSummary.map(json) : []), outputs.scene.summary],
           unresolvedThreads: outputs.scene.choices.map(c => c.intent), stateDelta: outputs.scene.stateDelta,
         }, promptVersion: provider.promptVersion, modelMetadata: { provider: provider.provider, model: provider.model,
-          attempt: job.attempt, dictionaryVersion: s.dictionaryVersion }, ttsDeferred: job.ttsMode === "every_scene",
+          attempt: job.attempt, dictionaryVersion: s.dictionaryVersion,
+          ...(outputs.openingMode ? { openingMode: outputs.openingMode } : {}) }, ttsDeferred: job.ttsMode === "every_scene",
         ...(outputs.initialTokens && !lease.enrichment ? {
           enrichmentDeferred: true,
           enrichment: { plan: outputs.plan, scene: outputs.scene, fingerprint,
