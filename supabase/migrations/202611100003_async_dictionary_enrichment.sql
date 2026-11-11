@@ -337,7 +337,9 @@ end $$;
 
 do $$ declare f record; begin
  for f in select p.oid::regprocedure signature,p.proname from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'enrichment_%' loop
- execute format('revoke all on function %s from public,anon,authenticated',f.signature);
+ -- Supabase may grant service_role EXECUTE through default privileges.
+ -- Reset explicit/default grants before exposing only the intended RPCs.
+ execute format('revoke all on function %s from public,anon,authenticated,service_role',f.signature);
  if f.proname not in ('enrichment_fence','enrichment_wake','enrichment_words','enrichment_node_status','enrichment_prepared_length','enrichment_lock_parent') then execute format('grant execute on function %s to service_role',f.signature); end if;
  end loop;
 end $$;

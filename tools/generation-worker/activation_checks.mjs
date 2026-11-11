@@ -12,14 +12,16 @@ export const READER='inkquest-dictionary-assets';
 export const READER_VERSION='47b49ee7-7858-47d6-9373-504fd330f11a';
 export function parseGateArgs(args){
   const [phase,...flags]=args;assert.ok(['before','after'].includes(phase),'invalid_phase');
-  assert.ok(flags.every(x=>['--keep-active','--post-deploy'].includes(x))&&new Set(flags).size===flags.length,'invalid_gate_flags');
-  const keepActive=flags.includes('--keep-active'),postDeploy=flags.includes('--post-deploy');
+  assert.ok(flags.every(x=>['--keep-active','--post-deploy','--async-dictionary'].includes(x))&&new Set(flags).size===flags.length,'invalid_gate_flags');
+  const keepActive=flags.includes('--keep-active'),postDeploy=flags.includes('--post-deploy'),asyncDictionary=flags.includes('--async-dictionary');
   assert.ok(!keepActive||phase==='after','keep_active_requires_after');assert.ok(!postDeploy||keepActive,'post_deploy_requires_keep_active');
-  return {phase,options:{keepActive,postDeploy}};
+  assert.ok(!asyncDictionary||keepActive,'async_dictionary_requires_keep_active');
+  return {phase,options:{keepActive,postDeploy,asyncDictionary}};
 }
 export function gateArgsForRequest(request){return request?.mode==='compatible_latency_update'?['--keep-active']:[];}
-export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,now=Date.now()}={}){
+export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,asyncDictionary=false,now=Date.now()}={}){
   assert.ok(['before','after'].includes(phase),'invalid_phase');
+  assert.equal(typeof asyncDictionary,'boolean');assert.ok(!asyncDictionary||keepActive,'async_dictionary_requires_keep_active');
   assert.equal(typeof keepActive,'boolean');assert.equal(typeof postDeploy,'boolean');assert.ok(!keepActive||phase==='after','keep_active_requires_after');assert.ok(!postDeploy||keepActive,'post_deploy_requires_keep_active');
   assert.equal(s.dictionary.length,1);const asset=s.dictionary[0];
   for(const [key,value] of Object.entries({asset_version:VERSION,source_version:SOURCE,manifest_sha256:MANIFEST,expected_rows:892057,zh_rows:121446,en_rows:770611,reader_worker:READER,reader_version:READER_VERSION}))assert.equal(asset[key],value,'asset_'+key);
@@ -31,11 +33,15 @@ export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,now=Dat
   assert.equal(s.readerWorkerFirst,true,'asset_router_must_not_bypass_worker');
   assert.equal(s.counts.zh,121446);assert.equal(s.counts.en,770611);
   assert.equal(s.backend.length,1);const backend=s.backend[0];assert.equal(backend.active,keepActive);assert.equal(backend.consumer_verified,keepActive);
+  const asyncCapability=backend.capabilities?.async_dictionary;
+  if(asyncDictionary)assert.equal(asyncCapability,true,'backend_async_dictionary_mismatch');
+  else assert.ok(asyncCapability===undefined||asyncCapability===null||asyncCapability===false,'backend_async_dictionary_mismatch');
   if(keepActive){
     const checked=typeof backend.checked_at==='string'?Date.parse(backend.checked_at):NaN;
     assert.ok(Number.isFinite(now)&&Number.isFinite(checked)&&now-checked>=0&&now-checked<=180000,'stale_or_invalid_heartbeat');
     assert.equal(backend.dictionary_version,VERSION,'backend_dictionary_mismatch');
-    assert.deepEqual(backend.capabilities,{text_en:true,text_zh:true,audio_en:false,audio_zh:false},'backend_capabilities_mismatch');
+    const baseCapabilities={...backend.capabilities};delete baseCapabilities.async_dictionary;
+    assert.deepEqual(baseCapabilities,{text_en:true,text_zh:true,audio_en:false,audio_zh:false},'backend_capabilities_mismatch');
   }
   // A live entry cannot atomically exclude new jobs. Predeploy must be idle;
   // postdeploy reports any new job without falsely declaring deployment failure.
@@ -43,6 +49,13 @@ export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,now=Dat
   assert.equal(s.publicUrls.enabled,false);assert.equal(s.publicUrls.previews_enabled,false);
   assert.equal(s.workerVersions.length,1);assert.equal(s.workerVersions[0].percentage,100);assert.match(s.workerVersions[0].version_id,/^[a-f0-9-]{36}$/);
   const b=Object.fromEntries(s.settings.bindings.map(x=>[x.name,x]));
+  if(asyncDictionary){
+    assert.equal(b.GENERATION_ASYNC_DICTIONARY?.type,'plain_text','async_dictionary_binding_type_mismatch');
+    assert.equal(b.GENERATION_ASYNC_DICTIONARY?.text,'true','async_dictionary_binding_mismatch');
+  }else if(b.GENERATION_ASYNC_DICTIONARY!==undefined){
+    assert.equal(b.GENERATION_ASYNC_DICTIONARY.type,'plain_text','async_dictionary_binding_type_mismatch');
+    assert.equal(b.GENERATION_ASYNC_DICTIONARY.text,'false','async_dictionary_binding_mismatch');
+  }
   for(const name of ['OPENAI_API_KEY','SUPABASE_SERVICE_ROLE_KEY'])assert.equal(b[name]?.type,'secret_text',name+'_missing');
   for(const [name,value] of Object.entries({LLM_PROVIDER:'openai',OPENAI_MODEL:'gpt-6-luna',OPENAI_REASONING_EFFORT:'low',OPENAI_MAX_OUTPUT_TOKENS:'6000',GENERATION_DICTIONARY_VERSION:phase==='before'?SOURCE:VERSION,GENERATION_ENABLED:phase==='before'?'false':'true'}))assert.equal(b[name]?.text,value,name+'_mismatch');
   assert.equal(s.queue.queue_name,'inkquest-generation');assert.equal(s.queue.queue_id,QUEUE);
@@ -56,11 +69,12 @@ export function checkSnapshot(s,phase,{keepActive=false,postDeploy=false,now=Dat
     for(const [key,value] of Object.entries({batch_size:1,max_concurrency:1,max_retries:3,max_wait_time_ms:1000}))assert.equal(c.settings?.[key],value,'consumer_'+key);
     assert.equal(s.schedules.length,1);assert.equal(s.schedules[0].cron,'* * * * *');
   }
-  return {phase,verified:true,dictionaryVersion:VERSION,rows:892057,backendActive:backend.active,consumerVerified:backend.consumer_verified,...(keepActive?{keepActive:true,postDeploy,heartbeatAgeMs:now-Date.parse(backend.checked_at),activeJobObserved:s.jobs.length>0}:{}),consumerCount:s.consumers.length,cronCount:s.schedules.length,model:'gpt-6-luna',workerVersion:s.workerVersions[0].version_id};
+  return {phase,verified:true,dictionaryVersion:VERSION,rows:892057,backendActive:backend.active,consumerVerified:backend.consumer_verified,...(keepActive?{keepActive:true,postDeploy,asyncDictionary,heartbeatAgeMs:now-Date.parse(backend.checked_at),activeJobObserved:s.jobs.length>0}:{}),consumerCount:s.consumers.length,cronCount:s.schedules.length,model:'gpt-6-luna',workerVersion:s.workerVersions[0].version_id};
 }
 export async function inspect(phase,options={}){
   // Validate opt-in before any remote read. No state is changed by either mode.
-  parseGateArgs([phase,...(options.keepActive?['--keep-active']:[]),...(options.postDeploy?['--post-deploy']:[])]);
+  for(const key of ['keepActive','postDeploy','asyncDictionary'])assert.ok(options[key]===undefined||typeof options[key]==='boolean','invalid_gate_options');
+  parseGateArgs([phase,...(options.keepActive?['--keep-active']:[]),...(options.postDeploy?['--post-deploy']:[]),...(options.asyncDictionary?['--async-dictionary']:[])]);
   const cfToken=process.env.CLOUDFLARE_API_TOKEN,dbKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
   assert.ok(cfToken&&dbKey,'existing_credentials_missing');
   assert.equal(process.env.CLOUDFLARE_ACCOUNT_ID,ACCOUNT);

@@ -31,6 +31,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node --test tools/generation-worker/tests/activation-checks.test.mjs
       - run: pnpm --filter @inkquest/generation-worker typecheck
       - run: pnpm exec tsc --noEmit
       - run: node --test tests/generator-reveal.test.mjs tests/word-segment-enrichment.test.mjs

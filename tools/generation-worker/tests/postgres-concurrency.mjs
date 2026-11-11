@@ -77,8 +77,15 @@ async function bootstrap(){
  for(const file of ['202608220001_generated_story_billing.sql','202608220002_generation_worker_rpc.sql',
  '202608230001_generated_story_tts.sql','202608230002_fix_generation_digest_search_path.sql',
  '202611060001_edge_generation_worker.sql','202611060002_generation_readiness.sql',
- '202611100001_asset_dictionary_generation.sql','202611100002_incremental_enrichment_preparation.sql','202611100003_async_dictionary_enrichment.sql'])
+ '202611100001_asset_dictionary_generation.sql','202611100002_incremental_enrichment_preparation.sql','202611100003_async_dictionary_enrichment.sql']){
+  if(file==='202611100003_async_dictionary_enrichment.sql'){
+   // Reproduce Supabase's creator-level default grants before creating helpers.
+   await sql(`alter default privileges for role postgres in schema public grant execute on functions to service_role;
+    create function public.test_default_grant() returns integer language sql as 'select 1';
+    revoke execute on function public.test_default_grant() from public;`);
+  }
   await sql(await readFile(new URL(`../../../supabase/migrations/${file}`,import.meta.url),'utf8'));
+ }
 }
 async function fixture({commit=true,tts=false}={}){
  const user=randomUUID();await sql(`insert into auth.users(id) values(${quote(user)});`);
@@ -106,6 +113,31 @@ async function fixture({commit=true,tts=false}={}){
 }
 try{
  await bootstrap();
+ await check('default function grants cannot expose private enrichment helpers',async()=>{
+  // PUBLIC has no access to the probe, proving the service grant is explicit.
+  assert.equal(await json(`select to_jsonb(has_function_privilege('service_role','public.test_default_grant()','execute'));`),true);
+  const helpers=['enrichment_fence','enrichment_wake','enrichment_words','enrichment_node_status','enrichment_prepared_length','enrichment_lock_parent'];
+  const rpcs=['enrichment_claim_job','enrichment_begin_stage','enrichment_checkpoint_stage','enrichment_fail_stage','enrichment_commit','enrichment_pending_jobs','enrichment_mark_published','enrichment_recover_jobs','enrichment_checkpoint_step'];
+  const grants=await json(`select jsonb_agg(jsonb_build_object('name',p.proname,
+   'service',has_function_privilege('service_role',p.oid,'execute'),
+   'anon',has_function_privilege('anon',p.oid,'execute'),
+   'authenticated',has_function_privilege('authenticated',p.oid,'execute')))
+   from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'enrichment_%';`);
+  assert.deepEqual(grants.map(x=>x.name).sort(),[...helpers,...rpcs].sort());
+  for(const grant of grants){
+   assert.equal(grant.service,rpcs.includes(grant.name),grant.name);
+   assert.equal(grant.anon,false,grant.name);assert.equal(grant.authenticated,false,grant.name);
+  }
+  const f=await fixture({commit:false});
+  await assert.rejects(sql(`set role service_role; ${rpc('enrichment_lock_parent',{p_job_id:f.row.job_id})}`),/permission denied/);
+  // SECURITY DEFINER RPCs must still invoke their private helpers and triggers.
+  await sql(`set role service_role; ${f.primary}`);
+  const claim=await json(`set role service_role; ${rpc('enrichment_claim_job',{p_job_id:f.row.job_id,p_owner:'privilege-test-owner'})}`);
+  assert.equal(claim.kind,'claimed');
+  await sql(`set role service_role; ${rpc('enrichment_fail_stage',{...f.eauth(claim.lease),p_code:'fixture_terminal',p_retryable:false})}`);
+  assert.equal((await f.node()).model_metadata.enrichmentStatus,'failed');
+  assert.deepEqual(await f.billing(),{status:'completed',amount:20,settles:1,nodes:1});
+ });
  await check('duplicate primary commit serializes with one node and settlement',async()=>{
   const f=await fixture({commit:false});const {second}=await overlap(f.primary,f.primary);
   assert.equal(second.ok,false);assert.match(second.error.message,/generation_lease_fenced/);

@@ -2,8 +2,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {isolatedDatabase} from './database.mjs';
 
-async function fixture(commit=true,tts=false){
- const db=await isolatedDatabase({includeAssets:true});
+async function fixture(commit=true,tts=false,serviceRoleFunctionDefaults=false){
+ const db=await isolatedDatabase({includeAssets:true,serviceRoleFunctionDefaults});
  async function rpc(name:string,args:Record<string,unknown>={}){const entries=Object.entries(args);return (await db.query(`select public.${name}(${entries.map(([k],i)=>`${k}=>$${i+1}`).join(',')}) result`,entries.map(([,v])=>v))).rows[0].result;}
  const user=crypto.randomUUID();await db.query('insert into auth.users(id) values($1)',[user]);
  await rpc('grant_credits',{p_user_id:user,p_amount:100,p_source_type:'test',p_source_id:user,p_idempotency_key:`grant:${user}`});
@@ -193,4 +193,24 @@ test('background writers acquire parent before enrichment/node locks, including 
  for(const name of ['enrichment_begin_stage','enrichment_checkpoint_stage','enrichment_checkpoint_step','enrichment_fail_stage','enrichment_commit'])assert.match(body(name),/public\.enrichment_fence\(p_job_id,p_owner,p_epoch\)/);
  const recovery=body('enrichment_recover_jobs');const parent=recovery.indexOf('from public.generation_jobs where id=v_job_id for key share skip locked');const child=recovery.indexOf('select * into v from public.generation_enrichment_jobs');assert.ok(parent>=0&&child>parent);assert.match(recovery.slice(child),/for update skip locked/);
  const f=await fixture();try{assert.equal((await f.db.query("select has_function_privilege('service_role','public.enrichment_lock_parent(uuid)','execute') allowed")).rows[0].allowed,false);}finally{await f.db.close();}
+});
+
+test('Supabase-style default function grants cannot expose private helpers; service RPCs still run owner-only helpers and triggers',async()=>{
+ const f=await fixture(false,false,true);try{
+ // Prove this database actually grants service_role access to new functions.
+ await f.db.exec("create function public.test_default_grant() returns integer language sql as 'select 1';");
+ assert.equal((await f.db.query("select has_function_privilege('service_role','public.test_default_grant()','execute') allowed")).rows[0].allowed,true);
+ const helpers=['enrichment_fence','enrichment_wake','enrichment_words','enrichment_node_status','enrichment_prepared_length','enrichment_lock_parent'];
+ const grants=(await f.db.query(`select p.proname,has_function_privilege('service_role',p.oid,'execute') service,has_function_privilege('anon',p.oid,'execute') anon,has_function_privilege('authenticated',p.oid,'execute') authenticated from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'enrichment_%'`)).rows;
+ assert.equal(grants.filter((r:any)=>helpers.includes(r.proname)).length,helpers.length);
+ for(const row of grants){assert.equal(row.service,!helpers.includes(row.proname),row.proname);assert.equal(row.anon,false);assert.equal(row.authenticated,false);}
+ await f.db.exec('set role service_role');
+ await assert.rejects(f.rpc('enrichment_lock_parent',{p_job_id:f.row.job_id}),/permission denied/);
+ // Primary commit inserts enrichment and runs the status trigger as the owner.
+ await f.rpc('edge_commit_generated_text',{...f.auth,p_input:f.input});
+ let l=await f.claimEnrich();await f.rpc('enrichment_checkpoint_stage',{...f.eauth(l),p_next:'gloss',p_output:{}});l=await f.claimEnrich();await f.rpc('enrichment_begin_stage',f.eauth(l));await f.rpc('enrichment_checkpoint_stage',{...f.eauth(l),p_next:'commit',p_output:{}});l=await f.claimEnrich();await f.rpc('enrichment_commit',{...f.eauth(l),p_tokens:f.tokens});
+ assert.equal((await f.rpc('enrichment_claim_job',{p_job_id:f.row.job_id,p_owner:'fixture-replay'})).kind,'terminal');
+ await f.db.exec('reset role');
+ assert.equal((await f.db.query('select model_metadata from public.story_nodes where created_by_job_id=$1',[f.row.job_id])).rows[0].model_metadata.enrichmentStatus,'completed');assert.equal((await f.state()).settles,1);
+ }finally{await f.db.close();}
 });

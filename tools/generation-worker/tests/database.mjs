@@ -1,5 +1,5 @@
 import {readFile} from "node:fs/promises";
-export async function isolatedDatabase({includeEdge=true,includeAssets=false}={}){
+export async function isolatedDatabase({includeEdge=true,includeAssets=false,serviceRoleFunctionDefaults=false}={}){
   const {PGlite}=await import(process.env.PGLITE_MODULE??"@electric-sql/pglite");
   const db=new PGlite();
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
@@ -13,6 +13,9 @@ export async function isolatedDatabase({includeEdge=true,includeAssets=false}={}
     "202608230001_generated_story_tts.sql","202608230002_fix_generation_digest_search_path.sql","202611060001_edge_generation_worker.sql",
     "202611060002_generation_readiness.sql",...(includeAssets?["202611100001_asset_dictionary_generation.sql","202611100002_incremental_enrichment_preparation.sql","202611100003_async_dictionary_enrichment.sql"]:[])]){
     if(!includeEdge && file.startsWith("20261106"))continue;
+    if(serviceRoleFunctionDefaults && file==="202611100003_async_dictionary_enrichment.sql"){
+      await db.exec("alter default privileges in schema public grant execute on functions to service_role;");
+    }
     const sql=await readFile(new URL(`../../../supabase/migrations/${file}`,import.meta.url),"utf8");
     await db.exec(sql.replace("create extension if not exists pgcrypto;",""));
   }

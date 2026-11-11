@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
-import {parseGateArgs,gateArgsForRequest,checkSnapshot,VERSION,SOURCE,MANIFEST,READER,READER_VERSION,WORKER,QUEUE} from '../activation_checks.mjs';
+import {parseGateArgs,gateArgsForRequest,checkSnapshot,inspect,VERSION,SOURCE,MANIFEST,READER,READER_VERSION,WORKER,QUEUE} from '../activation_checks.mjs';
 function fixture(phase='before'){
   const vars={LLM_PROVIDER:'openai',OPENAI_MODEL:'gpt-6-luna',OPENAI_REASONING_EFFORT:'low',OPENAI_MAX_OUTPUT_TOKENS:'6000',GENERATION_DICTIONARY_VERSION:phase==='before'?SOURCE:VERSION,GENERATION_ENABLED:phase==='before'?'false':'true'};
   return {dictionary:[{asset_version:VERSION,source_version:SOURCE,manifest_sha256:MANIFEST,expected_rows:892057,zh_rows:121446,en_rows:770611,reader_worker:READER,reader_version:READER_VERSION,verified_at:'2026-11-10T00:00:00Z'}],sqlDictionary:[{version:SOURCE,ready:false,expected_rows:892057}],readerPublicUrls:{enabled:false,previews_enabled:false},readerRoutes:[],readerDomains:[],readerVersions:[{version_id:READER_VERSION,percentage:100}],readerWorkerFirst:true,counts:{zh:121446,en:770611},backend:[{active:false,consumer_verified:false}],jobs:[],workerVersions:[{version_id:'11111111-1111-4111-8111-111111111111',percentage:100}],publicUrls:{enabled:false,previews_enabled:false},
@@ -45,8 +45,8 @@ test('predeploy requires idle jobs; explicitly live postdeploy reports arriving 
  assert.throws(()=>checkSnapshot(fixture('after'),'after',{postDeploy:true}));
 });
 test('CLI and activation-request modes fail closed',()=>{
- assert.deepEqual(parseGateArgs(['after']),{phase:'after',options:{keepActive:false,postDeploy:false}});
- assert.deepEqual(parseGateArgs(['after','--keep-active','--post-deploy']),{phase:'after',options:{keepActive:true,postDeploy:true}});
+ assert.deepEqual(parseGateArgs(['after']),{phase:'after',options:{keepActive:false,postDeploy:false,asyncDictionary:false}});
+ assert.deepEqual(parseGateArgs(['after','--keep-active','--post-deploy']),{phase:'after',options:{keepActive:true,postDeploy:true,asyncDictionary:false}});
  for(const args of [['before','--keep-active'],['after','--post-deploy'],['after','--keep-active','--keep-active'],['after','--unknown'],[]])assert.throws(()=>parseGateArgs(args));
  assert.deepEqual(gateArgsForRequest({mode:'compatible_latency_update'}),['--keep-active']);
  for(const request of [{},{mode:'gloss_coverage_fix'},{mode:'compatible_latency_update '},{keepActive:true},null])assert.deepEqual(gateArgsForRequest(request),[]);
@@ -57,4 +57,44 @@ test('CLI rejects invalid live modes before credentials or remote reads',()=>{
   const child=spawnSync(process.execPath,[fileURLToPath(new URL('../activation_checks.mjs',import.meta.url)),...args],{encoding:'utf8',env:{PATH:process.env.PATH}});
   assert.equal(child.status,1);assert.match(child.stderr,/configuration_or_readiness_mismatch/);assert.equal(child.stdout,'');
  }
+});
+
+function asyncBinding(s,text='true',type='plain_text'){
+ s.settings.bindings.push({name:'GENERATION_ASYNC_DICTIONARY',type,text});return s;
+}
+test('legacy live gates accept only absent, null, or false async capability',()=>{
+ for(const value of [undefined,null,false])for(const bound of [false,true]){
+  const s=liveFixture();if(value!==undefined)s.backend[0].capabilities.async_dictionary=value;
+  if(bound)asyncBinding(s,'false');
+  assert.equal(checkSnapshot(s,'after',{keepActive:true,now:NOW}).verified,true);
+ }
+ for(const value of [true,'false',0,{},[]]){
+  const s=liveFixture();s.backend[0].capabilities.async_dictionary=value;
+  assert.throws(()=>checkSnapshot(s,'after',{keepActive:true,now:NOW}));
+ }
+ for(const value of ['true','',null,'FALSE'])assert.throws(()=>checkSnapshot(asyncBinding(liveFixture(),value),'after',{keepActive:true,now:NOW}));
+ assert.throws(()=>checkSnapshot(asyncBinding(liveFixture(),'false','secret_text'),'after',{keepActive:true,now:NOW}));
+});
+test('async opt-in requires true backend and binding both predeploy and postdeploy',()=>{
+ for(const postDeploy of [false,true]){
+  const options={keepActive:true,postDeploy,asyncDictionary:true,now:NOW};
+  const s=asyncBinding(liveFixture());s.backend[0].capabilities.async_dictionary=true;
+  assert.equal(checkSnapshot(s,'after',options).asyncDictionary,true);
+  for(const value of [undefined,null,false,'true']){
+   const changed=structuredClone(s);changed.backend[0].capabilities.async_dictionary=value;
+   assert.throws(()=>checkSnapshot(changed,'after',options));
+  }
+  for(const mutate of [x=>x.settings.bindings.pop(),x=>x.settings.bindings.at(-1).text='false',x=>x.settings.bindings.at(-1).type='secret_text',x=>x.backend[0].capabilities.text_zh=false,x=>x.backend[0].capabilities.extra=true]){
+   const changed=structuredClone(s);mutate(changed);assert.throws(()=>checkSnapshot(changed,'after',options));
+  }
+ }
+});
+test('async CLI and inspect options require explicit compatible live mode',async()=>{
+ assert.deepEqual(parseGateArgs(['after','--keep-active','--async-dictionary']),{phase:'after',options:{keepActive:true,postDeploy:false,asyncDictionary:true}});
+ assert.deepEqual(parseGateArgs(['after','--keep-active','--async-dictionary','--post-deploy']),{phase:'after',options:{keepActive:true,postDeploy:true,asyncDictionary:true}});
+ for(const args of [['after','--async-dictionary'],['before','--keep-active','--async-dictionary'],['after','--keep-active','--async-dictionary','--async-dictionary']])assert.throws(()=>parseGateArgs(args));
+ assert.throws(()=>checkSnapshot(fixture('after'),'after',{asyncDictionary:true}));
+ assert.throws(()=>checkSnapshot(liveFixture(),'after',{keepActive:true,asyncDictionary:'true',now:NOW}));
+ await assert.rejects(inspect('after',{asyncDictionary:true}),/async_dictionary_requires_keep_active/);
+ await assert.rejects(inspect('after',{keepActive:true,asyncDictionary:'true'}),/invalid_gate_options/);
 });
