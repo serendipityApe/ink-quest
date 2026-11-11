@@ -22,6 +22,10 @@ import { getSupabaseBrowserEnv, isSupabaseConfigured } from "./lib/supabase/env"
  * 公开只读 MCP 与 registry 校验文件不读登录态，避免每次发现请求都打到 Supabase。
  */
 export async function middleware(request: NextRequest) {
+  // This exact route serves a public static shell only. Browser queries still
+  // require a valid Supabase session and owner RLS; no server private data here.
+  if (request.nextUrl.pathname === "/my-stories") return NextResponse.next({ request });
+
   let response = NextResponse.next({ request });
 
   if (!isSupabaseConfigured()) return response;
