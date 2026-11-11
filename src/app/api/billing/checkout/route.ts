@@ -2,7 +2,7 @@ import { getBillingProduct } from "@/lib/billing/catalog";
 import { createLemonSqueezyCheckout } from "@/lib/billing/lemonsqueezy";
 import { getUser } from "@/lib/dal";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { creditProduct, creemRequest, sameOrigin, record, uuid, validCheckoutUrl } from "@/lib/billing/creem";
+import { creditProduct, creemCheckoutEnabled, creemRequest, sameOrigin, record, uuid, validCheckoutUrl } from "@/lib/billing/creem";
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "invalid_origin" }, { status: 403 });
@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       return Response.json({ url });
     } catch { return Response.json({ error: "checkout_unavailable" }, { status: 502 }); }
   }
+  if (!creemCheckoutEnabled()) return Response.json({ error: "checkout_not_enabled" }, { status: 503 });
   const product = creditProduct(typeof body.productCode === "string" ? body.productCode : "");
   if (!product) return Response.json({ error: "product_unavailable" }, { status: 503 });
   if (!uuid(body.requestId)) return Response.json({ error: "request_id_required" }, { status: 400 });

@@ -11,6 +11,7 @@ export function creditProduct(code: string): CreditProduct | null {
 export function creditProductById(id: string) {
   return [creditProduct("generation_monthly"), creditProduct("credits_500")].find(p => p?.id === id) ?? null;
 }
+export function creemCheckoutEnabled() { return process.env.CREEM_CHECKOUT_ENABLED === "true"; }
 export function creemMode() { return process.env.CREEM_MODE === "test" ? "test" : "prod"; }
 export async function creemRequest(path: string, body?: unknown) {
   const key = process.env.CREEM_API_KEY;

@@ -23,3 +23,6 @@ Starter eligibility begins at migration application; previously registered accou
 6. Configure missing webhook event only after endpoint is verified. Live charge/renewal remains untested unless separately performed by the owner. Do not claim end-to-end paid fulfillment solely from synthetic tests.
 
 Official contracts checked: https://docs.creem.io/code/webhooks ; https://docs.creem.io/api-reference/endpoint/create-checkout ; https://docs.creem.io/api-reference/endpoint/create-customer-billing ; https://www.creem.io/buyer-terms .
+
+## Purchase launch gate
+`CREEM_CHECKOUT_ENABLED` defaults to false. Both paid buttons and the server checkout endpoint remain closed until an isolated Creem Test Mode end-to-end payment/webhook/receipt test is verified. Only then explicitly set it to `true`. Credits, existing subscriptions and webhooks remain available while new purchases are gated. Never replace production credentials with test credentials.
