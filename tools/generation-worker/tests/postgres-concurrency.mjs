@@ -142,6 +142,58 @@ try{
   assert.deepEqual(before.filter(x=>x.entry_type==='settle').map(x=>({item:x.metadata.line_item,amount:x.amount})).sort((a,b)=>a.item.localeCompare(b.item)),[{item:'scene_text',amount:-20},{item:'scene_tts',amount:-5}]);
   await assert.rejects(sql(audio),/generation_lease_fenced/);await assert.rejects(sql(gloss),/enrichment_lease_fenced/);assert.deepEqual(await f.ledger(),before);
  });
+ // Status updates also touch story_nodes through enrichment_node_status. Cover
+ // these paths under the same audio locks, including recovery's nonblocking scan.
+ for(const operation of ['claim','checkpoint','failure','recover-retry','recover-terminal']){
+  for(const audioFirst of [true,false])await check(`audio/status overlap: ${operation}, ${audioFirst?'audio':'status'} first`,async()=>{
+   const f=await fixture({tts:true});let action;let expected;
+   if(operation==='claim'){
+    action=rpc('enrichment_claim_job',{p_job_id:f.row.job_id,p_owner:'status-claim-owner'});expected='running';
+   }else{
+    let {lease}=await f.claimEnrich();
+    if(operation==='checkpoint'){
+     action=rpc('enrichment_checkpoint_stage',{...f.eauth(lease),p_next:'gloss',p_output:{}});expected='queued';
+    }else if(operation==='failure'){
+     action=rpc('enrichment_fail_stage',{...f.eauth(lease),p_code:'fixture_terminal',p_retryable:false});expected='failed';
+    }else{
+     if(operation==='recover-terminal'){
+      await sql(rpc('enrichment_checkpoint_stage',{...f.eauth(lease),p_next:'gloss',p_output:{}}));
+      ({lease}=await f.claimEnrich());await sql(rpc('enrichment_begin_stage',f.eauth(lease)));
+     }
+     await sql(`update public.generation_enrichment_jobs set lease_expires_at=now()-interval '1 second' where job_id=${f.id};`);
+     action=rpc('enrichment_recover_jobs');expected=operation==='recover-terminal'?'failed':'queued';
+    }
+   }
+   const audioClaim=await call('edge_claim_generation_job',{p_job_id:f.row.job_id,p_owner:'status-audio-owner'});
+   const timestamps=[{start:0,end:10},{start:10,end:20}];
+   const audio=rpc('edge_commit_generated_audio',{p_job_id:f.row.job_id,p_owner:audioClaim.lease.owner,p_epoch:audioClaim.lease.epoch,
+    p_input:{provider:'fixture',voiceId:'voice',objectKey:'fixture.mp3',contentHash:'e'.repeat(64),durationMs:20,timestamps}});
+   if(audioFirst && operation.startsWith('recover-')){
+    const holder=new Session();
+    try{
+     await holder.sql(`begin; ${audio}`);
+     // Recovery must return while the audio transaction still owns its lock,
+     // skipping this job rather than waiting or taking an inverted row lock.
+     await sql(`set statement_timeout='2s'; ${action}`);
+     assert.equal(await json(`select to_jsonb(status) from public.generation_enrichment_jobs where job_id=${f.id};`),'running');
+     await holder.sql('commit;');
+    }finally{holder.close();}
+    // Skipped work remains eligible and is processed after the lock is released.
+    await sql(action);
+   }else{
+    const {second}=await overlap(audioFirst?audio:action,audioFirst?action:audio);
+    assert.equal(second.ok,true,second.error?.message);
+   }
+   assert.equal(await json(`select to_jsonb(status) from public.generation_enrichment_jobs where job_id=${f.id};`),expected);
+   const node=await f.node();assert.equal(node.model_metadata.enrichmentStatus,expected==='queued'?'pending':expected);
+   assert.equal(node.text_segments[0].meaning,null);assert.equal(node.text_segments[0].start,0);
+   const asset=await json(`select row_to_json(a) from public.audio_assets a where created_by_job_id=${f.id};`);
+   assert.equal(asset.node_id,node.id);assert.deepEqual(asset.timestamps,timestamps);
+   assert.deepEqual(await f.billing(),{status:'completed',amount:25,settles:2,nodes:1});
+   const debits=(await f.ledger()).filter(x=>x.entry_type==='settle').map(x=>({item:x.metadata.line_item,amount:x.amount})).sort((a,b)=>a.item.localeCompare(b.item));
+   assert.deepEqual(debits,[{item:'scene_text',amount:-20},{item:'scene_tts',amount:-5}]);
+  });
+ }
  await check('terminal failure and unknown paid outcome replay never alter billing',async()=>{
   for(const unknown of [false,true]){
    const f=await fixture();let {lease}=await f.claimEnrich();const before=await f.ledger();

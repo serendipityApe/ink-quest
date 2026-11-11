@@ -179,3 +179,18 @@ test('terminal enrichment removes redundant scene/checkpoint payloads; queued re
   }finally{await f.db.close();}
  }
 });
+
+test('background writers acquire parent before enrichment/node locks, including recovery and publication',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const sql=await readFile(new URL('../../../supabase/migrations/202611100003_async_dictionary_enrichment.sql',import.meta.url),'utf8');
+ function body(name:string){return sql.split(`function public.${name}(`)[1].split('end $$;')[0];}
+ assert.match(body('enrichment_lock_parent'),/from public\.generation_jobs where id=p_job_id for key share/);
+ for(const name of ['enrichment_fence','enrichment_claim_job','enrichment_wake','enrichment_mark_published']){
+  const b=body(name);const parent=b.indexOf('perform public.enrichment_lock_parent(p_job_id)');const child=b.indexOf('public.generation_enrichment_jobs where');
+  const update=b.indexOf('update public.generation_enrichment_jobs');
+  assert.ok(parent>=0,`${name} parent lock`);if(child>=0)assert.ok(parent<child);if(update>=0)assert.ok(parent<update);
+ }
+ for(const name of ['enrichment_begin_stage','enrichment_checkpoint_stage','enrichment_checkpoint_step','enrichment_fail_stage','enrichment_commit'])assert.match(body(name),/public\.enrichment_fence\(p_job_id,p_owner,p_epoch\)/);
+ const recovery=body('enrichment_recover_jobs');const parent=recovery.indexOf('from public.generation_jobs where id=v_job_id for key share skip locked');const child=recovery.indexOf('select * into v from public.generation_enrichment_jobs');assert.ok(parent>=0&&child>parent);assert.match(recovery.slice(child),/for update skip locked/);
+ const f=await fixture();try{assert.equal((await f.db.query("select has_function_privilege('service_role','public.enrichment_lock_parent(uuid)','execute') allowed")).rows[0].allowed,false);}finally{await f.db.close();}
+});

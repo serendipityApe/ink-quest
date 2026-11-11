@@ -29,7 +29,19 @@ $$;
 create function public.enrichment_words(p_tokens jsonb) returns text language sql immutable set search_path=public as $$
  select encode(extensions.digest(coalesce(jsonb_agg(value->'word' order by ord),'[]')::text,'sha256'),'hex') from jsonb_array_elements(p_tokens) with ordinality t(value,ord);
 $$;
+-- All background writers lock the original job before the enrichment row/node.
+-- story_nodes.created_by_job_id is a deferred FK: without this early KEY SHARE,
+-- an audio writer can hold the parent FOR UPDATE while waiting on our node,
+-- and our deferred FK check then waits on that same parent at COMMIT.
+-- This is only a transaction-scoped lock, never a generation reservation/lease.
+create function public.enrichment_lock_parent(p_job_id uuid) returns void
+language plpgsql security definer set search_path=public as $$
+begin
+ perform 1 from public.generation_jobs where id=p_job_id for key share;
+end $$;
 -- Status is visible through the existing owner-scoped story_nodes read policy.
+-- Callers already hold parent KEY SHARE (or primary generation FOR UPDATE)
+-- before touching the enrichment row. Do not acquire it here after child locks.
 create function public.enrichment_node_status() returns trigger language plpgsql security definer set search_path=public as $$
 begin
  update public.story_nodes set model_metadata=model_metadata||jsonb_build_object('enrichmentStatus',case when new.status='queued' then 'pending' else new.status end)
@@ -40,12 +52,14 @@ create trigger enrichment_node_status after insert or update of status on public
 create function public.enrichment_wake(p_job_id uuid,p_delay integer default 0) returns jsonb language plpgsql security definer set search_path=public as $$
 declare v_revision bigint;
 begin
+ perform public.enrichment_lock_parent(p_job_id);
  update public.generation_enrichment_jobs set revision=revision+1,status='queued',owner=null,lease_expires_at=null,next_attempt_at=now()+make_interval(secs=>p_delay),updated_at=now() where job_id=p_job_id returning revision into v_revision;
  return jsonb_build_object('jobId',p_job_id,'revision',v_revision,'kind','enrichment');
 end $$;
 create function public.enrichment_fence(p_job_id uuid,p_owner text,p_epoch bigint) returns public.generation_enrichment_jobs language plpgsql security definer set search_path=public as $$
 declare v public.generation_enrichment_jobs%rowtype;
 begin
+ perform public.enrichment_lock_parent(p_job_id);
  select * into v from public.generation_enrichment_jobs where job_id=p_job_id for update;
  if v.status is distinct from 'running' or v.owner is distinct from p_owner or v.epoch is distinct from p_epoch or v.lease_expires_at is null or v.lease_expires_at<=now() or v.expires_at<=now() then raise exception 'enrichment_lease_fenced'; end if;
  return v;
@@ -53,6 +67,7 @@ end $$;
 create function public.enrichment_claim_job(p_job_id uuid,p_owner text) returns jsonb language plpgsql security definer set search_path=public as $$
 declare v public.generation_enrichment_jobs%rowtype; n public.story_nodes%rowtype;
 begin
+ perform public.enrichment_lock_parent(p_job_id);
  if length(trim(p_owner))<8 then raise exception 'invalid_lease_owner'; end if;
  select * into v from public.generation_enrichment_jobs where job_id=p_job_id for update;
  if not found then return jsonb_build_object('kind','missing'); end if;
@@ -121,13 +136,22 @@ end $$;
 create function public.enrichment_pending_jobs() returns jsonb language sql security definer set search_path=public as $$
  select coalesce(jsonb_agg(jsonb_build_object('jobId',job_id,'revision',revision,'kind','enrichment')),'[]') from (select job_id,revision from public.generation_enrichment_jobs where status='queued' and revision>published_revision and next_attempt_at<=now() order by next_attempt_at limit 5) q;
 $$;
-create function public.enrichment_mark_published(p_job_id uuid,p_revision bigint) returns void language sql security definer set search_path=public as $$
- update public.generation_enrichment_jobs set published_revision=p_revision where job_id=p_job_id and revision=p_revision;
-$$;
-create function public.enrichment_recover_jobs() returns void language plpgsql security definer set search_path=public as $$
-declare v public.generation_enrichment_jobs%rowtype;
+create function public.enrichment_mark_published(p_job_id uuid,p_revision bigint) returns void language plpgsql security definer set search_path=public as $$
 begin
- for v in select * from public.generation_enrichment_jobs where status in ('queued','running') and (expires_at<=now() or (status='running' and lease_expires_at<=now()) or (status='queued' and updated_at<now()-interval '5 minutes')) limit 25 for update skip locked loop
+ perform public.enrichment_lock_parent(p_job_id);
+ update public.generation_enrichment_jobs set published_revision=p_revision where job_id=p_job_id and revision=p_revision;
+end $$;
+create function public.enrichment_recover_jobs() returns void language plpgsql security definer set search_path=public as $$
+declare v public.generation_enrichment_jobs%rowtype; v_job_id uuid;
+begin
+ -- Scan only identities first, without child locks. Never wait for a parent
+ -- while holding its enrichment row. Recheck eligibility after both locks.
+ for v_job_id in select job_id from public.generation_enrichment_jobs where status in ('queued','running') and (expires_at<=now() or (status='running' and lease_expires_at<=now()) or (status='queued' and updated_at<now()-interval '5 minutes')) order by job_id limit 25 loop
+  perform 1 from public.generation_jobs where id=v_job_id for key share skip locked;
+  if not found then continue; end if;
+  select * into v from public.generation_enrichment_jobs where job_id=v_job_id and status in ('queued','running')
+   and (expires_at<=now() or (status='running' and lease_expires_at<=now()) or (status='queued' and updated_at<now()-interval '5 minutes')) for update skip locked;
+  if not found then continue; end if;
   if v.in_flight or v.expires_at<=now() or v.failures>=3 then
    update public.generation_enrichment_jobs set status='failed',outputs='{}',job='{}',phase='done',owner=null,in_flight=false,error_code=case when v.in_flight then 'upstream_outcome_unknown' else 'enrichment_deadline_expired' end where job_id=v.job_id;
   else perform public.enrichment_wake(v.job_id); end if;
@@ -314,7 +338,7 @@ end $$;
 do $$ declare f record; begin
  for f in select p.oid::regprocedure signature,p.proname from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'enrichment_%' loop
  execute format('revoke all on function %s from public,anon,authenticated',f.signature);
- if f.proname not in ('enrichment_fence','enrichment_wake','enrichment_words','enrichment_node_status','enrichment_prepared_length') then execute format('grant execute on function %s to service_role',f.signature); end if;
+ if f.proname not in ('enrichment_fence','enrichment_wake','enrichment_words','enrichment_node_status','enrichment_prepared_length','enrichment_lock_parent') then execute format('grant execute on function %s to service_role',f.signature); end if;
  end loop;
 end $$;
 notify pgrst,'reload schema';

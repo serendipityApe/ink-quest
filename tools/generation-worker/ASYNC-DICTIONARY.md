@@ -1,6 +1,6 @@
 # Text-first dictionary enrichment
 
-Prepared locally. This change has not been migrated, deployed, or enabled in production.
+Prepared for rollout. This change has not been migrated, deployed, or enabled in production.
 
 ## Behavior
 
@@ -13,7 +13,7 @@ Prepared locally. This change has not been migrated, deployed, or enabled in pro
 
 Chinese pinyin is available with the initial text. English IPA and dictionary levels/meanings arrive with enrichment. Base/function words and punctuation need no dictionary lookup unless explicitly marked as a plot keyword. Plot keywords retain meaning and reading support, including base-word overrides. The dictionary is retained. Missing or failed meanings never open an empty word card or save an empty vocabulary entry.
 
-The existing optional narration job and its credit settlement are unchanged. Its existing branch-lock behavior remains until narration settles; dictionary work adds no such lock. An unfinished glossary does not make successful text generation fail or cause a second text charge. Paid glossary calls retain the existing in-flight ambiguity rule: an uncertain upstream outcome is not automatically replayed.
+The existing optional narration job and its credit settlement are unchanged. Its existing branch-lock behavior remains until narration settles; dictionary work adds no such lock. An unfinished glossary does not make successful text generation fail or cause a second text charge. Every background write takes a short parent-job key-share lock before its own row/node locks, matching audio lock order and avoiding deferred-foreign-key deadlocks. This lock ends with the database transaction and is never held across dictionary/model calls. Paid glossary calls retain the existing in-flight ambiguity rule: an uncertain upstream outcome is not automatically replayed.
 
 ## Compatibility and rollout order
 
@@ -34,10 +34,10 @@ The frontend polls owner-scoped lexical status independently, checks node ID/ver
 - `test:queue:async` runs the production bundle against local Queues, isolated PostgreSQL/PGlite, fake model/speech endpoints, and duplicate initial messages. No external models, production Queue, real database, or real speech service is used.
 - `test:queue` retains the legacy queue path. Existing LLM, TTS, billing and reader tests remain applicable.
 
-PGlite has one session; these checks do not establish multi-session native PostgreSQL concurrency or production CPU limits. Actual production latency and provider billing were not measured.
+PGlite has one session; its checks do not establish multi-session native PostgreSQL concurrency. The separate native PostgreSQL job below covers transaction races. Neither test suite establishes production CPU limits; actual production latency and provider billing are not measured.
 
 ## Isolated cloud release checks
 
 The existing development-branch verification workflow also prepares a full `pnpm build` with synthetic Supabase settings and a separate PostgreSQL 17 service. Neither job references production secrets, changes the production database, or deploys anything.
 
-`node tools/generation-worker/tests/postgres-concurrency.mjs` exercises eight transaction cases using independent psql processes and verified `pg_blocking_pids` barriers. It refuses non-loopback hosts, any database name other than `inkquest_test`, and nonempty databases. CI owns the disposable service lifecycle. The script is syntax-checked locally; its actual multi-session execution and the cloud web build remain unverified until their GitHub Actions jobs complete successfully.
+`node tools/generation-worker/tests/postgres-concurrency.mjs` exercises eighteen transaction cases using independent psql processes and verified `pg_blocking_pids` barriers. It refuses non-loopback hosts, any database name other than `inkquest_test`, and nonempty databases. CI owns the disposable service lifecycle. Local syntax validation is not a concurrency result. Require successful `postgres-concurrency` and `full-web-build` jobs for the exact development-branch commit before treating these checks as passed.
