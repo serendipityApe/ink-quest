@@ -116,3 +116,21 @@ test("narrow desktop keeps the original vertical tooltip bridge", () => {
   assert.equal(p.top, 202);
   for (let y = p.top + 190; y <= trigger.top; y++) assert.ok(containsBridge(p, 550, y));
 });
+
+for (const component of ["Navbar", "Footer"]) {
+  test(`${component} navigation disables automatic route prefetch`, () => {
+    const source = readFileSync(new URL(`../src/components/${component}.tsx`, import.meta.url), "utf8");
+    const tree = ts.createSourceFile(`${component}.tsx`, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    let count = 0;
+    function visit(node) {
+      if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && node.tagName.getText(tree) === "Link") {
+        count++;
+        const prop = node.attributes.properties.find(prop => ts.isJsxAttribute(prop) && prop.name.getText(tree) === "prefetch");
+        assert.ok(prop?.initializer && ts.isJsxExpression(prop.initializer) && prop.initializer.expression?.kind === ts.SyntaxKind.FalseKeyword, "Every shared navigation Link must explicitly disable prefetch");
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(tree);
+    assert.ok(count > 0);
+  });
+}
